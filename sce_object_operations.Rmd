@@ -1,0 +1,158 @@
+---
+title: "scExploreR Execution Scripts"
+output: html_document
+date: '2023-02-03'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Seurat)
+library(SingleCellExperiment)
+library(DelayedArray)
+
+library(ggplot2)
+library(dplyr)
+
+library(HDF5Array)
+```
+
+```{r}
+# Files used
+# Cancer Discovery Seurat object
+cancDiscSeurat <- 
+  "~/1A_Jordan_Lab/Projects/scExploreR_files/scExploreR/Seurat_Objects/Cancer_discovery_object/pei_cd_20221122.Rds"
+
+# Directory for SingleCellExperiment HDF5 version 
+hdf5Dir <-
+  "~/1A_Jordan_Lab/Projects/scExploreR_files/scExploreR/Seurat_Objects/Cancer_discovery_object/sce_hdf5"
+```
+
+
+Thursday, February 9th, 2023
+
+The current version of the app is based on Seurat's memory management practices, which require the full matrix to be loaded into memory. This is a considerable barrier to scaling the app to large objects. To address this, usage of the SingleCellExperiment class in place of Seurat will be investigated. The SingleCellExperiment class works with DelayedArray, allowing operations to be performed on the matrix without requiring the full matrix to be loaded into memory. 
+
+
+## Conversion of Seurat object to a SingleCellExperiment
+
+```{r}
+# Load a Seurat object
+sobj <- readRDS(cancDiscSeurat)
+
+# Convert to SingleCellExperiment object 
+# Each assay must be converted separately
+sce <- as.SingleCellExperiment(sobj, assay = "RNA")
+sceAdt <- as.SingleCellExperiment(sobj, assay = "ADT")
+
+# Store ADT assay as an "alternate experiment" of the RNA assay
+altExps(sce) <- list("ADT" = sce_adt)
+
+sce
+```
+
+Access Metadata
+```{r}
+colData(sce) |> names()
+```
+
+Access assays (exp. matrices)
+```{r}
+# List all assays
+assays(sce) 
+
+assayNames(sce)
+
+# View scaledata assay
+assay(sce, "scaledata")
+assays(sce)$scaledata
+```
+
+Convert assays to DelayedArrays and combine into a single sce object 
+
+```{r}
+delArray <- extract_array(assay(sce, "scaledata"), list(NULL, NULL))
+
+assay(sce, "scaledata") <- delArray
+```
+
+
+Save in HDF5 Format
+```{r}
+saveHDF5SummarizedExperiment(sce, dir = hdf5Dir, chunkdim = c(1000, 1000))
+```
+
+```{r}
+Hdf5 <- loadHDF5SummarizedExperiment(dir = hdf5Dir)
+
+print(object.size(Hdf5), units = "auto")
+```
+
+Friday, February 10th, 2023 
+
+# Operations on SCE objects in HDF5 storage
+
+Dplyr functions do not work on delayedMatrix objects, but base R slicing does.
+
+#### Subsetting
+
+```{r}
+# Subset for HSCs and Monocytes
+Hdf5[, Hdf5$named_clusters %in% c("HSC", "Monocytes")]
+
+# Fetching genes
+assay(Hdf5["HOXA9",], "scaledata")
+
+# Fetching ADTS
+# Show all ADTs
+assay(altExps(Hdf5)[["ADT"]]) |> rownames()
+
+# summary statistics 
+assay(altExps(Hdf5)[["ADT"]][c("CD45", "CD11b"),], "logcounts") |> 
+  # Features must be column names (regardless of how many are entered)
+  t() |> 
+  summary()
+```
+
+```{r}
+# Complex subsetting
+subset <- Hdf5[, (Hdf5$named_clusters %in% c("HSC", "Monocytes") & 
+          Hdf5$sample %in% c("Dx"))]
+
+# Inspect "tree" of delayed operations on delayedMatrix elements
+subMat <- assay(subset, "counts")
+showtree(subMat)
+```
+
+The list of delayed operations printed by showtree() is only performed when the new object is “realized” (when the data is printed or called upon by a function). The operations are based on the seed object on disk (instead of duplicating the subset on disk) 
+
+#### Other statistics
+
+```{r}
+# Proportion of nonzero reads in object
+mat <- assay(Hdf5, "counts")
+
+# Total number of columns (cells) where each gene has an expression value 
+# greater than zero, divided by the number of columns in the object
+prop_nonzero <- DelayedArray::rowSums(mat > 0)/ncol(mat)
+
+summary(prop_nonzero)
+```
+
+### Block Processing
+
+```{r}
+
+```
+
+
+```{r}
+library(DelayedMatrixStats)
+
+DelayedMatrixStats::colMedians()
+```
+
