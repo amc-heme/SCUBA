@@ -1,2 +1,7 @@
 *.Rproj
 .Rproj.user
+*.Rhistory
+*.DS_Store
+
+# SCE object used for plotting 
+data/sce_hdf5

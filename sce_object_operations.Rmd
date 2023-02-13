@@ -14,11 +14,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(Seurat)
 library(SingleCellExperiment)
 library(DelayedArray)
+library(HDF5Array)
+library(DelayedMatrixStats)
 
 library(ggplot2)
 library(dplyr)
-
-library(HDF5Array)
 ```
 
 ```{r}
@@ -32,11 +32,9 @@ hdf5Dir <-
   "~/1A_Jordan_Lab/Projects/scExploreR_files/scExploreR/Seurat_Objects/Cancer_discovery_object/sce_hdf5"
 ```
 
-
 Thursday, February 9th, 2023
 
-The current version of the app is based on Seurat's memory management practices, which require the full matrix to be loaded into memory. This is a considerable barrier to scaling the app to large objects. To address this, usage of the SingleCellExperiment class in place of Seurat will be investigated. The SingleCellExperiment class works with DelayedArray, allowing operations to be performed on the matrix without requiring the full matrix to be loaded into memory. 
-
+The current version of the app is based on Seurat's memory management practices, which require the full matrix to be loaded into memory. This is a considerable barrier to scaling the app to large objects. To address this, usage of the SingleCellExperiment class in place of Seurat will be investigated. The SingleCellExperiment class works with DelayedArray, allowing operations to be performed on the matrix without requiring the full matrix to be loaded into memory.
 
 ## Conversion of Seurat object to a SingleCellExperiment
 
@@ -56,11 +54,13 @@ sce
 ```
 
 Access Metadata
+
 ```{r}
 colData(sce) |> names()
 ```
 
 Access assays (exp. matrices)
+
 ```{r}
 # List all assays
 assays(sce) 
@@ -72,7 +72,7 @@ assay(sce, "scaledata")
 assays(sce)$scaledata
 ```
 
-Convert assays to DelayedArrays and combine into a single sce object 
+Convert assays to DelayedArrays and combine into a single sce object
 
 ```{r}
 delArray <- extract_array(assay(sce, "scaledata"), list(NULL, NULL))
@@ -80,8 +80,8 @@ delArray <- extract_array(assay(sce, "scaledata"), list(NULL, NULL))
 assay(sce, "scaledata") <- delArray
 ```
 
-
 Save in HDF5 Format
+
 ```{r}
 saveHDF5SummarizedExperiment(sce, dir = hdf5Dir, chunkdim = c(1000, 1000))
 ```
@@ -92,11 +92,35 @@ Hdf5 <- loadHDF5SummarizedExperiment(dir = hdf5Dir)
 print(object.size(Hdf5), units = "auto")
 ```
 
-Friday, February 10th, 2023 
+Friday, February 10th, 2023
 
 # Operations on SCE objects in HDF5 storage
 
-Dplyr functions do not work on delayedMatrix objects, but base R slicing does.
+Expression matrices are stored in the object as delayedMatrix objects. Dplyr functions do not work on delayedMatrix objects, but base R slicing does.
+
+#### Accessing Reductions
+
+Reduction data is not stored as a delayedMatrix (and does not need to be).
+
+```{r}
+# View reductions in object
+reducedDims(Hdf5)
+reducedDimNames(Hdf5)
+
+# Pull UMAP coordinates
+reducedDims(Hdf5)[["UMAP"]] |> head()
+
+# Rename reduction columns (will have to do this in app to apply labels chosen 
+# in the config app)
+new_colnames <-
+  reducedDims(Hdf5)[["UMAP"]] |>
+  colnames() |>
+  (\(.){gsub("UMAP", "Umap", .)})()
+
+colnames(reducedDims(Hdf5)[["UMAP"]]) <- new_colnames
+
+reducedDims(Hdf5)[["UMAP"]] |> head()
+```
 
 #### Subsetting
 
@@ -128,9 +152,11 @@ subMat <- assay(subset, "counts")
 showtree(subMat)
 ```
 
-The list of delayed operations printed by showtree() is only performed when the new object is “realized” (when the data is printed or called upon by a function). The operations are based on the seed object on disk (instead of duplicating the subset on disk) 
+The list of delayed operations printed by showtree() is only performed when the new object is "realized" (when the data is printed or loaded into memory by a function). The operations are based on the seed object on disk (instead of duplicating the subset on disk).
 
 #### Other statistics
+
+The operations below are based on the [DelayedArray framework tutorial](https://www.youtube.com/watch?v=Ew_3RdtszBs).
 
 ```{r}
 # Proportion of nonzero reads in object
@@ -146,13 +172,109 @@ summary(prop_nonzero)
 ### Block Processing
 
 ```{r}
+# Temporarially enable verbose block processing
+DelayedArray:::set_verbose_block_processing(TRUE)
 
+# Block processing is observed when computing nonzero proportions
+DelayedArray::rowSums(mat > 0)/ncol(mat)
 ```
 
+#### Writing custom functions with block processing
 
 ```{r}
-library(DelayedMatrixStats)
+basic_colSums <- function(mat){
+  # 1. Set up ArrayGrid for block processing
+  # Column-wise grids of one column per block are implemented below
+  grid <- 
+    colAutoGrid(
+      mat, 
+      ncol = 1
+      )
+  
+  # 2. Load blocks into memory and compute block-level stats
+  block_level_stat <- 
+    blockApply(
+      mat , 
+      # Function to apply to each block
+      FUN = colSums,
+      # Block structure from 1.
+      grid = grid
+      )
+  
+  # 3. combine block-level statistics 
+  # statistics are returned as a vector using block_level stats
+  unlist(block_level_stat)
+}
 
-DelayedMatrixStats::colMedians()
+test_value <- basic_colSums(subMat)
 ```
 
+Each column (cell) becomes a block in this case (there are 2,283 cells). While the RAM requirements are greatly decreased using a block size this small, the function takes a *very* long time to complete.
+
+Below, the block size is increased to 200 cells to increase the computation speed.
+
+```{r}
+basic_colSums <- function(mat){
+  # 1. Set up ArrayGrid for block processing
+  grid <- 
+    colAutoGrid(
+      mat, 
+      # Increase # of columns per block to 200
+      ncol = 200
+      )
+  
+  # 2. Load blocks into memory and compute block-level stats
+  block_level_stat <- 
+    blockApply(
+      mat , 
+      # Function to apply to each block
+      FUN = colSums,
+      # Block structure from 1.
+      grid = grid
+      )
+  
+  # 3. combine block-level statistics 
+  # statistics are returned as a vector using block_level stats
+  unlist(block_level_stat)
+}
+
+test_value <- basic_colSums(subMat)
+```
+
+12 blocks of 200 cells x 32808 features are created in this case, making computation much faster.
+
+```{r}
+# Comparison with DelayedMatrix::colSums function
+all(DelayedArray::colSums(subMat) == test_value)
+```
+
+#### Realizing data on memory or to disk
+
+```{r}
+# Realizing in memory
+# Can realize as an array or a sparse matrix
+fullMat <- as(mat, "sparseMatrix")
+
+# Realizing to disk
+# Block processing is used to avoid loading the entire dataset into memory
+matrixOnDisk <- writeHDF5Array(mat)
+# Can specify a filename, or NULL. When NULL, the matrix is written to the 
+# current "HDF5 dump file"
+
+# An object is created in the global environment, but it is a pointer to an 
+# HDF5 file, and uses very little memory
+print(object.size(matrixOnDisk), units = "auto")
+```
+
+Intermediate processing stages are recommended to be saved to disk to avoid requiring re-running the entire tree of delayedMatrix operations to make a plot. [see 42:00 from the DelayedArray Data](https://www.youtube.com/watch?v=Ew_3RdtszBs)
+
+The plotting functions should use a finalized SummarizedExperiment object saved to disk. This is likely to be the case anyway though, based on the current usage of Seurat objects.
+
+#### Changing the defualt block size
+
+The default block size is 100 Mb. This can be changed with `setAutoBlockSize()`.
+
+```{r}
+# Block size is given in bytes. The size is set to 500 Mb to increase speed
+setAutoBlockSize(size = 5e+08)
+```

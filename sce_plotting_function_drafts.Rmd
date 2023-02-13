@@ -1,0 +1,42 @@
+---
+title: "SCE plotting_function_drafts"
+output: html_document
+date: "2023-02-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Seurat)
+library(SingleCellExperiment)
+library(DelayedArray)
+library(HDF5Array)
+library(DelayedMatrixStats)
+
+library(ggplot2)
+library(dplyr)
+
+# Directory for SingleCellExperiment HDF5 version 
+# SCE object is derived from the Cancer Discovery Seurat object
+hdf5Dir <-
+  "data/sce_hdf5/"
+
+sce <- loadHDF5SummarizedExperiment(dir = hdf5Dir)
+```
+
+# UMAP function
+
+The code below is based on the Seurat::DimPlot function, while leaving lower-level functions intact (for now).
+
+The version below is written for SingleCellExperiment objects only. Later, a combined function that accepts both Seurat and SCE objects will be created.
+
+```{r}
+# User arguments ####
+reduction <- "umap"
+
+#####
+# 1. Define reduction, with default value
+```
+
