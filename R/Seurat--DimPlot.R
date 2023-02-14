@@ -132,7 +132,7 @@ DimPlot <- function(
   object[['ident']] <- Idents(object = object)
   # Store group by variable in `orig.groups`
   orig.groups <- group.by
-  # Define the group by variable, using NULL if undefined
+  # Define the group by variable, using ident column if undefined
   group.by <- group.by %||% 'ident'
   
   # Add values of the group.by metadata variable(s) for 

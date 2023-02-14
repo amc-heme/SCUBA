@@ -120,6 +120,11 @@ new_colnames <-
 colnames(reducedDims(Hdf5)[["UMAP"]]) <- new_colnames
 
 reducedDims(Hdf5)[["UMAP"]] |> head()
+
+# See what happens if an assay is duplicated with a different key
+reducedDims(Hdf5)[["Umap"]] <- reducedDims(Hdf5)[["UMAP"]]
+head(reducedDims(Hdf5)[["Umap"]])
+# Column names do not change when changing the names of dimensionality reductions
 ```
 
 #### Subsetting
