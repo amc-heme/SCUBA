@@ -37,10 +37,10 @@ The version below is written for SingleCellExperiment objects only. Later, a com
 object <- sce
 reduction <- "UMAP"
 group_by <- "named_clusters"
-shape_by <- "named_clusters"
+shape_by <- NULL#"named_clusters"
 split_by <- "sample"
 # Test subset (1,40, 56)
-cells <- c("DX_AAACCCAAGCGTATAA","DX_AACAACCGTTAGTTCG", "DX_AACCATGTCTCTATGT")
+cells <- NULL #c("DX_AAACCCAAGCGTATAA","DX_AACAACCGTTAGTTCG", "DX_AACCATGTCTCTATGT")
 dims <- c(1, 2)
 # Uses same default seed as Seurat::DimPlot to yield comparable results
 seed <- 1
@@ -197,6 +197,13 @@ plots <-
  
 plots 
 #return(plots)
+```
+```{r}
+Seurat::DimPlot(
+  object = sobj,
+  group.by = "named_clusters",
+  split.by = "sample"
+)
 ```
 
 
