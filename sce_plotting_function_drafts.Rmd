@@ -277,3 +277,27 @@ if (length(x = dims) != 2) {
   }
 ```
 
+# Test SCEPlots::DimPlot
+
+```{r}
+sce <- loadHDF5SummarizedExperiment(dir = hdf5Dir)
+
+# SCE object
+SCEPlots::DimPlot(
+  object = sce,
+  reduction = "UMAP",
+  group_by = "named_clusters",
+  split_by = "sample"
+)
+```
+```{r}
+sobj <- readRDS("../scExploreR_files/scExploreR/Seurat_Objects/Cancer_discovery_object/pei_cd_20221122.Rds")
+
+SCEPlots::DimPlot(
+  object = sobj,
+  reduction = "umap",
+  group_by = "named_clusters",
+  split_by = "sample"
+)
+```
+

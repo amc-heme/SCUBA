@@ -2,9 +2,6 @@
 % Please edit documentation in R/DimPlot.R
 \name{DimPlot}
 \alias{DimPlot}
-\alias{TSNEPlot}
-\alias{PCAPlot}
-\alias{ICAPlot}
 \title{Dimensional reduction plot}
 \usage{
 DimPlot(
@@ -12,27 +9,27 @@ DimPlot(
   dims = c(1, 2),
   cells = NULL,
   cols = NULL,
-  pt.size = NULL,
+  pt_size = NULL,
   reduction = NULL,
-  group.by = NULL,
-  split.by = NULL,
-  shape.by = NULL,
+  group_by = NULL,
+  split_by = NULL,
+  shape_by = NULL,
   order = NULL,
   shuffle = FALSE,
   seed = 1,
   label = FALSE,
-  label.size = 4,
-  label.color = "black",
-  label.box = FALSE,
+  label_size = 4,
+  label_color = "black",
+  label_box = FALSE,
   repel = FALSE,
-  cells.highlight = NULL,
-  cols.highlight = "#DE2D26",
-  sizes.highlight = 1,
-  na.value = "grey50",
+  cells_highlight = NULL,
+  cols_highlight = "#DE2D26",
+  sizes_highlight = 1,
+  na_value = "grey50",
   ncol = NULL,
   combine = TRUE,
   raster = NULL,
-  raster.dpi = c(512, 512)
+  raster_dpi = c(512, 512)
 )
 }
 \arguments{
@@ -48,7 +45,19 @@ or numeric value corresponding to a palette as specified by \code{\link[RColorBr
 By default, ggplot2 assigns colors. We also include a number of palettes from the pals package.
 See \code{\link{DiscretePalette}} for details.}
 
+\item{pt_size}{Adjust point size for plotting}
+
 \item{reduction}{Which dimensionality reduction to use. If not specified, first searches for umap, then tsne, then pca}
+
+\item{group_by}{Name of one or more metadata columns to group (color) cells by
+(for example, orig.ident); pass 'ident' to group by identity class}
+
+\item{split_by}{Name of a metadata column to split plot by;
+see \code{\link{FetchData}} for more details}
+
+\item{shape_by}{If NULL, all points are circles (default). You can specify any
+cell attribute (that can be pulled with FetchData) allowing for both
+different colors and different shapes on cells.  Only applicable if \code{raster = FALSE}.}
 
 \item{order}{Specify the order of plotting for the idents. This can be
 useful for crowded plots if points of interest are being buried. Provide
@@ -61,34 +70,14 @@ useful for crowded plots if points of interest are being buried. (default is FAL
 
 \item{label}{Whether to label the clusters}
 
-\item{repel}{Repel labels}
-
-\item{ncol}{Number of columns for display when combining plots}
-
-\item{combine}{Combine plots into a single \code{\link[patchwork]{patchwork}ed}
-ggplot object. If \code{FALSE}, return a list of ggplot objects}
-
-\item{raster}{Convert points to raster format, default is \code{NULL} which
-automatically rasterizes if plotting more than 100,000 cells}
-
-\item{pt_size}{Adjust point size for plotting}
-
-\item{group_by}{Name of one or more metadata columns to group (color) cells by
-(for example, orig.ident); pass 'ident' to group by identity class}
-
-\item{split_by}{Name of a metadata column to split plot by;
-see \code{\link{FetchData}} for more details}
-
-\item{shape_by}{If NULL, all points are circles (default). You can specify any
-cell attribute (that can be pulled with FetchData) allowing for both
-different colors and different shapes on cells.  Only applicable if \code{raster = FALSE}.}
-
 \item{label_size}{Sets size of labels}
 
 \item{label_color}{Sets the color of the label text}
 
 \item{label_box}{Whether to put a box around the label text (geom_text vs
 geom_label)}
+
+\item{repel}{Repel labels}
 
 \item{cells_highlight}{A list of character or numeric vectors of cells to
 highlight. If only one group of cells desired, can simply
@@ -103,6 +92,14 @@ repeat to the length groups in cells_highlight}
 groups in cells_highlight}
 
 \item{na_value}{Color value for NA points when using custom scale}
+
+\item{ncol}{Number of columns for display when combining plots}
+
+\item{combine}{Combine plots into a single \code{\link[patchwork]{patchwork}ed}
+ggplot object. If \code{FALSE}, return a list of ggplot objects}
+
+\item{raster}{Convert points to raster format, default is \code{NULL} which
+automatically rasterizes if plotting more than 100,000 cells}
 
 \item{raster_dpi}{Pixel resolution for rasterized plots, passed to geom_scattermore().
 Default is c(512, 512).}
@@ -122,18 +119,3 @@ colData(). The metadata variable used for coloring cells can be changed with the
 The code for this function was from the {\link[Seurat Package]{https://github.com/satijalab/seurat/blob/master/R/visualization.R}} and adapted for use with
 {\link[SingleCellExperiment]{https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html}} objects.
 }
-\note{
-For the old \code{do.hover} and \code{do.identify} functionality, please see
-\code{HoverLocator} and \code{CellSelector}, respectively.
-}
-\examples{
-data("pbmc_small")
-DimPlot(object = pbmc_small)
-DimPlot(object = pbmc_small, split_by = 'ident')
-
-}
-\seealso{
-\code{\link{FeaturePlot}} \code{\link{HoverLocator}}
-\code{\link{CellSelector}} \code{\link{FetchData}}
-}
-\concept{visualization}

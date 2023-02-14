@@ -1,4 +1,4 @@
-#------- Function copied and adapted from Seurat package ----------------------- 
+#------- Function copied and adapted from Seurat package -----------------------
 # https://github.com/satijalab/seurat
 
 #' Plot a single dimension
@@ -46,7 +46,7 @@
 #'
 #' @keywords internal
 #'
-#' @export
+#' @noRd
 #'
 SingleDimPlot <- function(
     data,
@@ -153,7 +153,7 @@ SingleDimPlot <- function(
     )
     alpha.by <- NULL
   }
-  
+
   plot <- ggplot(data = data)
   plot <- if (isTRUE(x = raster)) {
     plot + geom_scattermore(

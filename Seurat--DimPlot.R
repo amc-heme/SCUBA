@@ -1,4 +1,4 @@
-#------- Function copied and adapted from Seurat package ----------------------- 
+#------- Function copied and adapted from Seurat package -----------------------
 # https://github.com/satijalab/seurat
 
 
@@ -9,7 +9,7 @@
 #' default, cells are colored by their identity class (can be changed with the group.by parameter).
 #'
 #' Code adapted from the Seurat package (https://github.com/satijalab/seurat/blob/master/R/visualization.R)
-#' 
+#'
 #' @param object Seurat object
 #' @param dims Dimensions to plot, must be a two-length numeric vector specifying x- and y-dimensions
 #' @param cells Vector of cells to plot (default is all cells)
@@ -63,7 +63,8 @@
 #' @importFrom ggplot2 facet_wrap vars sym labs
 #' @importFrom patchwork wrap_plots
 #'
-#' @export
+#' @noRd
+#'
 #' @concept visualization
 #'
 #' @note For the old \code{do.hover} and \code{do.identify} functionality, please see
@@ -113,36 +114,36 @@ DimPlot <- function(
   reduction <- reduction %||% DefaultDimReduc(object = object)
   # Read parameter for cells to plot (defaults to all cells)
   cells <- cells %||% colnames(x = object)
-  
-  # Fetch data for chosen reduction from object 
-  # subset for chosen cells and dims 
+
+  # Fetch data for chosen reduction from object
+  # subset for chosen cells and dims
   data <- Embeddings(object = object[[reduction]])[cells, dims]
   # Convert to data.frame (default is a matrix)
   data <- as.data.frame(x = data)
   # Form names for dim reduction coordinates on the x- and y- axis
-  dims <- 
+  dims <-
     paste0(
-      # Use the key of the *reduction* chosen by the 
+      # Use the key of the *reduction* chosen by the
       # user (or the default reduction)
-      Key(object = object[[reduction]]), 
+      Key(object = object[[reduction]]),
       dims
       )
-  
+
   # Store current ident class
   object[['ident']] <- Idents(object = object)
   # Store group by variable in `orig.groups`
   orig.groups <- group.by
   # Define the group by variable, using ident column if undefined
   group.by <- group.by %||% 'ident'
-  
-  # Add values of the group.by metadata variable(s) for 
+
+  # Add values of the group.by metadata variable(s) for
   # each cell to the reduction data
-  data <- 
+  data <-
     cbind(
-      data, 
+      data,
       object[[group.by]][cells, , drop = FALSE]
       )
-  
+
   # Explicitly define group.by as the column names for each metadata variable
   # added to the reduction matrix above
   group.by <- colnames(x = data)[3:ncol(x = data)]
@@ -153,24 +154,24 @@ DimPlot <- function(
       data[, group] <- factor(x = data[, group])
     }
   }
-  
+
   # Add data for shape.by metadata variable if it exists
   if (!is.null(x = shape.by)) {
     data[, shape.by] <- object[[shape.by, drop = TRUE]]
   }
-  
+
   # Same for split.by metadata variable
   if (!is.null(x = split.by)) {
     data[, split.by] <- object[[split.by, drop = TRUE]]
   }
-  
+
   # Randomly shuffle cells if specified by the user
   if (isTRUE(x = shuffle)) {
     set.seed(seed = seed)
     data <- data[sample(x = 1:nrow(x = data)), ]
   }
-  
-  # For each group by variable, create a DimPlot of cells grouped by that variable. 
+
+  # For each group by variable, create a DimPlot of cells grouped by that variable.
   plots <- lapply(
     X = group.by,
     FUN = function(x) {
