@@ -853,7 +853,18 @@ Code is annotated at each major step.
 ```{r Seurat::FetchData Demo}
 object <- sobj
 cells <- NULL
-vars <- c("adt_CD90", "rna_HOXA9", "adt_CD900", "nCount_RNA", "nFeature_RNA")
+# List of test variables
+vars <-
+  # Keyed features
+  c("adt_CD117", 
+    "rna_HOXA9", 
+    # Nonexistent features
+    "adt_CD900",
+    # Metadata
+    "nCount_RNA", 
+    "nFeature_RNA", 
+    # "Ambiguous" feature not in RNA assay
+    "CD90")
 slot <- "data"
 
 # Seurat FetchData function
@@ -1010,17 +1021,25 @@ fetched <- names(x = data.fetched)
 vars.missing <- setdiff(x = vars, y = fetched)
 
 if (length(x = vars.missing) > 0) {
-  # Search for vars in alternative assays
+  # Search in alternative assays for variables not found in the main assay
+  # or metadata
+  # vars.alt: an empty list with a length equal to the number of variables not 
+  # yet found
   vars.alt <- vector(mode = 'list', length = length(x = vars.missing))
   names(x = vars.alt) <- vars.missing
+  
+  # Loop constructs a list of the assays each remaining feature was found in
   for (assay in FilterObjects(object = object, classes.keep = 'Assay')) {
     vars.assay <- Filter(
       f = function(x) {
-        features.assay <- rownames(x = GetAssayData(
-          object = object,
-          assay = assay,
-          slot = slot
-        ))
+        features.assay <- 
+          rownames(
+            x = GetAssayData(
+              object = object,
+              assay = assay,
+              slot = slot
+              )
+            )
         return(x %in% features.assay)
       },
       x = vars.missing
@@ -1030,9 +1049,10 @@ if (length(x = vars.missing) > 0) {
     }
   }
   
-  # Vars found in multiple alternative assays are truly ambiguous, will not pull
+  # Message for variables found in multiple alternative assays
   vars.many <- names(x = Filter(
     f = function(x) {
+      # (Those with more than one assay entry in the list) 
       return(length(x = x) > 1)
     },
     x = vars.alt
@@ -1045,20 +1065,23 @@ if (length(x = vars.missing) > 0) {
       immediate. = TRUE
     )
   }
+  
+  # Store variables that have not been found in any assays
   vars.missing <- names(x = Filter(
     f = function(x) {
       return(length(x = x) != 1)
     },
     x = vars.alt
   ))
-  # Pull vars found in only one alternative assay
-  # Key this var to highlight that it was found in an alternate assay
+  
+  # Pull vars found in only one alternative assay and return message
   vars.alt <- Filter(
     f = function(x) {
       return(length(x = x) == 1)
     },
     x = vars.alt
   )
+  
   for (var in names(x = vars.alt)) {
     assay <- vars.alt[[var]]
     warning(
@@ -1082,7 +1105,9 @@ if (length(x = vars.missing) > 0) {
   }
   fetched <- names(x = data.fetched)
 }
-# Name the vars not found in a warning (or error if no vars found)
+
+# Name the vars not found in a warning (or error if none of the vars 
+# entered were found)
 m2 <- if (length(x = vars.missing) > 10) {
   paste0(' (10 out of ', length(x = vars.missing), ' shown)')
 } else {
@@ -1103,19 +1128,28 @@ if (length(x = vars.missing) == length(x = vars)) {
     paste(head(x = vars.missing, n = 10L), collapse = ', ')
   )
 }
+
 # Assembled fetched vars in a data frame
 data.fetched <- as.data.frame(
   x = data.fetched,
   row.names = cells,
   stringsAsFactors = FALSE
 )
-data.order <- na.omit(object = pmatch(
-  x = vars,
-  table = fetched
-))
+
+data.order <- 
+  na.omit(
+    object = 
+      pmatch(
+        x = vars,
+        # `fetched`: vector of variables for which data was found
+        table = fetched
+        )
+    )
 if (length(x = data.order) > 1) {
   data.fetched <- data.fetched[, data.order]
 }
+
+# Add column names to data.frame
 colnames(x = data.fetched) <- vars[vars %in% fetched]
 return(data.fetched)
 ```
