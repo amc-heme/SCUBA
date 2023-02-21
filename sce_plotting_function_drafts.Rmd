@@ -713,13 +713,26 @@ output <-
   )
 ```
 
-# Thursday, February 16th
+# Revsit feature_data code
+Thursday, February 16th
+Monday, February 21st
 
-Revisiting function code to handle features not found: the function 
+Revisiting function code to handle features not found.
 
 ```{r}
 object = sce
-features = c("HOXA9", "CD90", "ADT_CD90", "ADT_CD1000")
+# Test set
+features <-
+  # Keyed features
+  c("ADT_CD117", 
+    "RNA_HOXA9", 
+    # Nonexistent features
+    "ADT_CD900",
+    # Metadata
+    "nCount_RNA", 
+    "nFeature_RNA", 
+    # "Ambiguous" feature not in RNA assay
+    "CD90")
 slot = "logcounts"
 cells = NULL
 
