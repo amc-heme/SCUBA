@@ -111,7 +111,7 @@ A \code{\link[patchwork]{patchwork}ed} ggplot object if
 \description{
 Graphs the output of a dimensional reduction technique on a 2D scatter plot where each point is a
 cell and it's positioned based on the cell embeddings determined by the reduction technique. The function accepts both Seurat and SingleCellExperiment objects.
-Seurat objects, cells are colored by their identity class by default, and for
+For Seurat objects, cells are colored by their identity class by default, and for
 SingleCellExperiment objects, cells are colored by the first metadata column in
 colData(). The metadata variable used for coloring cells can be changed with the group_by parameter).
 }

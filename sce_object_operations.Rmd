@@ -75,9 +75,10 @@ assays(sce)$scaledata
 Convert assays to DelayedArrays and combine into a single sce object
 
 ```{r}
-delArray <- extract_array(assay(sce, "scaledata"), list(NULL, NULL))
-
-assay(sce, "scaledata") <- delArray
+# No need to do this, see below.
+# delArray <- extract_array(assay(sce, "scaledata"), list(NULL, NULL))
+# 
+# assay(sce, "scaledata") <- delArray
 ```
 
 Save in HDF5 Format

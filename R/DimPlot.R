@@ -5,7 +5,7 @@
 #'
 #' Graphs the output of a dimensional reduction technique on a 2D scatter plot where each point is a
 #' cell and it's positioned based on the cell embeddings determined by the reduction technique. The function accepts both Seurat and SingleCellExperiment objects.
-#' Seurat objects, cells are colored by their identity class by default, and for
+#' For Seurat objects, cells are colored by their identity class by default, and for
 #' SingleCellExperiment objects, cells are colored by the first metadata column in
 #' colData(). The metadata variable used for coloring cells can be changed with the group_by parameter).
 #'
@@ -127,8 +127,7 @@ DimPlot <- function(
     orig_groups <- group_by
 
     if (is.null(group_by)){
-      warning("group_by is NULL. Defaulting to the first column in colData.")
-      group_by <- names(colData(object))[1]
+      stop("group_by must not be NULL for SingleCellExperiment objects.")
     }
 
     # 6. Bind group by metadata to the table of reduction coordinates

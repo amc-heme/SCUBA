@@ -2,6 +2,8 @@
 title: "SCE plotting_function_drafts"
 output: html_document
 date: "2023-02-13"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -18,12 +20,17 @@ library(DelayedMatrixStats)
 library(ggplot2)
 library(dplyr)
 
+# see sce_object_operations.Rmd for code to generate HDF5-enabled 
+# SingleCellExperiment object
+
 # Directory for SingleCellExperiment HDF5 version 
 # SCE object is derived from the Cancer Discovery Seurat object
 hdf5Dir <-
   "data/sce_hdf5/"
 
 sce <- loadHDF5SummarizedExperiment(dir = hdf5Dir)
+
+sobj <- readRDS("../scExploreR_files/scExploreR/Seurat_Objects/Cancer_discovery_object/pei_cd_20221122.Rds")
 ```
 
 # UMAP function
@@ -299,5 +306,817 @@ SCEPlots::DimPlot(
   group_by = "named_clusters",
   split_by = "sample"
 )
+```
+# Feature plots
+
+Code from Seurat package
+
+```{r}
+object <- sobj
+features <- c("BCL2", "HOXA9")
+
+dims = c(1, 2)
+cells = NULL
+cols = c('lightgrey', 'blue')
+# cols = if (blend) {
+#   c('lightgrey', '#ff0000', '#00ff00')
+# } else {
+#   c('lightgrey', 'blue')
+# }
+pt.size = NULL
+order = FALSE
+# Cutoffs are NA by default
+min.cutoff = NA 
+max.cutoff = NA
+reduction = NULL
+split.by = NULL
+keep.scale = "feature"
+shape.by = NULL
+slot = 'data'
+blend = FALSE
+blend.threshold = 0.5
+label = FALSE
+label.size = 4
+label.color = "black"
+repel = FALSE
+ncol = NULL
+coord.fixed = FALSE
+by.col = TRUE
+#sort.cell = NULL,
+#interactive = FALSE,
+combine = TRUE
+raster = NULL
+raster.dpi = c(512, 512)
+
+# Check keep.scale param for valid entries
+if (!(is.null(x = keep.scale)) && !(keep.scale %in% c("feature", "all"))) {
+  stop("`keep.scale` must be set to either `feature`, `all`, or NULL")
+}
+
+# Set a theme to remove right-hand Y axis lines
+# Also sets right-hand Y axis text label formatting
+# (Convert to a function?)
+no_right <- theme(
+  axis.line.y.right = element_blank(),
+  axis.ticks.y.right = element_blank(),
+  axis.text.y.right = element_blank(),
+  axis.title.y.right = element_text(
+    face = "bold",
+    size = 14,
+    margin = margin(r = 7)
+  )
+)
+
+# Get the DimReduc to use
+reduction <- reduction %||% DefaultDimReduc(object = object)
+
+if (length(x = dims) != 2 || !is.numeric(x = dims)) {
+  stop("'dims' must be a two-length integer vector")
+}
+
+# If blending is enabled, verify there are exactly two features entered
+if (blend && length(x = features) != 2) {
+  stop("Blending feature plots only works with two features")
+}
+
+# Set color scheme for blended FeaturePlots
+if (blend) {
+  default.colors <- eval(expr = formals(fun = FeaturePlot)$cols)
+  cols <- switch(
+    EXPR = as.character(x = length(x = cols)),
+    '0' = {
+      warning(
+        "No colors provided, using default colors",
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      default.colors
+    },
+    '1' = {
+      warning(
+        "Only one color provided, assuming specified is double-negative and augmenting with default colors",
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      c(cols, default.colors[2:3])
+    },
+    '2' = {
+      warning(
+        "Only two colors provided, assuming specified are for features and agumenting with '",
+        default.colors[1],
+        "' for double-negatives",
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      c(default.colors[1], cols)
+    },
+    '3' = cols,
+    {
+      warning(
+        "More than three colors provided, using only first three",
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      cols[1:3]
+    }
+  )
+}
+if (blend && length(x = cols) != 3) {
+  stop("Blending feature plots only works with three colors; first one for negative cells")
+}
+
+# Name the reductions
+dims <- paste0(Key(object = object[[reduction]]), dims)
+
+# Define cells to be plotted
+cells <- cells %||% colnames(x = object)
+
+# Get plotting data (gets reduction data and expression data for the
+# feature(s) entered simultaneously)
+data <- 
+  FetchData(
+    object = object,
+    vars = c(dims, 'ident', features),
+    cells = cells,
+    slot = slot
+  )
+
+# Check presence of features/dimensions
+if (ncol(x = data) < 4) {
+  stop(
+    "None of the requested features were found: ",
+    paste(features, collapse = ', '),
+    " in slot ",
+    slot,
+    call. = FALSE
+  )
+} else if (!all(dims %in% colnames(x = data))) {
+  stop("The dimensions requested were not found", call. = FALSE)
+}
+
+# Define feature names using the data matrix
+features <- colnames(x = data)[4:ncol(x = data)]
+
+# Determine cutoffs
+min.cutoff <- mapply(
+  FUN = function(cutoff, feature) {
+    print("Cutoff")
+    print(cutoff)
+    print("feature")
+    print(feature)
+    
+    return(ifelse(
+      # For each feature and cutoff, if the cutoff is NULL, use the minimum
+      # expression value for the feature. Otherwise, use the supplied
+      # cutoff (percentile)
+      test = is.na(x = cutoff),
+      yes = min(data[, feature]),
+      no = cutoff
+    ))
+  },
+  cutoff = min.cutoff,
+  feature = features
+)
+
+max.cutoff <- mapply(
+  FUN = function(cutoff, feature) {
+    return(ifelse(
+      test = is.na(x = cutoff),
+      yes = max(data[, feature]),
+      no = cutoff
+    ))
+  },
+  cutoff = max.cutoff,
+  feature = features
+)
+
+  # Ensure the number of values entered for min.cutoff and max.cutoff equals the
+  # number of features
+  check.lengths <- unique(x = vapply(
+    X = list(features, min.cutoff, max.cutoff),
+    FUN = length,
+    FUN.VALUE = numeric(length = 1)
+  ))
+  if (length(x = check.lengths) != 1) {
+    stop("There must be the same number of minimum and maximum cuttoffs as there are features")
+  }
+
+  # brewer.gran: (appears to apply if an R Color Brewer palette is passed to
+  # cols.
+  brewer.gran <- ifelse(
+    test = length(x = cols) == 1,
+    yes = brewer.pal.info[cols, ]$maxcolors,
+    no = length(x = cols)
+  )
+
+  # Apply cutoffs to data
+  data[, 4:ncol(x = data)] <-
+    sapply(
+      X = 4:ncol(x = data),
+      FUN = function(index) {
+        data.feature <- as.vector(x = data[, index])
+        min.use <-
+          Seurat::SetQuantile(cutoff = min.cutoff[index - 3], data.feature)
+        max.use <-
+          Seurat::SetQuantile(cutoff = max.cutoff[index - 3], data.feature)
+        data.feature[data.feature < min.use] <- min.use
+        data.feature[data.feature > max.use] <- max.use
+        if (brewer.gran == 2) {
+          return(data.feature)
+        }
+        data.cut <- if (all(data.feature == 0)) {
+          0
+        }
+        else {
+          as.numeric(x = as.factor(x = cut(
+            x = as.numeric(x = data.feature),
+            breaks = brewer.gran
+          )))
+        }
+        return(data.cut)
+      }
+    )
+  colnames(x = data)[4:ncol(x = data)] <- features
+  rownames(x = data) <- cells
+
+  # Figure out splits (FeatureHeatmap)
+  data$split <- if (is.null(x = split.by)) {
+    Seurat::RandomName()
+  } else {
+    switch(
+      EXPR = split.by,
+      ident = Idents(object = object)[cells, drop = TRUE],
+      object[[split.by, drop = TRUE]][cells, drop = TRUE]
+    )
+  }
+  if (!is.factor(x = data$split)) {
+    data$split <- factor(x = data$split)
+  }
+  # Set shaping variable
+  if (!is.null(x = shape.by)) {
+    data[, shape.by] <- object[[shape.by, drop = TRUE]]
+  }
+  # Make list of plots
+  plots <- vector(
+    mode = "list",
+    length = ifelse(
+      test = blend,
+      yes = 4,
+      no = length(x = features) * length(x = levels(x = data$split))
+    )
+  )
+  # Apply common limits
+  xlims <- c(floor(x = min(data[, dims[1]])), ceiling(x = max(data[, dims[1]])))
+  ylims <- c(floor(min(data[, dims[2]])), ceiling(x = max(data[, dims[2]])))
+  # Set blended colors
+  if (blend) {
+    ncol <- 4
+    color.matrix <- BlendMatrix(
+      two.colors = cols[2:3],
+      col.threshold = blend.threshold,
+      negative.color = cols[1]
+    )
+    cols <- cols[2:3]
+    colors <- list(
+      color.matrix[, 1],
+      color.matrix[1, ],
+      as.vector(x = color.matrix)
+    )
+  }
+```
+
+## Create version of `FetchData()` for SCE objects
+#### Wednesday, February 15th, 2023
+
+FetchData can pull information from both reductions and assays. For now, the SCE equivalent will only pull information from assays (summarized experiments).
+
+NOTE: code is incomplete. See note for 2/16/23.
+
+```{r}
+# feature_data()
+features <- c("ADT_CD90", "ADT_CD3", "RNA_HOXA9") #c("RNA_HOXA9") 
+object <- sce
+slot <- "logcounts"
+
+feature_data <- function(object, features, cells = NULL, slot = NULL){
+  # 1. Set default values
+  # Slot (assay): defaults to the first assay stored in the object
+  slot <- slot %||% assayNames(object)[1]
+  # Cells: if NULL, use all cells in the object
+  cells <- cells %||% colnames(object)
+  
+  # 2. For each feature, fetch data from object for the defined slot
+  sapply(
+    features,
+    function(feature, object, slot){
+      # 2.1. Determine the experiment "key" of the feature passed 
+      # alphanumeric features to the left of an underscore will be treated as 
+      # the key, and will be compared against the main and alternate experiment
+      # names.
+      exp <- 
+        gsub(
+          pattern = '(^[[:alnum:]]+)_.*', 
+          replacement = "\\1", 
+          x = feature, 
+          fixed = FALSE
+          )
+      
+      feature_name <- 
+        gsub(
+          pattern = '^[[:alnum:]]+_(.*)', 
+          replacement = "\\1", 
+          x = feature, 
+          fixed = FALSE
+          )
+      
+      # 2.2. Fetch data for feature from matrix
+      # Determine if feature is in the main experiment or an alternate experiment
+      if (exp == mainExpName(object)){
+        # Determine if the feature name is in the expression matrix under 
+        # the defined slot
+        if (feature_name %in% rownames(assays(object)[[slot]])){
+          # Pull feature row and transpose to column
+          assays(object)[[slot]][feature_name, , drop = FALSE] |> 
+            as.data.frame() |> 
+            t()
+        } else {
+          # Display message to user if not found
+          warning(
+            glue::glue(
+              "Feature {feature_name} not found in the experiment {mainExpName(object)}."
+              )
+            )
+        }
+      } else if (exp %in% altExpNames(object)){
+        # Load alternate experiment (also a SingleCellExperiment object)
+        alt_exp_data <- altExps(object)[[exp]]
+        
+        # Determine if the feature name is in the expression matrix under 
+        # the defined slot
+        if (feature_name %in% rownames(assays(alt_exp_data)[[slot]])){
+          assays(alt_exp_data)[[slot]][feature_name, , drop = FALSE] |> 
+            as.data.frame() |> 
+            t()
+        } else {
+          # Display message to user if not found
+          warning(
+            glue::glue(
+              "Feature {feature_name} not found in the experiment {mainExpName(alt_exp_data)}."
+              )
+            )
+        }
+      } else {
+        warning(glue::glue("No experiment found matching the entered key {exp}_ (for {feature})."))
+      }
+    },
+    object,
+    slot
+  )
+}
+
+feature_data(
+  object = object,
+  features = c("ADT_CD90", "RNA_HOXA9"),
+  slot = "logcounts"
+  ) |> head()
+
+
+# What if a feature is entered without a prefix?
+feature <- "HOXA9"
+exp <- 
+  gsub(
+    pattern = '(^[[:alnum:]]+)_.*', 
+    replacement = "\\1", 
+    x = feature, 
+    fixed = FALSE
+    )
+
+feature_name <- 
+  gsub(
+    pattern = '^[[:alnum:]]+_(.*)', 
+    replacement = "\\1", 
+    x = feature, 
+    fixed = FALSE
+    )
+# If this happens, the function mistakenly assumes "HOXA9" is the assay 
+# A function is required to test if the feature name passed is in "assay_feature"
+# format
+grepl("^[[:alnum:]]+_[[:alnum:]]+", "HOXA9")
+grepl("^[[:alnum:]]+_[[:alnum:]]+", "RNA_HOXA9")
+```
+
+```{r}
+output <- 
+  SCEPlots::feature_data(
+    object = sce,
+    features = c("HOXA9", "CD90", "ADT_CD90", "ADT_CD1000")
+  )
+```
+
+# Thursday, February 16th
+
+Revisiting function code to handle features not found: the function 
+
+```{r}
+object = sce
+features = c("HOXA9", "CD90", "ADT_CD90", "ADT_CD1000")
+slot = "logcounts"
+cells = NULL
+
+# 1. Set default values
+# Slot (assay): defaults to the first assay stored in the object
+slot <- slot %||% assayNames(object)[1]
+# Cells: if NULL, use all cells in the object
+cells <- cells %||% colnames(object)
+
+# 2. Identify which features have explicitly specified assays
+if (grepl("^[[:alnum:]]+_.*", feature)){
+  
+}
+
+
+# For each feature, fetch data from object for the defined slot
+# Set up features_found to record features for which data has been 
+# successfully accessed
+features_found <- c()
+
+data <-
+  lapply(
+    features,
+    function(feature, object, slot, features_found){
+      # 2.1. Determine the experiment "key" of the feature passed
+      # alphanumeric features to the left of an underscore will be treated as
+      # the key, and will be compared against the main and alternate experiment
+      # names.
+
+      # Determine if the the entry is in "{experiment}_{feature}" format
+      if (grepl("^[[:alnum:]]+_[[:alnum:]]+", feature)){
+        # If so, extract experiment name from the assay
+        exp <-
+          gsub(
+            pattern = '(^[[:alnum:]]+)_.*',
+            replacement = "\\1",
+            x = feature,
+            fixed = FALSE
+            )
+        # Feature_name: the name of the feature with the experiment prefix
+        # removed. Used when searching the indicated experiment for the feature.
+        feature_name <-
+          gsub(
+            pattern = '^[[:alnum:]]+_(.*)',
+            replacement = "\\1",
+            x = feature,
+            fixed = FALSE
+            )
+      } else {
+        # If not, search for the feature within the main experiment
+        exp <- mainExpName(object)
+        feature_name <- feature
+      }
+
+      # 2.2. Fetch data for feature from matrix
+      # Determine if feature is in the main experiment or an alternate experiment
+      if (exp == mainExpName(object)){
+        # Determine if the feature name is in the expression matrix under
+        # the defined slot
+        if (feature_name %in% rownames(assays(object)[[slot]])){
+          # Add feature to the list of features found (use the name of the 
+          # feature as entered, with the prefix if included)
+          features_found <- c(features_found, feature)
+          
+          # Pull feature row and transpose to column
+          assays(object)[[slot]][feature_name, , drop = TRUE] #|>
+            # as.data.frame() |>
+            # t()
+        } else {
+          # Display message to user if not found, and return nothing
+          warning(
+            glue::glue(
+              "Feature {feature_name} not found in the experiment {mainExpName(object)}."
+            )
+          )
+
+          NULL
+        }
+      } else if (exp %in% altExpNames(object)){
+        # Load alternate experiment (also a SingleCellExperiment object)
+        alt_exp_data <- altExps(object)[[exp]]
+
+        # Determine if the feature name is in the expression matrix under
+        # the defined slot
+        if (feature_name %in% rownames(assays(alt_exp_data)[[slot]])){
+          # Add feature to the list of features found (use the name of the 
+          # feature as entered, with the prefix if included)
+          features_found <- c(features_found, feature)
+          
+          assays(alt_exp_data)[[slot]][feature_name, , drop = TRUE] #|>
+            #as.data.frame() |>
+            #t()
+        } else {
+          # Display message to user if not found, and return nothing
+          warning(
+            glue::glue(
+              "Feature {feature_name} not found in the experiment {mainExpName(alt_exp_data)}."
+            )
+          )
+
+          NULL
+        }
+      } else {
+        warning(glue::glue("No experiment found matching the entered key {exp}_ (for {feature})."))
+
+        NULL
+      }
+    },
+    object,
+    slot,
+    features_found
+  )
+
+# Apply feature names to list
+names(data) <- features
+
+# Subset list for features for which information was accessed
+#data[features_found]
+
+str(data)
+
+#as.data.frame(data)
+#data
+```
+
+
+# Seurat::FetchData Code from SeuratObject package
+
+Code is annotated at each major step.
+
+```{r Seurat::FetchData Demo}
+object <- sobj
+cells <- NULL
+vars <- c("adt_CD90", "rna_HOXA9", "adt_CD900", "nCount_RNA", "nFeature_RNA")
+slot <- "data"
+
+# Seurat FetchData function
+object <- UpdateSlots(object = object)
+cells <- cells %||% colnames(x = object)
+if (is.numeric(x = cells)) {
+  cells <- colnames(x = object)[cells]
+}
+if (is.null(x = vars)) {
+  df <- EmptyDF(n = length(x = cells))
+  rownames(x = df) <- cells
+  return(df)
+}
+
+# Get a list of all objects to search through and their keys
+object.keys <- Key(object = object)
+# Find all vars that are keyed
+# at this stage, keyed.vars will be the indexes of requested features that map 
+# to each key in the object. If a key does not have any variables mapped to it
+# it will be an integer of length zero.
+keyed.vars <- lapply(
+  X = object.keys,
+  FUN = function(key) {
+    if (length(x = key) == 0 || nchar(x = key) == 0) {
+      return(integer(length = 0L))
+    }
+    return(grep(pattern = paste0('^', key), x = vars))
+  }
+)
+
+keyed.vars <- Filter(f = length, x = keyed.vars)
+# Determine if features requested are part of spatial transcriptomics assays
+ret.spatial2 <- 
+  vapply(
+    X = names(x = keyed.vars),
+    FUN = function(x) {
+      return(inherits(x = object[[x]], what = 'FOV'))
+    },
+    FUN.VALUE = logical(length = 1L)
+  )
+
+if (any(ret.spatial2) && !all(ret.spatial2)) {
+  warning(
+    "Data returned from spatial coordinates are incompatible with other data, returning only spatial coordinates",
+    call. = FALSE,
+    immediate. = TRUE
+  )
+  keyed.vars <- keyed.vars[ret.spatial2]
+}
+
+# Generate list of data from variables mapped to keys
+# Data structure returned is a list of lists
+data.fetched <- lapply(
+  X = names(x = keyed.vars),
+  FUN = function(x) {
+    vars.use <- vars[keyed.vars[[x]]]
+    key.use <- object.keys[x]
+    data.return <- if (inherits(x = object[[x]], what = 'DimReduc')) {
+      tryCatch(
+        expr = FetchData(object = object[[x]], vars = vars.use, cells = cells),
+        error = function(e) {
+          return(NULL)
+        }
+      )
+    } else if (inherits(x = object[[x]], what = 'Assay')) {
+      vars.use <- gsub(pattern = paste0('^', key.use), replacement = '', x = vars.use)
+      data.assay <- GetAssayData(
+        object = object,
+        slot = slot,
+        assay = x
+      )
+      vars.use <- vars.use[vars.use %in% rownames(x = data.assay)]
+      data.vars <- t(x = as.matrix(data.assay[vars.use, cells, drop = FALSE]))
+      if (ncol(data.vars) > 0) {
+        colnames(x = data.vars) <- paste0(key.use, vars.use)
+      }
+      data.vars
+    } else if (inherits(x = object[[x]], what = 'FOV')) {
+      vars.use <- gsub(pattern = paste0('^', key.use), replacement = '', x = vars.use)
+      FetchData(object = object[[x]], vars = vars.use, cells = cells)
+    } else if (inherits(x = object[[x]], what = 'SpatialImage')) {
+      vars.unkeyed <- gsub(pattern = paste0('^', key.use), replacement = '', x = vars.use)
+      names(x = vars.use) <- vars.unkeyed
+      coords <- GetTissueCoordinates(object = object[[x]])[cells, vars.unkeyed, drop = FALSE]
+      colnames(x = coords) <- vars.use[colnames(x = coords)]
+      coords
+    }
+    data.return <- as.list(x = as.data.frame(x = data.return))
+    return(data.return)
+  }
+)
+
+# Removes the list structure, but retains the list of expression values 
+# returned for each variable found (via recursive = FALSE)
+data.fetched <-
+  unlist(x = data.fetched, recursive = FALSE)
+  
+if (any(ret.spatial2)) {
+  return(as.data.frame(x = data.fetched))
+}
+
+# Pull vars from object metadata
+# Identify metadata variables
+# Select variables in the metadata table, that are not variables that have not 
+# already been fetched
+meta.vars <- 
+  vars[vars %in% colnames(x = object[[]]) & !(vars %in% names(x = data.fetched))]
+# Add metadata variables requested to the list of data fetched
+# Data.frame extracted will be coerced to a list
+data.fetched <- c(data.fetched, object[[meta.vars]][cells, , drop = FALSE])
+
+# Check if any metadata variables entered are also in the default assay
+# (possible source of ambiguity)
+meta.default <- 
+  meta.vars[meta.vars %in% rownames(x = GetAssayData(object = object, slot = slot))]
+if (length(x = meta.default)) {
+  warning(
+    "The following variables were found in both object metadata and the default assay: ",
+    paste0(meta.default, collapse = ", "),
+    "\nReturning metadata; if you want the feature, please use the assay's key (eg. ",
+    paste0(Key(object = object[[DefaultAssay(object = object)]]), meta.default[1]),
+    ")",
+    call. = FALSE
+  )
+}
+
+# Pull vars that are in the default assay, and are not already fetched
+default.vars <- 
+  vars[vars %in% rownames(x = GetAssayData(object = object, slot = slot)) & !(vars %in% names(x = data.fetched))]
+
+# Attempt to subset the matrix for `slot` in the default assay for the variable
+data.fetched <- c(
+  data.fetched,
+  tryCatch(
+    expr = as.data.frame(x = t(x = as.matrix(x = GetAssayData(
+      object = object,
+      slot = slot
+    )[default.vars, cells, drop = FALSE]))),
+    error = function(...) {
+      # If the variable is not present in the matrix, an error will be returned.
+      # Return NULL in this case, which will leave data.fetched unchanged.
+      return(NULL)
+    }
+  )
+)
+
+# Pull identities if "ident" is passed to `vars`
+if ('ident' %in% vars && !'ident' %in% colnames(x = object[[]])) {
+  data.fetched[['ident']] <- Idents(object = object)[cells]
+}
+
+# Try to find ambiguous vars (those not yet found with above methods)
+fetched <- names(x = data.fetched)
+vars.missing <- setdiff(x = vars, y = fetched)
+
+if (length(x = vars.missing) > 0) {
+  # Search for vars in alternative assays
+  vars.alt <- vector(mode = 'list', length = length(x = vars.missing))
+  names(x = vars.alt) <- vars.missing
+  for (assay in FilterObjects(object = object, classes.keep = 'Assay')) {
+    vars.assay <- Filter(
+      f = function(x) {
+        features.assay <- rownames(x = GetAssayData(
+          object = object,
+          assay = assay,
+          slot = slot
+        ))
+        return(x %in% features.assay)
+      },
+      x = vars.missing
+    )
+    for (var in vars.assay) {
+      vars.alt[[var]] <- append(x = vars.alt[[var]], values = assay)
+    }
+  }
+  
+  # Vars found in multiple alternative assays are truly ambiguous, will not pull
+  vars.many <- names(x = Filter(
+    f = function(x) {
+      return(length(x = x) > 1)
+    },
+    x = vars.alt
+  ))
+  if (length(x = vars.many) > 0) {
+    warning(
+      "Found the following features in more than one assay, excluding the default. We will not include these in the final data frame: ",
+      paste(vars.many, collapse = ', '),
+      call. = FALSE,
+      immediate. = TRUE
+    )
+  }
+  vars.missing <- names(x = Filter(
+    f = function(x) {
+      return(length(x = x) != 1)
+    },
+    x = vars.alt
+  ))
+  # Pull vars found in only one alternative assay
+  # Key this var to highlight that it was found in an alternate assay
+  vars.alt <- Filter(
+    f = function(x) {
+      return(length(x = x) == 1)
+    },
+    x = vars.alt
+  )
+  for (var in names(x = vars.alt)) {
+    assay <- vars.alt[[var]]
+    warning(
+      'Could not find ',
+      var,
+      ' in the default search locations, found in ',
+      assay,
+      ' assay instead',
+      immediate. = TRUE,
+      call. = FALSE
+    )
+    keyed.var <- paste0(Key(object = object[[assay]]), var)
+    data.fetched[[keyed.var]] <- as.vector(
+      x = GetAssayData(object = object, assay = assay, slot = slot)[var, cells]
+    )
+    vars <- sub(
+      pattern = paste0('^', var, '$'),
+      replacement = keyed.var,
+      x = vars
+    )
+  }
+  fetched <- names(x = data.fetched)
+}
+# Name the vars not found in a warning (or error if no vars found)
+m2 <- if (length(x = vars.missing) > 10) {
+  paste0(' (10 out of ', length(x = vars.missing), ' shown)')
+} else {
+  ''
+}
+if (length(x = vars.missing) == length(x = vars)) {
+  stop(
+    "None of the requested variables were found",
+    m2,
+    ': ',
+    paste(head(x = vars.missing, n = 10L), collapse = ', ')
+  )
+} else if (length(x = vars.missing) > 0) {
+  warning(
+    "The following requested variables were not found",
+    m2,
+    ': ',
+    paste(head(x = vars.missing, n = 10L), collapse = ', ')
+  )
+}
+# Assembled fetched vars in a data frame
+data.fetched <- as.data.frame(
+  x = data.fetched,
+  row.names = cells,
+  stringsAsFactors = FALSE
+)
+data.order <- na.omit(object = pmatch(
+  x = vars,
+  table = fetched
+))
+if (length(x = data.order) > 1) {
+  data.fetched <- data.fetched[, data.order]
+}
+colnames(x = data.fetched) <- vars[vars %in% fetched]
+return(data.fetched)
 ```
 
