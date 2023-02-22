@@ -8,7 +8,8 @@
 #' @param slot the slot (assay in SingleCellExperiment objects) for which to pull data. To view the list of available assays in your object, use \code{assayNames({your object})}.
 #'
 #' @return A data.frame object containing expression data for the feature(s) entered.
-#' @importFrom SingleCellExperiment assayNames assays mainExpName altExps altExpNames
+#' @importFrom SingleCellExperiment mainExpName altExps altExpNames
+#' @importFrom SummarizedExperiment assays assayNames
 #' @export
 #'
 feature_data <- function(object, features, cells = NULL, slot = NULL){
