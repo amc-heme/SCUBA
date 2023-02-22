@@ -15,3 +15,28 @@
 #'
 #' @source <https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065>
 "AML_Seurat"
+
+#' AML Reference Dataset (SingleCellExperiment Format)
+#'
+#' @inherit AML_Seurat description source
+#'
+#' @usage AML_SCE()
+#'
+#' @details
+#' The function described here is used to load the SingleCellExperiment object using the \code{HDF5Array} package. Unlike `AML_Seurat`, this dataset should be called as a function.
+#'
+#' @format
+#' A SingleCellExperiment object with 659 features and 250 cells in 2 SummarizedExperiment objects. Included experiments:
+#' \describe{
+#'   \item{RNA (main experiment)}{mRNA expression data for 462 genes used as markers for hamatopoietic stem and progenitor (HSPC) cell types at varying stages of differentiation.}
+#'   \item{AB}{Surface protein expression data for 197 surface protein markers associated with HSPCs.}
+#' }
+#'
+#' @import HDF5Array
+#'
+#' @export
+AML_SCE <- function(){
+  HDF5Array::loadHDF5SummarizedExperiment(
+    dir = system.file("extdata", "AML_sce", package = "SCEPlots")
+  )
+}
