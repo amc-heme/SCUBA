@@ -107,3 +107,16 @@ feature_data <- function(object, features, cells = NULL, slot = NULL){
   #as.data.frame(data)
   data
 }
+
+#' FetchData Equivalent for SingleCellExperiment Objects
+#'
+#' @param object a SingleCellExperiment object
+#'
+#' @export
+#'
+#' @method FetchData SingleCellExperiment
+#'
+FetchData.SingleCellExperiment <-
+  function(object){
+    print("FetchData Equivalent for SingleCellExperiment objects")
+  }
