@@ -3,7 +3,6 @@
 S3method(FetchData,SingleCellExperiment)
 export(AML_SCE)
 export(DimPlot)
-export(feature_data)
 import(HDF5Array)
 import(Seurat)
 import(rlang)

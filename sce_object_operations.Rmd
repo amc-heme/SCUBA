@@ -284,3 +284,4 @@ The default block size is 100 Mb. This can be changed with `setAutoBlockSize()`.
 # Block size is given in bytes. The size is set to 500 Mb to increase speed
 setAutoBlockSize(size = 5e+08)
 ```
+
