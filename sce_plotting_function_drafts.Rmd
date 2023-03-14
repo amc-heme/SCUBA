@@ -590,7 +590,7 @@ max.cutoff <- mapply(
 
 FetchData can pull information from both reductions and assays. For now, the SCE equivalent will only pull information from assays (summarized experiments).
 
-NOTE: code is incomplete. See note for 2/16/23.
+NOTE: this is the initial version. For the current draft of the code, see the chunk labeled "FetchData method"
 
 ```{r}
 # feature_data()
@@ -713,139 +713,6 @@ output <-
   )
 ```
 
-# Thursday, February 16th
-
-Revisiting function code to handle features not found: the function 
-
-```{r}
-object = sce
-features = c("HOXA9", "CD90", "ADT_CD90", "ADT_CD1000")
-slot = "logcounts"
-cells = NULL
-
-# 1. Set default values
-# Slot (assay): defaults to the first assay stored in the object
-slot <- slot %||% assayNames(object)[1]
-# Cells: if NULL, use all cells in the object
-cells <- cells %||% colnames(object)
-
-# 2. Identify which features have explicitly specified assays
-if (grepl("^[[:alnum:]]+_.*", feature)){
-  
-}
-
-
-# For each feature, fetch data from object for the defined slot
-# Set up features_found to record features for which data has been 
-# successfully accessed
-features_found <- c()
-
-data <-
-  lapply(
-    features,
-    function(feature, object, slot, features_found){
-      # 2.1. Determine the experiment "key" of the feature passed
-      # alphanumeric features to the left of an underscore will be treated as
-      # the key, and will be compared against the main and alternate experiment
-      # names.
-
-      # Determine if the the entry is in "{experiment}_{feature}" format
-      if (grepl("^[[:alnum:]]+_[[:alnum:]]+", feature)){
-        # If so, extract experiment name from the assay
-        exp <-
-          gsub(
-            pattern = '(^[[:alnum:]]+)_.*',
-            replacement = "\\1",
-            x = feature,
-            fixed = FALSE
-            )
-        # Feature_name: the name of the feature with the experiment prefix
-        # removed. Used when searching the indicated experiment for the feature.
-        feature_name <-
-          gsub(
-            pattern = '^[[:alnum:]]+_(.*)',
-            replacement = "\\1",
-            x = feature,
-            fixed = FALSE
-            )
-      } else {
-        # If not, search for the feature within the main experiment
-        exp <- mainExpName(object)
-        feature_name <- feature
-      }
-
-      # 2.2. Fetch data for feature from matrix
-      # Determine if feature is in the main experiment or an alternate experiment
-      if (exp == mainExpName(object)){
-        # Determine if the feature name is in the expression matrix under
-        # the defined slot
-        if (feature_name %in% rownames(assays(object)[[slot]])){
-          # Add feature to the list of features found (use the name of the 
-          # feature as entered, with the prefix if included)
-          features_found <- c(features_found, feature)
-          
-          # Pull feature row and transpose to column
-          assays(object)[[slot]][feature_name, , drop = TRUE] #|>
-            # as.data.frame() |>
-            # t()
-        } else {
-          # Display message to user if not found, and return nothing
-          warning(
-            glue::glue(
-              "Feature {feature_name} not found in the experiment {mainExpName(object)}."
-            )
-          )
-
-          NULL
-        }
-      } else if (exp %in% altExpNames(object)){
-        # Load alternate experiment (also a SingleCellExperiment object)
-        alt_exp_data <- altExps(object)[[exp]]
-
-        # Determine if the feature name is in the expression matrix under
-        # the defined slot
-        if (feature_name %in% rownames(assays(alt_exp_data)[[slot]])){
-          # Add feature to the list of features found (use the name of the 
-          # feature as entered, with the prefix if included)
-          features_found <- c(features_found, feature)
-          
-          assays(alt_exp_data)[[slot]][feature_name, , drop = TRUE] #|>
-            #as.data.frame() |>
-            #t()
-        } else {
-          # Display message to user if not found, and return nothing
-          warning(
-            glue::glue(
-              "Feature {feature_name} not found in the experiment {mainExpName(alt_exp_data)}."
-            )
-          )
-
-          NULL
-        }
-      } else {
-        warning(glue::glue("No experiment found matching the entered key {exp}_ (for {feature})."))
-
-        NULL
-      }
-    },
-    object,
-    slot,
-    features_found
-  )
-
-# Apply feature names to list
-names(data) <- features
-
-# Subset list for features for which information was accessed
-#data[features_found]
-
-str(data)
-
-#as.data.frame(data)
-#data
-```
-
-
 # Seurat::FetchData Code from SeuratObject package
 
 Code is annotated at each major step.
@@ -853,7 +720,21 @@ Code is annotated at each major step.
 ```{r Seurat::FetchData Demo}
 object <- sobj
 cells <- NULL
-vars <- c("adt_CD90", "rna_HOXA9", "adt_CD900", "nCount_RNA", "nFeature_RNA")
+# List of test variables
+vars <-
+  # Keyed features
+  c("adt_CD117", 
+    "adt_CD11b",
+    "rna_HOXA9", 
+    # Nonexistent features
+    "adt_CD900",
+    # Metadata
+    "nCount_RNA", 
+    "nFeature_RNA", 
+    # "Ambiguous" feature not in RNA assay
+    "CD90",
+    "CD56",
+    "CD3")
 slot <- "data"
 
 # Seurat FetchData function
@@ -869,11 +750,12 @@ if (is.null(x = vars)) {
 }
 
 # Get a list of all objects to search through and their keys
+# object.keys includes keys for each assay and projection
 object.keys <- Key(object = object)
 # Find all vars that are keyed
 # at this stage, keyed.vars will be the indexes of requested features that map 
-# to each key in the object. If a key does not have any variables mapped to it
-# it will be an integer of length zero.
+# to each *key* in the object (each *assay or reduction*). If a key does not 
+# have any variables mapped to it it will be an integer of length zero.
 keyed.vars <- lapply(
   X = object.keys,
   FUN = function(key) {
@@ -885,6 +767,7 @@ keyed.vars <- lapply(
 )
 
 keyed.vars <- Filter(f = length, x = keyed.vars)
+
 # Determine if features requested are part of spatial transcriptomics assays
 ret.spatial2 <- 
   vapply(
@@ -907,17 +790,21 @@ if (any(ret.spatial2) && !all(ret.spatial2)) {
 # Generate list of data from variables mapped to keys
 # Data structure returned is a list of lists
 data.fetched <- lapply(
+  # This iterates through each assay/reuction
   X = names(x = keyed.vars),
   FUN = function(x) {
     vars.use <- vars[keyed.vars[[x]]]
     key.use <- object.keys[x]
-    data.return <- if (inherits(x = object[[x]], what = 'DimReduc')) {
-      tryCatch(
-        expr = FetchData(object = object[[x]], vars = vars.use, cells = cells),
-        error = function(e) {
-          return(NULL)
-        }
-      )
+    # Get data for each var in the current assay
+    data.return <- 
+      # Procedure for fetching data depends on the class of the current assay/reduction
+      if (inherits(x = object[[x]], what = 'DimReduc')) {
+        tryCatch(
+          expr = FetchData(object = object[[x]], vars = vars.use, cells = cells),
+          error = function(e) {
+            return(NULL)
+          }
+        )
     } else if (inherits(x = object[[x]], what = 'Assay')) {
       vars.use <- gsub(pattern = paste0('^', key.use), replacement = '', x = vars.use)
       data.assay <- GetAssayData(
@@ -925,8 +812,20 @@ data.fetched <- lapply(
         slot = slot,
         assay = x
       )
+      
+      print("Class of data_assay")
+      print(class(data.assay))
+      # Check to see if vars in vars.use are in the rownames of the assay first
+      # (this keeps errors from occurring when vars that are not features from 
+      # this assay start with what appears to be the assay key, for example 
+      # if there is a metadata variable named 'rna_mitochondrial_percentage"
+      # and an RNA assay)
       vars.use <- vars.use[vars.use %in% rownames(x = data.assay)]
       data.vars <- t(x = as.matrix(data.assay[vars.use, cells, drop = FALSE]))
+      
+      print("data.vars after fetching variables")
+      print(str(data.vars))
+      print(class(data.vars))
       if (ncol(data.vars) > 0) {
         colnames(x = data.vars) <- paste0(key.use, vars.use)
       }
@@ -941,28 +840,38 @@ data.fetched <- lapply(
       colnames(x = coords) <- vars.use[colnames(x = coords)]
       coords
     }
+    
     data.return <- as.list(x = as.data.frame(x = data.return))
     return(data.return)
   }
 )
 
-# Removes the list structure, but retains the list of expression values 
+print("Before unlisting")
+print(str(data.fetched))
+# Removes the main list structure, but retains the list of expression values 
 # returned for each variable found (via recursive = FALSE)
 data.fetched <-
   unlist(x = data.fetched, recursive = FALSE)
   
+print("After unlisting")
+print(str(data.fetched))
+
 if (any(ret.spatial2)) {
   return(as.data.frame(x = data.fetched))
 }
 
 # Pull vars from object metadata
 # Identify metadata variables
-# Select variables in the metadata table, that are not variables that have not 
-# already been fetched
+# Test if variables that have not already been fetched are metadata variables
 meta.vars <- 
   vars[vars %in% colnames(x = object[[]]) & !(vars %in% names(x = data.fetched))]
+
 # Add metadata variables requested to the list of data fetched
 # Data.frame extracted will be coerced to a list
+print("Class of object with metdata variables selected")
+print(class(object[[meta.vars]]))
+print("Class of data.fetched")
+print(class(data.fetched))
 data.fetched <- c(data.fetched, object[[meta.vars]][cells, , drop = FALSE])
 
 # Check if any metadata variables entered are also in the default assay
@@ -988,10 +897,18 @@ default.vars <-
 data.fetched <- c(
   data.fetched,
   tryCatch(
-    expr = as.data.frame(x = t(x = as.matrix(x = GetAssayData(
-      object = object,
-      slot = slot
-    )[default.vars, cells, drop = FALSE]))),
+    expr = 
+      as.data.frame(
+        x = 
+          t(
+            x = as.matrix(
+              x = GetAssayData(
+                object = object,
+                slot = slot
+                )[default.vars, cells, drop = FALSE]
+              )
+            )
+        ),
     error = function(...) {
       # If the variable is not present in the matrix, an error will be returned.
       # Return NULL in this case, which will leave data.fetched unchanged.
@@ -1010,29 +927,50 @@ fetched <- names(x = data.fetched)
 vars.missing <- setdiff(x = vars, y = fetched)
 
 if (length(x = vars.missing) > 0) {
-  # Search for vars in alternative assays
+  # Search in alternative assays for variables not found in the main assay
+  # or metadata
+  # vars.alt: an empty list with a length equal to the number of variables not 
+  # yet found
   vars.alt <- vector(mode = 'list', length = length(x = vars.missing))
   names(x = vars.alt) <- vars.missing
+  
+  # Loop constructs a list of the assays each remaining feature was found in
   for (assay in FilterObjects(object = object, classes.keep = 'Assay')) {
+    cat(paste0("Assay:", assay, "\n"))
+    # Store which features from vars.missing are in the current assay
     vars.assay <- Filter(
       f = function(x) {
-        features.assay <- rownames(x = GetAssayData(
-          object = object,
-          assay = assay,
-          slot = slot
-        ))
+        features.assay <- 
+          rownames(
+            x = GetAssayData(
+              object = object,
+              assay = assay,
+              slot = slot
+              )
+            )
         return(x %in% features.assay)
       },
       x = vars.missing
     )
+    
+    print("vars.assay")
+    print(vars.assay)
+    
+    # For each variable found in this assay, append the assay name to the
+    # feature's entry in vars.alt.
     for (var in vars.assay) {
-      vars.alt[[var]] <- append(x = vars.alt[[var]], values = assay)
+      vars.alt[[var]] <- 
+        append(x = vars.alt[[var]], values = assay)
     }
   }
   
-  # Vars found in multiple alternative assays are truly ambiguous, will not pull
+  print("vars.alt")
+  print(vars.alt)
+  
+  # Message for variables found in multiple alternative assays
   vars.many <- names(x = Filter(
     f = function(x) {
+      # (Those with more than one assay entry in the list) 
       return(length(x = x) > 1)
     },
     x = vars.alt
@@ -1045,20 +983,23 @@ if (length(x = vars.missing) > 0) {
       immediate. = TRUE
     )
   }
+  
+  # Store variables that have not been found in any assays
   vars.missing <- names(x = Filter(
     f = function(x) {
       return(length(x = x) != 1)
     },
     x = vars.alt
   ))
-  # Pull vars found in only one alternative assay
-  # Key this var to highlight that it was found in an alternate assay
+  
+  # Pull vars found in only one alternative assay and return message
   vars.alt <- Filter(
     f = function(x) {
       return(length(x = x) == 1)
     },
     x = vars.alt
   )
+  
   for (var in names(x = vars.alt)) {
     assay <- vars.alt[[var]]
     warning(
@@ -1082,7 +1023,9 @@ if (length(x = vars.missing) > 0) {
   }
   fetched <- names(x = data.fetched)
 }
-# Name the vars not found in a warning (or error if no vars found)
+
+# Name the vars not found in a warning (or error if none of the vars 
+# entered were found)
 m2 <- if (length(x = vars.missing) > 10) {
   paste0(' (10 out of ', length(x = vars.missing), ' shown)')
 } else {
@@ -1103,20 +1046,551 @@ if (length(x = vars.missing) == length(x = vars)) {
     paste(head(x = vars.missing, n = 10L), collapse = ', ')
   )
 }
+
 # Assembled fetched vars in a data frame
 data.fetched <- as.data.frame(
   x = data.fetched,
   row.names = cells,
   stringsAsFactors = FALSE
 )
-data.order <- na.omit(object = pmatch(
-  x = vars,
-  table = fetched
-))
+
+print("Fetched data")
+#print(head(data.fetched))
+print(colnames(data.fetched))
+
+# Order data to return in the same order it was entered in vars, instead of the
+# order the data was fetched.
+data.order <- 
+  na.omit(
+    object = 
+      pmatch(
+        x = vars,
+        # `fetched`: vector of variables for which data was found
+        table = fetched
+        )
+    )
+
+print("data.order")
+print(data.order)
+
 if (length(x = data.order) > 1) {
   data.fetched <- data.fetched[, data.order]
 }
+
+print("Fetched data after ordering")
+#print(head(data.fetched))
+print(colnames(data.fetched))
+
+# Add column names to data.frame 
 colnames(x = data.fetched) <- vars[vars %in% fetched]
 return(data.fetched)
+```
+
+# Code for FetchData Method
+Thursday, February 16th
+Monday, February 21st
+Thursday, March 9th, 2023
+
+Revisiting function code to handle features not found.
+
+```{r Fetchdata Method}
+object <- sce
+# Test set
+vars <-
+  # Keyed features
+  c("ADT_CD117",
+    "RNA_HOXA9",
+    # Nonexistent features
+    "ADT_CD900",
+    "RNA_mito_pct",
+    # Metadata
+    "nCount_RNA",
+    "nFeature_RNA",
+    # Feature in RNA assay/experiment specified without a key
+    "HDAC5",
+    # "Ambiguous" feature not in RNA assay
+    "CD90", 
+    "CD56", 
+    "CD3")
+slot = "logcounts"
+cells = NULL
+
+
+# 1. Set default values
+# Slot (assay): defaults to the first assay stored in the object
+slot <- slot %||% assayNames(object)[1]
+# Cells: if NULL, use all cells in the object
+cells <- cells %||% colnames(object)
+
+# 2. Identify which experiments have keyed features requested for them
+# Experiments will be looped through, instead of looping through each var to
+# find an associated experiment
+
+# Get a list of all experiment "keys" in the object
+exp_names <- c(mainExpName(object), altExpNames(object))
+
+# Construct a list of experiments with the indices of vars that match
+# each experiment
+keyed_vars <-
+  lapply(
+    exp_names,
+    function(exp){
+      # grep returns the indices of matching vars
+      grep(pattern = paste0('^', exp), x = vars)
+    }
+  )
+
+names(keyed_vars) <- exp_names
+
+# Subset list for experiments that have at least one matching var
+keyed_vars <-
+  Filter(
+    # Filter list for elements with any length
+    f = length,
+    x = keyed_vars
+  )
+
+# 3. Loop through experiment and get data for the keyed vars in that experiment
+fetched_data <-
+  lapply(
+    names(keyed_vars),
+    function(exp){
+      # Variables in current experiment
+      exp_vars <- vars[keyed_vars[[exp]]]
+
+      # Remove experiment key for feature retrieval
+      keyless_vars <-
+        gsub(
+          pattern = paste0('^', exp, '_(.*)'),
+          replacement = "\\1",
+          x = exp_vars,
+          fixed = FALSE
+        )
+
+      # Retrieve data
+      if (exp == mainExpName(object)){
+        # For main experiment
+        # Subset to variables that are included in the experiment, to avoid errors
+        keyless_vars <- keyless_vars[keyless_vars %in% rownames(object)]
+        data <-
+          assays(object)[[slot]][keyless_vars, cells, drop = FALSE] |>
+          # Must be a matrix for feature names to properly display as names in
+          # the final list
+          # (begins as a DelayedArray)
+          as.matrix() |>
+          t()
+
+        # Add experiment key back in
+        colnames(data) <- paste0(exp, "_", keyless_vars)
+      } else {
+        # For alternate experimnent(s)
+        # Switch to SingleCellExperiment object for the alternate experiment
+        alt_sce <- altExps(object)[[exp]]
+
+        keyless_vars <- keyless_vars[keyless_vars %in% rownames(alt_sce)]
+
+        data <-
+          assays(alt_sce)[[slot]][keyless_vars, cells, drop = FALSE] |>
+          as.matrix() |>
+          t()
+
+        print("as.list on data")
+        print(str(data))
+        print(str(as.list(as.data.frame(data))))
+
+        # Add experiment key back in
+        colnames(data) <- paste0(exp, "_", keyless_vars)
+      }
+
+      # Return as a list
+      data <- as.list(as.data.frame(data))
+      data
+    }
+  )
+
+# Nested list is returned, condense to a list (only unlist at the top level)
+fetched_data <- unlist(fetched_data, recursive = FALSE)
+
+str(fetched_data)
+
+# 4. Fetch metadata variables
+# Identify metadata variables
+remaining_vars <- vars[!vars %in% names(fetched_data)]
+metadata_vars <- remaining_vars[remaining_vars %in% names(colData(object))]
+
+# Fetch metadata vars and append to fetched_data
+fetched_data <-
+  c(
+    fetched_data,
+    # SeuratObjects return metadata as a data.frame by default. This must be
+    # done manually to properly append to fetched_data (data.frames can be
+    # coerced to a list)
+    as.data.frame(colData(object))[cells, metadata_vars, drop = FALSE]
+  )
+
+# Handle ambiguous case of metadata variables also existing in the
+# main experiment (warn users that only metadata will be returned)
+ambiguous_meta_vars <- metadata_vars[metadata_vars %in% rownames(object)]
+if (length(ambiguous_meta_vars) > 0){
+  warning(
+    "The following variables were found in both object metadata and the main experiment: ",
+    paste0(ambiguous_meta_vars, collapse = ", "),
+    '\nOnly the metadata will be returned. To get feature data from the main experiment, please add the "key" of the main experiment to the feature (eg. ',
+    paste0(mainExpName(object), "_", ambiguous_meta_vars[1]),
+    ")",
+    call. = FALSE
+  )
+}
+
+# 5. Fetch data for vars in the main experiment that were not specified
+# with an assay key
+remaining_vars <- vars[!vars %in% names(fetched_data)]
+main_exp_vars <- remaining_vars[remaining_vars %in% rownames(object)]
+
+# Pull vars from main experiment
+main_exp_data <-
+  assays(object)[[slot]][main_exp_vars, cells, drop = FALSE] |>
+  as.matrix() |>
+  t()
+
+# Explicitly specify feature names as column names
+colnames(main_exp_data) <- main_exp_vars
+
+main_exp_data <-
+  main_exp_data |>
+  as.data.frame() |>
+  as.list()
+
+# Append data to the list of fetched data
+fetched_data <-
+  c(
+    fetched_data,
+    main_exp_data
+  )
+
+# 6. Handle variables that have not yet been fetched
+missing_vars <- vars[!vars %in% names(fetched_data)]
+
+if (length(missing_vars) > 0){
+  # 6.1. Create a list to store the experiment(s) each missing feature is in
+  # Empty list for storing data
+  where_missing_vars <- vector(mode = 'list', length = length(missing_vars))
+  names(where_missing_vars) <- missing_vars
+
+  for (exp in altExpNames(object)){
+    alt_sce <- altExps(object)[[exp]]
+
+    # Determine which of the missing vars are in the current exp., if any
+    missing_in_exp <-
+      missing_vars[missing_vars %in% rownames(assays(alt_sce)[[slot]])]
+
+    # For each variable found in this experiment, append the assay name to the
+    # feature's entry in missing_in_exp (each entry is a vector)
+    for (var in missing_in_exp){
+      where_missing_vars[[var]] <-
+        append(
+          where_missing_vars[[var]],
+          values = exp
+        )
+    }
+  }
+
+  # 6.2. Warn user if there are vars in multiple experiments. Do not pull data
+  # in this case
+  vars_multi_exp <-
+    # Subset list from 6.1. for vars with more than one associated experiment
+    Filter(
+      f = function(x) {
+        length(x) > 1
+      },
+      where_missing_vars
+    ) |>
+    names()
+
+  
+  if (length(vars_multi_exp) > 0){
+    warning(
+      "The following features were found in more than one alternate experiment. These features will not be included in the data returned: ",
+      paste(vars_multi_exp, collapse = ', '),
+      ". \n",
+      "To include these features, please specify which experiment you would like to pull data from using the experiment name and an underscore (i.e. ",
+      # Display an example with the experiment key added (using an exp that
+      # the example is certain to be in)
+      paste0(where_missing_vars[[vars_multi_exp[1]]][1], "_", vars_multi_exp[1]),
+      ").",
+      call. = FALSE,
+      immediate. = TRUE
+    )
+  }
+  
+  # 6.3. Pull data for missing variables found in one alternate experiment
+  # Update list of missing vars to exclude vars in one experiment
+  missing_vars <-
+    Filter(
+      f = function(x){
+        length(x) != 1
+      },
+      where_missing_vars
+    ) |>
+    names()
+
+  # Subset missing vars for vars in one exp
+  where_missing_vars <-
+    Filter(
+      f = function(x) {
+        length(x) == 1
+      },
+      where_missing_vars
+    )
+
+  #
+  for (var in names(where_missing_vars)){
+    exp <- where_missing_vars[[var]]
+    # Load alternate experiment
+    alt_sce <- altExps(object)[[exp]]
+
+    data <-
+      assays(alt_sce)[[slot]][var, cells, drop = FALSE] |>
+      # Only one var will be fetched at once in this case, so data can be added
+      # as a vector to the list of fetched data
+      as.vector()
+
+    # Add experiment key to var
+    keyed_var <- paste0(exp, "_", var)
+
+    fetched_data[[keyed_var]] <- data
+
+    # Edit vars to use the keyed var
+    vars <-
+      sub(
+        pattern = paste0('^', var, '$'),
+        replacement = keyed_var,
+        x = vars
+      )
+  }
+}
+
+# 7. User warnings/errors
+ten_plus_message <-
+  if (length(x = missing_vars) > 10) {
+    paste0(' (10 out of ', length(x = missing_vars), ' shown)')
+  } else {
+    ''
+  }
+
+if (length(x = missing_vars) == length(x = vars)) {
+  stop(
+    "None of the requested variables were found",
+    ten_plus_message,
+    ': ',
+    paste(head(x = missing_vars, n = 10L), collapse = ', ')
+  )
+} else if (length(x = missing_vars) > 0) {
+  warning(
+    "The following requested variables were not found",
+    ten_plus_message,
+    ': ',
+    paste(head(x = missing_vars, n = 10L), collapse = ', ')
+  )
+}
+
+# 8. Construct data.frame and return to user
+# Store names of vars fetched for downstream operations
+fetched_vars <- names(fetched_data)
+
+# Convert fetched_data to data.frame
+fetched_data <-
+  as.data.frame(
+    fetched_data,
+    row.names = cells,
+    stringsAsFactors = FALSE
+  )
+
+print("fetched_data")
+print(str(fetched_data))
+
+# Re-order vars to reflect the order entered, instead of the order fetched
+data_order <-
+  na.omit(
+    object =
+      pmatch(
+        x = vars,
+        table = fetched_vars
+      )
+  )
+
+if (length(x = data_order) > 1) {
+  fetched_data <- fetched_data[, data_order]
+}
+
+# Change column names to reflect `vars` that were fetched
+colnames(x = fetched_data) <- vars[vars %in% fetched_data]
+
+print("fetched_data after ordering")
+print(str(fetched_data))
+
+#fetched_data
+
+
+# ------------------------------------------------------------------------------
+# For each feature, fetch data from object for the defined slot
+# Set up features_found to record features for which data has been 
+# successfully accessed
+# features_found <- c()
+# 
+# data <-
+#   lapply(
+#     features,
+#     function(feature, object, slot, features_found){
+#       # 2.1. Determine the experiment "key" of the feature passed
+#       # alphanumeric features to the left of an underscore will be treated as
+#       # the key, and will be compared against the main and alternate experiment
+#       # names.
+# 
+#       # Determine if the the entry is in "{experiment}_{feature}" format
+#       if (grepl("^[[:alnum:]]+_.*", feature)){
+#         # If so, extract experiment name from the assay
+#         exp <-
+#           gsub(
+#             pattern = '(^[[:alnum:]]+)_.*',
+#             replacement = "\\1",
+#             x = feature,
+#             fixed = FALSE
+#             )
+#         # Feature_name: the name of the feature with the experiment prefix
+#         # removed. Used when searching the indicated experiment for the feature.
+#         feature_name <-
+#           gsub(
+#             pattern = '^[[:alnum:]]+_(.*)',
+#             replacement = "\\1",
+#             x = feature,
+#             fixed = FALSE
+#             )
+#       } else {
+#         # If not, search for the feature within the main experiment
+#         exp <- mainExpName(object)
+#         feature_name <- feature
+#       }
+# 
+#       # 2.2. Fetch data for feature from matrix
+#       # Determine if feature is in the main experiment or an alternate experiment
+#       if (exp == mainExpName(object)){
+#         # Determine if the feature name is in the expression matrix under
+#         # the defined slot
+#         if (feature_name %in% rownames(assays(object)[[slot]])){
+#           # Add feature to the list of features found (use the name of the 
+#           # feature as entered, with the prefix if included)
+#           features_found <- c(features_found, feature)
+#           
+#           # Pull feature row and transpose to column
+#           assays(object)[[slot]][feature_name, , drop = TRUE] #|>
+#             # as.data.frame() |>
+#             # t()
+#         } else {
+#           # Display message to user if not found, and return nothing
+#           warning(
+#             glue::glue(
+#               "Feature {feature_name} not found in the experiment {mainExpName(object)}."
+#             )
+#           )
+# 
+#           NULL
+#         }
+#       } else if (exp %in% altExpNames(object)){
+#         # Load alternate experiment (also a SingleCellExperiment object)
+#         alt_exp_data <- altExps(object)[[exp]]
+# 
+#         # Determine if the feature name is in the expression matrix under
+#         # the defined slot
+#         if (feature_name %in% rownames(assays(alt_exp_data)[[slot]])){
+#           # Add feature to the list of features found (use the name of the 
+#           # feature as entered, with the prefix if included)
+#           features_found <- c(features_found, feature)
+#           
+#           assays(alt_exp_data)[[slot]][feature_name, , drop = TRUE] #|>
+#             #as.data.frame() |>
+#             #t()
+#         } else {
+#           # Display message to user if not found, and return nothing
+#           warning(
+#             glue::glue(
+#               "Feature {feature_name} not found in the experiment {mainExpName(alt_exp_data)}."
+#             )
+#           )
+# 
+#           NULL
+#         }
+#       } else {
+#         warning(glue::glue("No experiment found matching the entered key {exp}_ (for {feature})."))
+# 
+#         NULL
+#       }
+#     },
+#     object,
+#     slot,
+#     features_found
+#   )
+# 
+# # Apply feature names to list
+# names(data) <- features
+# 
+# # Subset list for features for which information was accessed
+# #data[features_found]
+# 
+# str(data)
+# 
+# #as.data.frame(data)
+# #data
+```
+
+
+# Writing tests for FetchData method
+
+Scripts below are based on Seurat FetchData results and will be used to test the SingleCellExperiment equivalent
+
+```{r}
+# Test A: keyed features are pulled from the correct assay
+expected_table <- 
+  FetchData(
+    sobj,
+    vars = 
+      c("adt_CD117", 
+        "rna_HOXA9", 
+        # Nonexistent features
+        "adt_CD900",
+        # Metadata
+        "nCount_RNA", 
+        "nFeature_RNA", 
+        # "Ambiguous" feature not in RNA assay
+        "CD90"
+        )
+    )
+
+# Expect 5 columns
+ncol(expected_table) 
+
+# Column sums of expected table
+colSums(expected_table)
+# Don't forget to use ignore_attr = TRUE when designing the expect statement 
+```
+
+# Testing FetchData.SingleCellExperiment
+
+```{r}
+FetchData(
+    sce,
+    slot = "logcounts",
+    vars = 
+      c("ADT_CD117", 
+        "RNA_HOXA9", 
+        # Nonexistent features
+        "ADT_CD900",
+        # Metadata
+        "nCount_RNA", 
+        "nFeature_RNA", 
+        # "Ambiguous" feature not in RNA assay
+        "CD90"
+        )
+    ) |> str()
 ```
 

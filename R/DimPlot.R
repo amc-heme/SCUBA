@@ -62,11 +62,12 @@
 #' @return A \code{\link[patchwork]{patchwork}ed} ggplot object if
 #' \code{combine = TRUE}; otherwise, a list of ggplot objects
 #'
-#' @importFrom rlang !!
+#' @import rlang
+#' @import Seurat
 #' @importFrom ggplot2 facet_wrap vars sym labs
+#' @importFrom SeuratObject DefaultDimReduc
 #' @importFrom patchwork wrap_plots
 #' @importFrom SingleCellExperiment reducedDimNames reducedDims colData
-#' @importFrom Seurat Embeddings SingleDimPlot LabelClusters
 #'
 #' @export
 #'
