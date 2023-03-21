@@ -70,10 +70,8 @@ FetchData.SingleCellExperiment <-
       lapply(
         names(keyed_vars),
         function(exp){
-          print(exp)
           # Variables in current experiment
           exp_vars <- vars[keyed_vars[[exp]]]
-          print(exp_vars)
 
           # Remove experiment key for feature retrieval
           keyless_vars <-
@@ -83,7 +81,6 @@ FetchData.SingleCellExperiment <-
               x = exp_vars,
               fixed = FALSE
             )
-          print(keyless_vars)
 
           # Retrieve data
           if (exp == mainExpName(object)){
@@ -111,10 +108,6 @@ FetchData.SingleCellExperiment <-
               assays(alt_sce)[[slot]][keyless_vars, cells, drop = FALSE] |>
               as.matrix() |>
               t()
-
-            print("as.list on data")
-            print(str(data))
-            print(str(as.list(as.data.frame(data))))
 
             # Add experiment key back in
             colnames(data) <- paste0(exp, "_", keyless_vars)
@@ -189,9 +182,6 @@ FetchData.SingleCellExperiment <-
     # 6. Handle variables that have not yet been fetched
     missing_vars <- vars[!vars %in% names(fetched_data)]
 
-    print("Missing vars")
-    print(missing_vars)
-
     if (length(missing_vars) > 0){
       # 6.1. Create a list to store the experiment(s) each missing feature is in
       # Empty list for storing data
@@ -204,8 +194,6 @@ FetchData.SingleCellExperiment <-
         # Determine which of the missing vars are in the current exp., if any
         missing_in_exp <-
           missing_vars[missing_vars %in% rownames(assays(alt_sce)[[slot]])]
-
-        print(missing_in_exp)
 
         # For each variable found in this experiment, append the assay name to the
         # feature's entry in missing_in_exp (each entry is a vector)
@@ -336,9 +324,6 @@ FetchData.SingleCellExperiment <-
             table = fetched_vars
           )
       )
-
-    print("data_order")
-    print(data_order)
 
     if (length(x = data_order) > 1) {
       fetched_data <- fetched_data[, data_order]
