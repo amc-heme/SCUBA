@@ -20,7 +20,6 @@
 #' @importFrom SingleCellExperiment mainExpName altExps altExpNames
 #' @importFrom SummarizedExperiment assays assayNames
 #'
-#' @export
 #'
 #' @method FetchData SingleCellExperiment
 #'
@@ -334,3 +333,9 @@ FetchData.SingleCellExperiment <-
 
     fetched_data
   }
+
+#' Test function for unexported method
+#' @export
+FetchTest <- function(...){
+ FetchData(...)
+}
