@@ -1,4 +1,5 @@
 #Generic S3 Function for shiny_stacked_bar
+#' @export
 shiny_stacked_bar <- 
   function(
     object,
@@ -10,6 +11,7 @@ shiny_stacked_bar <-
   }
 
 #Default function for shiny_stacked_bar
+#' @export
 shiny_stacked_bar.default <- 
   function(
     object,
@@ -46,7 +48,7 @@ shiny_stacked_bar.default <-
 #' @param custom_factor_levels A character vector giving the order of groups if `sort_groups` is set to "custom".
 #'
 #' @return  a ggplot2 object with a stacked bar plot created according to user specifications.
-#' 
+#' @export
 shiny_stacked_bar.Seurat <-
   function(
     object,
@@ -96,7 +98,7 @@ shiny_stacked_bar.Seurat <-
 #' @param custom_factor_levels A character vector giving the order of groups if `sort_groups` is set to "custom".
 #'
 #' @return  a ggplot2 object with a stacked bar plot created according to user specifications.
-#' 
+#' @export
 shiny_stacked_bar.SingleCellExperiment <-
   function(
     object,
@@ -149,7 +151,7 @@ shiny_stacked_bar.SingleCellExperiment <-
 #' @param custom_factor_levels A character vector giving the order of groups if `sort_groups` is set to "custom".
 #'
 #' @return  a ggplot2 object with a stacked bar plot created according to user specifications.
-#' 
+#' @export
 shiny_stacked_bar.data.frame <-
   function(
     df,
