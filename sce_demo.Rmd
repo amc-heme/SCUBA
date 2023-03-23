@@ -72,6 +72,19 @@ altExps(sce)[["ADT"]]
 assayNames(sce)
 
 assays(sce)[["logcounts"]]
+
+# Names of traditional assays change
+# "counts" is named the same in both objects
+sobj@assays$RNA@counts["GAPDH", ] |> sum() == 
+  assays(sce)[["counts"]]["GAPDH", ] |> sum()
+
+# "data" from Seurat object is converted to "logcounts"
+sobj@assays$RNA@data["GAPDH", ] |> sum() == 
+  assays(sce)[["logcounts"]]["GAPDH", ] |> sum()
+
+# "scale.data" from Seurat object is converted to "scaledata"
+sobj@assays$RNA@scale.data["GAPDH", ] |> sum() ==
+  assays(sce)[["scaledata"]]["GAPDH", ] |> sum()
 ```
 
 ## Reductions: accessed via reducedDims()
