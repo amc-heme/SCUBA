@@ -33,6 +33,9 @@ test_that("Fetchdata.SingleCellExperiment equivalent to Seurat method", {
           "ab_CD11c-AB",
           "rna_GAPDH",
           "rna_MEIS1",
+          # Reductions
+          "UMAP_1",
+          "UMAP_2",
           # Nonexistent features
           "ab_CD900",
           # Metadata
@@ -53,6 +56,9 @@ test_that("Fetchdata.SingleCellExperiment equivalent to Seurat method", {
           "AB_CD11c-AB",
           "RNA_GAPDH",
           "RNA_MEIS1",
+          # Reductions
+          "UMAP_1",
+          "UMAP_2",
           # Nonexistent features
           "AB_CD900",
           # Metadata
