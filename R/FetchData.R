@@ -76,7 +76,6 @@ FetchData.SingleCellExperiment <-
         function(key){
           # Variables in current experiment/reduction
           key_vars <- vars[keyed_var_locations[[key]]]
-          print(key_vars)
 
           # Remove experiment key for feature retrieval
           keyless_vars <-
@@ -86,7 +85,6 @@ FetchData.SingleCellExperiment <-
               x = key_vars,
               fixed = FALSE
             )
-          print(keyless_vars)
 
           # Retrieve data
           if (key == mainExpName(object)){
