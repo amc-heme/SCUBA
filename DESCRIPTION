@@ -22,4 +22,5 @@ Imports:
     SingleCellExperiment,
     cowplot,
     ggplot2,
-    dplyr
+    dplyr,
+    stringr

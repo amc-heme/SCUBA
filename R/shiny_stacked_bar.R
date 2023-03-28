@@ -64,7 +64,7 @@ shiny_stacked_bar.Seurat <-
     custom_factor_levels = NULL
   ){
     df <- as.data.frame(object@meta.data)
-    shiny_stacked_bar.data.frame(
+    shiny_stacked_bar_common(
       df,
       group_by,
       split_by,
@@ -114,7 +114,7 @@ shiny_stacked_bar.SingleCellExperiment <-
     custom_factor_levels = NULL
   ){
     df <- as.data.frame(colData(object))
-    shiny_stacked_bar.data.frame(
+    shiny_stacked_bar_common(
       df,
       group_by,
       split_by,
@@ -132,13 +132,13 @@ shiny_stacked_bar.SingleCellExperiment <-
 
 
 
-#' scExploreR stacked bar plot for data.frame objects
+#' scExploreR stacked bar plot common code
 #'
 #' Accepts inputs from plots_selections module and outputs a stacked bar plot
 #' giving cell proportions by metadata groups from the data.frame object passed to 
 #' it. 
 #'
-#' @param object A data frame.
+#' @param df A data frame.
 #' @param group_by metadata variable used for cell type proportions. The number of cells in each level of this variable will be plotted.
 #' @param split_by metadata variable used for comparing cell type proportions. The number of cells in each level of this variable will be plotted.
 #' @param x_axis_title the title to use for the x-axis.
@@ -152,7 +152,7 @@ shiny_stacked_bar.SingleCellExperiment <-
 #'
 #' @return  a ggplot2 object with a stacked bar plot created according to user specifications.
 #' @export
-shiny_stacked_bar.data.frame <-
+shiny_stacked_bar_common <-
   function(
     df,
     group_by,
