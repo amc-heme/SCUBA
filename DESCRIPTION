@@ -18,3 +18,8 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     shiny
+    Seurat
+    SingleCellExperiment
+    cowplot
+    ggplot2
+    
