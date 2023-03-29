@@ -69,7 +69,7 @@
 #' data("pbmc_small")
 #' FeaturePlot(object = pbmc_small, features = 'PC_1')
 #'
-FeaturePlot <- function(
+FeaturePlotTest <- function(
     object,
     features,
     dims = c(1, 2),
@@ -232,11 +232,15 @@ FeaturePlot <- function(
   }
 
   # Define feature names using the data matrix
+  # Features begin at column 4
   features <- colnames(x = data)[4:ncol(x = data)]
 
   # Determine cutoffs
   min.cutoff <- mapply(
     FUN = function(cutoff, feature) {
+      print(paste0("Min Cutoff: ", cutoff))
+      print(paste0("feature: ", feature))
+
       return(
         ifelse(
           # For each feature and cutoff, if the cutoff is NULL, use the minimum
@@ -253,6 +257,9 @@ FeaturePlot <- function(
   )
   max.cutoff <- mapply(
     FUN = function(cutoff, feature) {
+      print(paste0("Max Cutoff: ", cutoff))
+      print(paste0("feature: ", feature))
+
       return(ifelse(
         test = is.na(x = cutoff),
         yes = max(data[, feature]),
@@ -275,7 +282,7 @@ FeaturePlot <- function(
   }
 
   # brewer.gran: (appears to apply if an R Color Brewer palette is passed to
-  # cols.
+  # cols. Will be NA if a single-length color is not a Brewer palette)
   brewer.gran <- ifelse(
     test = length(x = cols) == 1,
     yes = brewer.pal.info[cols, ]$maxcolors,
@@ -314,7 +321,7 @@ FeaturePlot <- function(
 
   # Figure out splits (FeatureHeatmap)
   data$split <- if (is.null(x = split.by)) {
-    Seurat::RandomName()
+    SeuratObject::RandomName()
   } else {
     switch(
       EXPR = split.by,
@@ -357,6 +364,8 @@ FeaturePlot <- function(
     )
   }
 
+  return(data)
+
   # Make the plots
   for (i in 1:length(x = levels(x = data$split))) {
     # Figure out which split we're working with
@@ -373,9 +382,14 @@ FeaturePlot <- function(
           call. = FALSE
         )
       }
-      data.plot <- cbind(data.plot[, c(dims, 'ident')], BlendExpression(data = data.plot[, features[1:2]]))
+      data.plot <-
+        cbind(
+          data.plot[, c(dims, 'ident')],
+          Seurat:::BlendExpression(data = data.plot[, features[1:2]])
+          )
       features <- colnames(x = data.plot)[4:ncol(x = data.plot)]
     }
+
     # Make per-feature plots
     for (j in 1:length(x = features)) {
       feature <- features[j]

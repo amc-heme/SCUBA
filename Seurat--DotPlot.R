@@ -154,7 +154,7 @@ DotPlotTest <- function(
     unique.splits <- unique(x = splits)
     # Create labels for each group.by and split.by level with an underscore
     # (each combo reads group.by[i]_split.by[j] for all combinations of i
-    # group.by and j split.by levels)
+    # group.by and j split.by levels), *for which there are cells*
     id.levels <-
       paste0(
         rep(x = id.levels, each = length(x = unique.splits)),
@@ -165,12 +165,16 @@ DotPlotTest <- function(
     print(id.levels)
   }
 
-  # Data used for plot
+  # Compute statistics for each group #
+  # Store results in a list
+  # Groups may be levels of the group.by variable, or group.by-split.by
+  # combinations if split.by is enabled
+  # If there are multiple features, each element will be a vector with the
+  # expression of each feature for the given group
   data.plot <- lapply(
     X = unique(x = data.features$id),
     FUN = function(ident) {
-      # For each group_by level (or group_by - split_by combo):
-      # Pull data from the main table for the cells matching the level
+      # Pull data for computing statistics
       # Exclude last column of data.features ("id" column)
       data.use <-
         data.features[
@@ -179,29 +183,41 @@ DotPlotTest <- function(
           drop = FALSE
           ]
 
+      # Average expression
       avg.exp <-
         apply(
           X = data.use,
+          # Apply function by column
           MARGIN = 2,
           FUN = function(x) {
             return(mean(x = expm1(x = x)))
             }
           )
 
+      # Percent of cells in group expressing feature
       pct.exp <-
         apply(
           X = data.use,
           MARGIN = 2,
+          # Uses Seurat::PercentAbove()
           FUN = PercentAbove,
+          # "threshold" is an argument of PercentAbove
           threshold = 0
           )
 
       return(
-        list(avg.exp = avg.exp, pct.exp = pct.exp)
+        list(
+          avg.exp = avg.exp,
+          pct.exp = pct.exp
+          )
         )
     }
   )
   names(x = data.plot) <- unique(x = data.features$id)
+
+  # Cluster groups if `cluster.idents` is TRUE
+  # Clustering is performed based on expression statistics for the currently
+  # plotted set of features
   if (cluster.idents) {
     mat <- do.call(
       what = rbind,
@@ -210,20 +226,31 @@ DotPlotTest <- function(
     mat <- scale(x = mat)
     id.levels <- id.levels[hclust(d = dist(x = mat))$order]
   }
+
+  # Construct dataframe from list of expression statistics
+  # Return is a list of dataframes, one dataframe per group
   data.plot <- lapply(
     X = names(x = data.plot),
     FUN = function(x) {
       data.use <- as.data.frame(x = data.plot[[x]])
+      # Add feature name as a column
       data.use$features.plot <- rownames(x = data.use)
+      # Add column for the group ID
       data.use$id <- x
       return(data.use)
     }
   )
+  # Combine list of dataframes produced above
   data.plot <- do.call(what = 'rbind', args = data.plot)
+
+  # Convert the new "id" column in the dataframe to a factor
   if (!is.null(x = id.levels)) {
     data.plot$id <- factor(x = data.plot$id, levels = id.levels)
   }
+
+  # Compute number of groups, and warn if the number of groups is 1, or less than 5
   ngroup <- length(x = levels(x = data.plot$id))
+
   if (ngroup == 1) {
     scale <- FALSE
     warning(
@@ -238,35 +265,73 @@ DotPlotTest <- function(
       immediate. = TRUE
     )
   }
-  avg.exp.scaled <- sapply(
-    X = unique(x = data.plot$features.plot),
-    FUN = function(x) {
-      data.use <- data.plot[data.plot$features.plot == x, 'avg.exp']
-      if (scale) {
-        data.use <- scale(x = data.use)
-        data.use <- MinMax(data = data.use, min = col.min, max = col.max)
-      } else {
-        data.use <- log1p(x = data.use)
-      }
-      return(data.use)
-    }
-  )
+
+  # Scale expression across features
+  avg.exp.scaled <-
+    sapply(
+      X = unique(x = data.plot$features.plot),
+      FUN = function(x) {
+        # Pull average expression column and subset to feature x
+        data.use <- data.plot[data.plot$features.plot == x, 'avg.exp']
+        if (scale) {
+          print("Data before scaling")
+          print(data.use)
+          # Scale data (z-score)
+          data.use <- scale(x = data.use)
+          print("Data after scaling")
+          print(data.use)
+          # Any values with a z-score outside of col.min and col.max will be
+          # normalized to those values
+          data.use <- MinMax(data = data.use, min = col.min, max = col.max)
+          print("Data after min/max transformation")
+          print(data.use)
+        } else {
+          # If `scale` is FALSE, perform a log(x+1) transformation
+          data.use <- log1p(x = data.use)
+          }
+        return(data.use)
+        }
+      )
+
+  print("avg.exp.sacaled before conversion to vector")
+  print(avg.exp.scaled)
+
+  # Transfrom average expression to a vector
   avg.exp.scaled <- as.vector(x = t(x = avg.exp.scaled))
+
+  print("avg.exp.sacaled after conversion to vector")
+  print(avg.exp.scaled)
+
+  # "Bin" the average expression into 20 bins for split plots
   if (split.colors) {
+    # Max value will be 20, min value will be 1, and all other values will be
+    # binned based on their value
     avg.exp.scaled <- as.numeric(x = cut(x = avg.exp.scaled, breaks = 20))
   }
+
+  # Add scaled data to the data.plot dataframe and convert to factor
   data.plot$avg.exp.scaled <- avg.exp.scaled
+  print("Plot data with scaled expression column")
+  print(data.plot)
   data.plot$features.plot <- factor(
     x = data.plot$features.plot,
     levels = features
   )
+  # Add NAs for percent expression values beneath dot.min
   data.plot$pct.exp[data.plot$pct.exp < dot.min] <- NA
+  # Convert percent expression from fraction to percentage
   data.plot$pct.exp <- data.plot$pct.exp * 100
+
+  print("Value of data.plot$id")
+  print(data.plot$id)
+
   if (split.colors) {
     splits.use <- vapply(
       X = as.character(x = data.plot$id),
       FUN = gsub,
+      # Return template: character vector of the same length as X
       FUN.VALUE = character(length = 1L),
+      # Parameters of gsub()
       pattern =  paste0(
         '^((',
         paste(sort(x = levels(x = object), decreasing = TRUE), collapse = '|'),
@@ -275,28 +340,56 @@ DotPlotTest <- function(
       replacement = '',
       USE.NAMES = FALSE
     )
+    print("Value of splits.use")
+    print(splits.use)
+
+    # Color for each dot: use colorRampPalette to determine the color (using
+    # a continuous scale between grey and the color entered, with 20 steps)
     data.plot$colors <- mapply(
       FUN = function(color, value) {
-        return(colorRampPalette(colors = c('grey', color))(20)[value])
+        print("Value")
+        print(value)
+        print("Color")
+        print(colorRampPalette(colors = c('grey', color))(20)[value])
+        return(
+          colorRampPalette(colors = c('grey', color))(20)[value]
+          )
       },
       color = cols[splits.use],
       value = avg.exp.scaled
     )
+
+    print("Split data after operations")
+    print(head(data.plot))
   }
+
+  # Color scale: if there are splits, use 20-level binned scale based on average
+  # expression (feature-wide).
+  # If not (default behavior), apply colors using ggplot2 scales
   color.by <- ifelse(test = split.colors, yes = 'colors', no = 'avg.exp.scaled')
+
+  # Apply min/max cutoffs for *percent expression*
   if (!is.na(x = scale.min)) {
     data.plot[data.plot$pct.exp < scale.min, 'pct.exp'] <- scale.min
   }
   if (!is.na(x = scale.max)) {
     data.plot[data.plot$pct.exp > scale.max, 'pct.exp'] <- scale.max
   }
+
+  # Add data for feature groups to the table (if defined by the user)
   if (!is.null(x = feature.groups)) {
     data.plot$feature.groups <- factor(
       x = feature.groups[data.plot$features.plot],
       levels = unique(x = feature.groups)
     )
   }
-  plot <- ggplot(data = data.plot, mapping = aes_string(x = 'features.plot', y = 'id')) +
+
+  plot <-
+    ggplot(
+      data = data.plot,
+      # aes_string is deprecated in the current ggplot2 version
+      mapping = aes_string(x = 'features.plot', y = 'id')
+      ) +
     geom_point(mapping = aes_string(size = 'pct.exp', color = color.by)) +
     scale.func(range = c(0, dot.scale), limits = c(scale.min, scale.max)) +
     theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
@@ -306,6 +399,8 @@ DotPlotTest <- function(
       y = ifelse(test = is.null(x = split.by), yes = 'Identity', no = 'Split Identity')
     ) +
     theme_cowplot()
+
+  # Create facets for feature groups, if present
   if (!is.null(x = feature.groups)) {
     plot <- plot + facet_grid(
       facets = ~feature.groups,
@@ -318,6 +413,8 @@ DotPlotTest <- function(
     )
   }
   if (split.colors) {
+    # scale_color_identity applies colors that were defined based on the
+    # 20-bin scale
     plot <- plot + scale_color_identity()
   } else if (length(x = cols) == 1) {
     plot <- plot + scale_color_distiller(palette = cols)
