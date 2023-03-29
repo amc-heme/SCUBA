@@ -1637,3 +1637,16 @@ DimPlot(
 )
 ```
 
+
+# Feature plot function experimentation
+
+An example data table with feature plot data was generated, and is loaded here for experimentation with ggplot2 code.
+
+```{r}
+# Single feature plot with no split.by selection
+plot_data <- 
+  readRDS("./inst/extdata/sample_plotting_data/feature_plot_sample_single_nosplit.rds")
+
+
+```
+

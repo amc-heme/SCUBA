@@ -368,10 +368,11 @@ FeaturePlotTest <- function(
 
   # Make the plots
   for (i in 1:length(x = levels(x = data$split))) {
-    # Figure out which split we're working with
+    # Subset plot data for the current split by level
     ident <- levels(x = data$split)[i]
     data.plot <- data[as.character(x = data$split) == ident, , drop = FALSE]
-    # Blend expression values
+
+    # Compute blend expression values if applicable
     if (blend) {
       features <- features[1:2]
       no.expression <- features[colMeans(x = data.plot[, features]) == 0]
@@ -503,8 +504,7 @@ FeaturePlotTest <- function(
       if (coord.fixed) {
         plot <- plot + coord_fixed()
       }
-      # I'm not sure why, but sometimes the damn thing fails without this
-      # Thanks ggplot2
+      # The Seurat authors observe that errors result without the code below
       plot <- plot
       # Place the plot
       plots[[(length(x = features) * (i - 1)) + j]] <- plot
