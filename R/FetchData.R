@@ -37,56 +37,57 @@ FetchData.SingleCellExperiment <-
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% colnames(object)
 
-    # 2. Identify which experiments have keyed features requested for them
-    # Experiments will be looped through, instead of looping through each var to
-    # find an associated experiment
+    # 2. Identify which experiments/reductions have keyed features requested
+    # for them. Loop through experiments and reductions, instead of looping
+    # through each var
 
-    # Get a list of all experiment "keys" in the object
-    exp_names <- c(mainExpName(object), altExpNames(object))
+    # Get a list of all "keys" in the object
+    key_names <-
+      c(mainExpName(object),
+        altExpNames(object),
+        reducedDimNames(object)
+        )
 
     # Construct a list of experiments with the indices of vars that match
     # each experiment
-    keyed_vars <-
+    keyed_var_locations <-
       lapply(
-        exp_names,
-        function(exp){
+        key_names,
+        function(key){
           # grep returns the indices of matching vars
-          grep(pattern = paste0('^', exp), x = vars)
+          grep(pattern = paste0('^', key), x = vars)
         }
       )
 
-    names(keyed_vars) <- exp_names
+    names(keyed_var_locations) <- key_names
 
     # Subset list for experiments that have at least one matching var
-    keyed_vars <-
+    keyed_var_locations <-
       Filter(
         # Filter list for elements with any length
         f = length,
-        x = keyed_vars
+        x = keyed_var_locations
       )
 
     # 3. Loop through experiment and get data for the keyed vars in that experiment
     fetched_data <-
       lapply(
-        names(keyed_vars),
-        function(exp){
-          print(exp)
-          # Variables in current experiment
-          exp_vars <- vars[keyed_vars[[exp]]]
-          print(exp_vars)
+        names(keyed_var_locations),
+        function(key){
+          # Variables in current experiment/reduction
+          key_vars <- vars[keyed_var_locations[[key]]]
 
           # Remove experiment key for feature retrieval
           keyless_vars <-
             gsub(
-              pattern = paste0('^', exp, '_(.*)'),
+              pattern = paste0('^', key, '_(.*)'),
               replacement = "\\1",
-              x = exp_vars,
+              x = key_vars,
               fixed = FALSE
             )
-          print(keyless_vars)
 
           # Retrieve data
-          if (exp == mainExpName(object)){
+          if (key == mainExpName(object)){
             # For main experiment
             # Subset to variables that are included in the experiment, to avoid errors
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(object)]
@@ -99,11 +100,11 @@ FetchData.SingleCellExperiment <-
               t()
 
             # Add experiment key back in
-            colnames(data) <- paste0(exp, "_", keyless_vars)
-          } else {
+            colnames(data) <- paste0(key, "_", keyless_vars)
+          } else if (key %in% altExpNames(object)){
             # For alternate experimnent(s)
             # Switch to SingleCellExperiment object for the alternate experiment
-            alt_sce <- altExps(object)[[exp]]
+            alt_sce <- altExps(object)[[key]]
 
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(alt_sce)]
 
@@ -112,12 +113,16 @@ FetchData.SingleCellExperiment <-
               as.matrix() |>
               t()
 
-            print("as.list on data")
-            print(str(data))
-            print(str(as.list(as.data.frame(data))))
-
             # Add experiment key back in
-            colnames(data) <- paste0(exp, "_", keyless_vars)
+            colnames(data) <- paste0(key, "_", keyless_vars)
+          } else if (key %in% reducedDimNames(object)){
+            # For reductions
+            # keyless_vars will be equal to the indices of the dimensions to
+            # pull data from
+            dims <- as.integer(keyless_vars)
+
+            data <-
+              reducedDims(object)[[key]][cells, dims]
           }
 
           # Return as a list
@@ -128,8 +133,6 @@ FetchData.SingleCellExperiment <-
 
     # Nested list is returned, condense to a list (only unlist at the top level)
     fetched_data <- unlist(fetched_data, recursive = FALSE)
-
-    str(fetched_data)
 
     # 4. Fetch metadata variables
     # Identify metadata variables
@@ -189,23 +192,18 @@ FetchData.SingleCellExperiment <-
     # 6. Handle variables that have not yet been fetched
     missing_vars <- vars[!vars %in% names(fetched_data)]
 
-    print("Missing vars")
-    print(missing_vars)
-
     if (length(missing_vars) > 0){
       # 6.1. Create a list to store the experiment(s) each missing feature is in
       # Empty list for storing data
       where_missing_vars <- vector(mode = 'list', length = length(missing_vars))
       names(where_missing_vars) <- missing_vars
 
-      for (exp in altExpNames(object)){
-        alt_sce <- altExps(object)[[exp]]
+      for (key in altExpNames(object)){
+        alt_sce <- altExps(object)[[key]]
 
-        # Determine which of the missing vars are in the current exp., if any
+        # Determine which of the missing vars are in the current key., if any
         missing_in_exp <-
           missing_vars[missing_vars %in% rownames(assays(alt_sce)[[slot]])]
-
-        print(missing_in_exp)
 
         # For each variable found in this experiment, append the assay name to the
         # feature's entry in missing_in_exp (each entry is a vector)
@@ -213,7 +211,7 @@ FetchData.SingleCellExperiment <-
           where_missing_vars[[var]] <-
             append(
               where_missing_vars[[var]],
-              values = exp
+              values = key
             )
         }
       }
@@ -236,7 +234,7 @@ FetchData.SingleCellExperiment <-
           paste(vars_multi_exp, collapse = ', '),
           ". \n",
           "To include these features, please specify which experiment you would like to pull data from using the experiment name and an underscore (i.e. ",
-          # Display an example with the experiment key added (using an exp that
+          # Display an example with the experiment key added (using an key that
           # the example is certain to be in)
           paste0(where_missing_vars[[vars_multi_exp[1]]][1], "_", vars_multi_exp[1]),
           ").",
@@ -256,7 +254,7 @@ FetchData.SingleCellExperiment <-
         ) |>
         names()
 
-      # Subset missing vars for vars in one exp
+      # Subset missing vars for vars in one key
       where_missing_vars <-
         Filter(
           f = function(x) {
@@ -265,11 +263,10 @@ FetchData.SingleCellExperiment <-
           where_missing_vars
         )
 
-      #
       for (var in names(where_missing_vars)){
-        exp <- where_missing_vars[[var]]
+        key <- where_missing_vars[[var]]
         # Load alternate experiment
-        alt_sce <- altExps(object)[[exp]]
+        alt_sce <- altExps(object)[[key]]
 
         data <-
           assays(alt_sce)[[slot]][var, cells, drop = FALSE] |>
@@ -278,7 +275,7 @@ FetchData.SingleCellExperiment <-
           as.vector()
 
         # Add experiment key to var
-        keyed_var <- paste0(exp, "_", var)
+        keyed_var <- paste0(key, "_", var)
 
         fetched_data[[keyed_var]] <- data
 
@@ -336,9 +333,6 @@ FetchData.SingleCellExperiment <-
             table = fetched_vars
           )
       )
-
-    print("data_order")
-    print(data_order)
 
     if (length(x = data_order) > 1) {
       fetched_data <- fetched_data[, data_order]

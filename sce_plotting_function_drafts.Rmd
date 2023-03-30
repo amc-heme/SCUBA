@@ -1594,3 +1594,46 @@ FetchData(
     ) |> str()
 ```
 
+# SCE method issue
+## Tuesday, March 21st, 2023
+
+If the script below is ran after starting a new R session, it is observed that the FetchData method works for singlecellexperiment classes regardless of whether SCEPlots is loaded.
+
+```{r}
+library(HDF5Array)
+
+sce <- loadHDF5SummarizedExperiment(dir = "data/sce_hdf5/")
+
+FetchData(
+  sce,
+  vars = "HOXA9"
+  ) |> 
+  str()
+
+library(Seurat)
+
+FetchData(
+  sce,
+  vars = "HOXA9"
+  ) |> 
+  str() 
+
+DimPlot(
+  sce,
+  group.by = "clusters"
+)
+
+library(SCEPlots)
+
+FetchData(
+  sce,
+  vars = "HOXA9"
+  ) |> 
+  str()
+
+DimPlot(
+  sce,
+  group.by = "clusters"
+)
+```
+
