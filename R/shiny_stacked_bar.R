@@ -22,7 +22,7 @@ shiny_stacked_bar.default <-
     warning(
       paste(
         "shiny_stacked_bar does not know how to handle object of class ", 
-        class(x), 
+        class(object), 
         "and can only be used on classes Seurat and SingleCellExperiment"
         )
       )

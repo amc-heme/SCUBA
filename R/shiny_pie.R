@@ -17,7 +17,7 @@ shiny_pie.default <-
            group_by,
            ...){
   warning(paste("shiny_pie does not know how to handle object of class ", 
-                class(x), 
+                class(object), 
                 "and can only be used on classes Seurat and SingleCellExperiment"))
 }
 
@@ -88,7 +88,7 @@ shiny_pie.Seurat <-
 #' customized by supplying a string to `plot_title`.
 #' @param plot_title If defined, the value entered will be displayed as the plot
 #' title, if `show_title` is TRUE.
-#' #' @export
+#' @export
 shiny_pie.SingleCellExperiment <- 
   function(
     object,

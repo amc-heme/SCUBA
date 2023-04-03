@@ -35,8 +35,7 @@ plot title (the name of the group_by metadata column). The plot title can be
 customized by supplying a string to \code{plot_title}.}
 
 \item{plot_title}{If defined, the value entered will be displayed as the plot
-title, if \code{show_title} is TRUE.
-#' @export}
+title, if \code{show_title} is TRUE.}
 }
 \description{
 shiny_pie.SingleCellExperiment() summarizes the object by showing the number of patients
