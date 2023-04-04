@@ -102,136 +102,198 @@ DimPlot <- function(
     stop("'dims' must be a two-length vector")
   }
 
-  # Compile data for plotting: methods depend on object type
+  # Require group_by to be defined for SingleCellExperiment objects
   if (is(object, "SingleCellExperiment")){
-    # For SingleCellExperiment objects
-    # 1. Define reduction (defaults to the first reduction stored for sce objects)
-    # Uses rlang %||% infix
-    reduction <- reduction %||% SingleCellExperiment::reducedDimNames(object)[1]
-    # 2. Define cells to include in plot
-    ## Same as for seurat object ##
-    cells <- cells %||% BiocGenerics::colnames(object)
-
-    # 3. Fetch dimensional reduction data from object
-    data <- SingleCellExperiment::reducedDims(object)[[reduction]][cells, dims]
-    data <- BiocGenerics::as.data.frame(data)
-
-    # 4. Fetch names of dimensions to plot
-    # For SCE objects, use the column names for the requested dim indices
-    # (there is no `Key()` method for SingleCellExperiment objects)
-    dim_names <- colnames(data)[dims]
-
-    # 5. Process group by selection
-    # There is no "ident" property for SingleCellExperiment objects, so defaults
-    # will be chosen based on the first metadata column, rather than the current ident class
-    # Store original entry for group_by
-    orig_groups <- group_by
-
     if (is.null(group_by)){
-      stop("group_by must not be NULL for SingleCellExperiment objects.")
+      stop("For SingleCellExperiment objects, `group_by` must be defined.")
     }
-
-    # 6. Bind group by metadata to the table of reduction coordinates
-    data <-
-      cbind(
-        data,
-        # Subsets for selected cells, and the names of entered group_by columns
-        colData(object)[cells, group_by, drop = FALSE]
-      )
-
-    # 7. Define group_by variables to iterate through
-    group_by_cols <-
-      colnames(data)[3:ncol(data)]
-
-    # 8. Convert group by columns to factors if they are not already
-    for (group in group_by_cols) {
-      if (!is.factor(data[, group])) {
-        data[, group] <- factor(data[, group])
-      }
-    }
-
-    # 9. Add shape_by data if it exists
-    if (!is.null(x = shape_by)) {
-      data[, shape_by] <- colData(object)[cells, shape_by, drop = TRUE]
-    }
-
-    # 10. Same for split_by data
-    if (!is.null(x = split_by)) {
-      data[, split_by] <- colData(object)[cells, split_by, drop = TRUE]
-    }
-
-    # 11. If sufffle is TRUE, randomly shuffle cells
-    if (isTRUE(shuffle)) {
-      set.seed(seed = seed)
-      data <- data[sample(x = 1:nrow(x = data)), ]
-    }
-  } else if (is(object, "Seurat")){
-    # For Seurat Objects
-    # Determine reduction to use (if NULL, use default))
-    # %||% infix is from rlang
-    reduction <- reduction %||% DefaultDimReduc(object = object)
-    # Read parameter for cells to plot (defaults to all cells)
-    cells <- cells %||% colnames(x = object)
-
-    # Fetch data for chosen reduction from object
-    # subset for chosen cells and dims
-    data <- Embeddings(object = object[[reduction]])[cells, dims]
-    # Convert to data.frame (default is a matrix)
-    data <- as.data.frame(x = data)
-    # Form names for dim reduction coordinates on the x- and y- axis
-    dim_names <-
-      paste0(
-        # Use the key of the *reduction* chosen by the
-        # user (or the default reduction)
-        Key(object = object[[reduction]]),
-        dims
-      )
-
-    # Set group by to the current ident class if it is NULL
-    # Store current ident class
-    object[['ident']] <- Idents(object = object)
-    # Store group by variable in `orig_groups`
-    orig_groups <- group_by
-    group_by <- group_by %||% 'ident'
-
-    # Add values of the group_by metadata variable(s) for
-    # each cell to the reduction data
-    data <-
-      cbind(
-        data,
-        object[[group_by]][cells, , drop = FALSE]
-      )
-
-    # Explicitly define group_by as the column names for each metadata variable
-    # added to the reduction matrix above
-    group_by_cols <- colnames(x = data)[3:ncol(x = data)]
-
-    # If any of the metadata columns are not factors, coerce them into factors.
-    for (group in group_by) {
-      if (!is.factor(x = data[, group])) {
-        data[, group] <- factor(x = data[, group])
-      }
-    }
-
-    # Add data for shape_by metadata variable if it exists
-    if (!is.null(x = shape_by)) {
-      data[, shape_by] <- object[[shape_by, drop = TRUE]]
-    }
-
-    # Same for split_by metadata variable
-    if (!is.null(x = split_by)) {
-      data[, split_by] <- object[[split_by, drop = TRUE]]
-    }
-
-    # Randomly shuffle cells if specified by the user
-    if (isTRUE(x = shuffle)) {
-      set.seed(seed = seed)
-      data <- data[sample(x = 1:nrow(x = data)), ]
-    }
-  } else {
-    # Throw an error for unsupported data types
-    stop("Object entered is not a SinglecellExperiment or a Seurat object.")
   }
+
+  # 1. Define reduction (defaults to the first reduction stored for sce objects)
+  # Uses rlang %||% infix
+  reduction <- reduction %||% default_reduction(object)
+  # 2. Define cells to include in plot
+  ## Same as for Seurat object ##
+  cells <- cells %||% get_all_cells(object)
+
+  # Fetch dimensional reduction data from object
+  # 3. Convert dims to format readable by FetchData (<reduction>_<dim>)
+  dim_names <- paste0(reduction, "_", dims)
+
+  # 4. Identify group_by variable, store in orig_groups
+  # orig_groups is used to test whether the group_by was set by the user
+  # (always the case for SingleCellExperiment objects)
+  orig_groups <- group_by
+  group_by <- group_by %||% 'ident'
+
+  # 5. Fetch reduction coordinates and group by metadata
+  data <-
+    FetchData(
+      object = object,
+      vars = c(dim_names, group_by),
+      cells = cells
+      )
+
+  # Throw an error if reduction coordinates or group_by data were not
+  # properly returned
+  if (!all(dim_names %in% colnames(data))) {
+    stop("The dimensions requested were not found.", call. = FALSE)
+  } else if (!all(group_by %in% colnames(data))){
+    stop("The group_by variable(s) requested were not found.", call. = FALSE)
+  }
+
+  print("colnames of data")
+  print(colnames(data))
+
+  # 6. Define group_by variables to iterate through
+  group_by_cols <-
+    colnames(data)[3:ncol(data)]
+
+  print("group_by_cols")
+  print(group_by_cols)
+
+  # 7. Convert group by columns to factors if they are not already
+  print("7. Group by columns to factor")
+  for (group in group_by_cols) {
+    print(group)
+    if (!is.factor(data[, group])) {
+      data[, group] <- factor(data[, group])
+    }
+  }
+
+  print("8. shape_by data")
+  # 8. Add shape_by data if it exists
+  if (!is.null(x = shape_by)) {
+    data[, shape_by] <-
+      FetchData(
+        object = object,
+        vars = shape_by,
+        cells = cells
+        )
+  }
+
+  # 9. Same for split_by data
+  if (!is.null(x = split_by)) {
+    data[, split_by] <-
+      FetchData(
+        object = object,
+        vars = split_by,
+        cells = cells
+        )
+  }
+
+  # 10. If shufffle is TRUE, randomly shuffle cells
+  if (isTRUE(shuffle)) {
+    set.seed(seed = seed)
+    data <- data[sample(x = 1:nrow(x = data)), ]
+  }
+
+  # # Compile data for plotting: methods depend on object type
+  # if (is(object, "SingleCellExperiment")){
+  #   # For SingleCellExperiment objects
+  #   # 1. Define reduction (defaults to the first reduction stored for sce objects)
+  #   # Uses rlang %||% infix
+  #   reduction <- reduction %||% SingleCellExperiment::reducedDimNames(object)[1]
+  #   # 2. Define cells to include in plot
+  #   ## Same as for seurat object ##
+  #   cells <- cells %||% BiocGenerics::colnames(object)
+  #
+  #   # 3. Fetch dimensional reduction data from object
+  #   data <- SingleCellExperiment::reducedDims(object)[[reduction]][cells, dims]
+  #   data <- BiocGenerics::as.data.frame(data)
+  #
+  #   # 4. Fetch names of dimensions to plot
+  #   # For SCE objects, use the column names for the requested dim indices
+  #   # (there is no `Key()` method for SingleCellExperiment objects)
+  #   dim_names <- colnames(data)[dims]
+  #
+  #   # 5. Process group by selection
+  #   # There is no "ident" property for SingleCellExperiment objects
+  #   # Store original entry for group_by
+  #   orig_groups <- group_by
+  #
+  #   if (is.null(group_by)){
+  #     stop("group_by must not be NULL for SingleCellExperiment objects.")
+  #   }
+  #
+  #   # 6. Bind group by metadata to the table of reduction coordinates
+  #   data <-
+  #     cbind(
+  #       data,
+  #       # Subsets for selected cells, and the names of entered group_by columns
+  #       colData(object)[cells, group_by, drop = FALSE]
+  #     )
+  #
+  #
+  #
+  #
+  # } else if (is(object, "Seurat")){
+  #   # For Seurat Objects
+  #   # Determine reduction to use (if NULL, use default))
+  #   # %||% infix is from rlang
+  #   reduction <- reduction %||% DefaultDimReduc(object = object)
+  #   # Read parameter for cells to plot (defaults to all cells)
+  #   cells <- cells %||% colnames(x = object)
+  #
+  #   # Fetch data for chosen reduction from object
+  #   # subset for chosen cells and dims
+  #   data <- Embeddings(object = object[[reduction]])[cells, dims]
+  #   # Convert to data.frame (default is a matrix)
+  #   data <- as.data.frame(x = data)
+  #   # Form names for dim reduction coordinates on the x- and y- axis
+  #   dim_names <-
+  #     paste0(
+  #       # Use the key of the *reduction* chosen by the
+  #       # user (or the default reduction)
+  #       Key(object = object[[reduction]]),
+  #       dims
+  #     )
+  #
+  #   # Set group by to the current ident class if it is NULL
+  #   # Store current ident class
+  #   object[['ident']] <- Idents(object = object)
+  #   # Store group by variable in `orig_groups`
+  #   orig_groups <- group_by
+  #   group_by <- group_by %||% 'ident'
+  #
+  #   # Add values of the group_by metadata variable(s) for
+  #   # each cell to the reduction data
+  #   data <-
+  #     cbind(
+  #       data,
+  #       object[[group_by]][cells, , drop = FALSE]
+  #     )
+  #
+  #   # Explicitly define group_by as the column names for each metadata variable
+  #   # added to the reduction matrix above
+  #   group_by_cols <- colnames(x = data)[3:ncol(x = data)]
+  #
+  #   # If any of the metadata columns are not factors, coerce them into factors.
+  #   for (group in group_by) {
+  #     if (!is.factor(x = data[, group])) {
+  #       data[, group] <- factor(x = data[, group])
+  #     }
+  #   }
+  #
+  #   # Add data for shape_by metadata variable if it exists
+  #   if (!is.null(x = shape_by)) {
+  #     data[, shape_by] <- object[[shape_by, drop = TRUE]]
+  #   }
+  #
+  #   # Same for split_by metadata variable
+  #   if (!is.null(x = split_by)) {
+  #     data[, split_by] <- object[[split_by, drop = TRUE]]
+  #   }
+  #
+  #   # Randomly shuffle cells if specified by the user
+  #   if (isTRUE(x = shuffle)) {
+  #     set.seed(seed = seed)
+  #     data <- data[sample(x = 1:nrow(x = data)), ]
+  #   }
+  # } else {
+  #   # Throw an error for unsupported data types
+  #   stop("Object entered is not a SinglecellExperiment or a Seurat object.")
+  # }
 
   # For each group by variable, create a DimPlot of cells grouped by that variable.
   plots <- lapply(
