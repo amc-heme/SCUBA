@@ -1,4 +1,5 @@
 #Generic S3 Function for shiny_pie
+#' @export
 shiny_pie <- 
   function(object,
            patient_colname,
@@ -9,13 +10,14 @@ shiny_pie <-
     }
 
 #Default function
+#' @export
 shiny_pie.default <- 
   function(object,
            patient_colname,
            group_by,
            ...){
   warning(paste("shiny_pie does not know how to handle object of class ", 
-                class(x), 
+                class(object), 
                 "and can only be used on classes Seurat and SingleCellExperiment"))
 }
 
@@ -40,6 +42,7 @@ shiny_pie.default <-
 #' customized by supplying a string to `plot_title`.
 #' @param plot_title If defined, the value entered will be displayed as the plot
 #' title, if `show_title` is TRUE.
+#' @export
 shiny_pie.Seurat <- 
   function(
     object,
@@ -85,6 +88,7 @@ shiny_pie.Seurat <-
 #' customized by supplying a string to `plot_title`.
 #' @param plot_title If defined, the value entered will be displayed as the plot
 #' title, if `show_title` is TRUE.
+#' @export
 shiny_pie.SingleCellExperiment <- 
   function(
     object,
@@ -125,6 +129,7 @@ shiny_pie.SingleCellExperiment <-
 #' customized by supplying a string to `plot_title`.
 #' @param plot_title If defined, the value entered will be displayed as the plot
 #' title, if `show_title` is TRUE.
+#' @export
 shiny_pie_common <- 
   function(
     plot_data, 
