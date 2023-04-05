@@ -56,8 +56,8 @@ shiny_pie.Seurat <-
     # For patient_level metadata: select for the specified patient metadata
     # column and the chosen group by variable. 
     plot_data <-
-      object@meta.data |> 
-      dplyr::select(c(.data[[patient_colname]], .data[[group_by]])) |>
+      as.data.frame(object@meta.data) |> 
+      dplyr::select(all_of(c(patient_colname, group_by))) |>
       dplyr::group_by(.data[[group_by]]) |>
       # Take unique values by each patient, and count number of unique values
       unique() |> 
@@ -103,7 +103,7 @@ shiny_pie.SingleCellExperiment <-
     # column and the chosen group by variable. 
     plot_data <-
       as.data.frame(colData(object)) |> 
-      dplyr::select(c(.data[[patient_colname]], .data[[group_by]])) |>
+      dplyr::select(all_of(c(patient_colname, group_by))) |>
       dplyr::group_by(.data[[group_by]]) |>
       # Take unique values by each patient, and count number of unique values
       unique() |> 
