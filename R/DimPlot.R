@@ -118,12 +118,13 @@ DimPlot <- function(
 
   # Fetch dimensional reduction data from object
   # 3. Convert dims to format readable by FetchData (<reduction>_<dim>)
-  dim_names <- paste0(reduction, "_", dims)
+  dim_names <- reduction_dimnames(object, reduction = reduction, dims = dims)
 
   # 4. Identify group_by variable, store in orig_groups
   # orig_groups is used to test whether the group_by was set by the user
-  # (always the case for SingleCellExperiment objects)
   orig_groups <- group_by
+  # Ident does not exist for SingleCellExperiment objects, but this will never
+  # be applied since group_by will always be defined.
   group_by <- group_by %||% 'ident'
 
   # 5. Fetch reduction coordinates and group by metadata
