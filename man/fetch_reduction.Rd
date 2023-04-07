@@ -6,7 +6,7 @@
 \alias{fetch_reduction.SingleCellExperiment}
 \title{Get names of reduction keys}
 \usage{
-fetch_reduction(object, reduction, dims, ...)
+fetch_reduction(object, reduction, cells, dims, ...)
 
 \method{fetch_reduction}{Seurat}(object, reduction, cells, dims)
 
@@ -16,10 +16,12 @@ fetch_reduction(object, reduction, dims, ...)
 \item{object}{a single-cell object. Currently, Seurat and
 SingleCellExperiment objects are supported.}
 
-\item{reduction}{the reduction from which names should be formed}
+\item{reduction}{the reduction to pull coordinates from}
+
+\item{cells}{cells for which to pull reduction data}
 
 \item{dims}{a two-element integer vector with the dimensions for which
-names should be returned}
+data should be returned}
 
 \item{...}{Currently unused.}
 }

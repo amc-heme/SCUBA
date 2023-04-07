@@ -5,9 +5,10 @@
 #'
 #' @param object a single-cell object. Currently, Seurat and
 #' SingleCellExperiment objects are supported.
-#' @param reduction the reduction from which names should be formed
+#' @param reduction the reduction to pull coordinates from
+#' @param cells cells for which to pull reduction data
 #' @param dims a two-element integer vector with the dimensions for which
-#' names should be returned
+#' data should be returned
 #' @param ... Currently unused.
 #'
 #' @rdname fetch_reduction
@@ -17,6 +18,7 @@ fetch_reduction <-
   function(
     object,
     reduction,
+    cells,
     dims,
     ...
   ){

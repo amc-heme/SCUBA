@@ -129,10 +129,11 @@ DimPlot <- function(
 
   # 5. Fetch reduction coordinates and group by metadata
   data <-
-    FetchData(
+    fetch_reduction(
       object = object,
-      vars = c(dim_names, group_by),
-      cells = cells
+      reduction = reduction,
+      cells = cells,
+      dims = dims
       )
 
   # Throw an error if reduction coordinates or group_by data were not
