@@ -18,7 +18,8 @@ Depends:
     cowplot,
     ggplot2,
     dplyr,
-    stringr
+    stringr,
+    rlang
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
