@@ -2569,6 +2569,47 @@ ggplot(data = time_data, aes(x = Test, y = Time)) +
   #scale_color_discrete(c("#880000", "#898800", "#000088"))
 ```
 
+```{r}
+latest_comparison <- 
+  time_data |> filter(Test %in% c("SCEPlots_v3_SCE", "SCEPlots_v3_seurat", "seurat_seurat"))
+
+rename_vector <- 
+  c("SCEPlots_v3_SCE" = "SCEPlots, SCE Object",
+    "SCEPlots_v3_seurat" = "SCEPlots, Seurat Object",
+    "seurat_seurat" = "Seurat v5, Seurat Object"
+    )
+
+ggplot(data = latest_comparison, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+   scale_x_discrete(
+     labels = rename_vector
+          ) +
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 0.7, by = 0.1),
+    limits = c(0, 0.7)
+    ) +
+  scale_color_manual(
+    values = 
+      c("#880000", "#0000AA", "#000000"),
+    aesthetics = "color",
+    labels = rename_vector,
+    na.value = "grey50"
+    ) +
+  theme_cowplot() +
+  ggtitle("Comparison of DimPlot Speed") +
+  xlab("Function") +
+  ylab("Runtime") +
+  # Legend title
+  guides(color = guide_legend(title = "Function")) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 20),
+    legend.title = element_text(face = "bold"), 
+    axis.title.x = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold")
+    )
+```
+
+
 # Trial of FetchData for reductions
 
 Part 1: Seurat Object vs. SingleCellExperiment objects
@@ -2727,5 +2768,12 @@ ggplot(data = direct_acc_v_fetchdata, aes(x = Test, y = Time)) +
     aesthetics = "color",
     na.value = "grey50"
     )
+```
+
+# Monday April 10th, 2023
+## Does FetchData perform more slowly than direct accession for features?
+
+```{r}
+
 ```
 
