@@ -12,14 +12,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
     R (>= 2.10),
-    shiny,
-    Seurat,
-    SingleCellExperiment,
     cowplot,
-    ggplot2,
     dplyr,
-    stringr,
-    rlang
+    ggplot2,
+    rlang,
+    Seurat,
+    shiny,
+    SingleCellExperiment,
+    stringr
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
