@@ -22,7 +22,7 @@ sobj <- AML_Seurat
 # Load SCE Object (with DelayedArray integration)
 sce <- AML_SCE()
 
-test_that("Fetchdata.SingleCellExperiment equivalent to Seurat method", {
+test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratObject", {
   seurat_data <-
     FetchData(
       sobj,
