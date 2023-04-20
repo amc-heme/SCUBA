@@ -61,6 +61,7 @@ sobj <-
   readRDS("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_annotated_sig_1k_v2.Rds")
 sce <- 
   loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce/")
+sce_3 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_3/")
 ```
 
 
@@ -3554,4 +3555,196 @@ ggsave(
 ```
 
 Based on these results, compression level 3 should be used for HDF5-enabled SingleCellExperiment objects.
+
+# How does FetchData Scale with Additional Features?
+
+The tests below will be performed on an object with compression level 3.
+
+```{r}
+test <- c()
+time <- c()
+
+# FetchData, one feature
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("1", 100))
+
+# FetchData, two features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("2", 100))
+
+# FetchData, three features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("3", 100))
+
+# FetchData, four features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("4", 100))
+
+# FetchData, five features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9", "RNA_FIS1")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("5", 100))
+
+# FetchData, six features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9", "RNA_FIS1", "RNA_MCL1")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("6", 100))
+
+# FetchData, seven features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9", "RNA_FIS1", "RNA_MCL1", "RNA_SIRT2")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("7", 100))
+
+# FetchData, eight features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9", "RNA_FIS1", "RNA_MCL1", "RNA_SIRT2", "RNA_HIF1A")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("8", 100))
+
+# FetchData, nine features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9", "RNA_FIS1", "RNA_MCL1", "RNA_SIRT2", "RNA_HIF1A", "RNA_HOXA10")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("9", 100))
+
+# FetchData, ten features
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_3,
+    vars = c("RNA_BCL2", "RNA_MEN1", "RNA_MEIS1", "RNA_HOXA9", "RNA_FIS1", 
+             "RNA_MCL1", "RNA_SIRT2", "RNA_HIF1A", "RNA_HOXA10", "RNA_FOXO1")
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("10", 100))
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+results_df$Test <-
+  factor(
+    results_df$Test, 
+    levels = 
+      str_sort(
+        results_df$Test |> unique(), 
+        numeric = TRUE
+        )
+    )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 2.4, by = 0.2),
+    limits = c(0, 2.4)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Number of Features") +
+  labs(
+    title = "Expression Data Retrieval Time",
+    subtitle = 
+      "(SingleCellExperiment Object, 200k Cells x 29k Genes, HDF5Array Compression Level 3)"
+  ) +
+  guides(
+    color = 
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./speed_by_n_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+## How Does Retrieval Time by Feature Compare to FetchData for Seurat Objects?
 
