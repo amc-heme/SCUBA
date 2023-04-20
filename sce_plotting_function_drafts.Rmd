@@ -16,22 +16,53 @@ library(SingleCellExperiment)
 library(DelayedArray)
 library(HDF5Array)
 library(DelayedMatrixStats)
-
+library(tictoc)
+library(rlang)
+library(cowplot)
 library(ggplot2)
+theme_set(theme_cowplot())
+library(ggsci)
+library(scater)
+
 library(dplyr)
 
-# see sce_object_operations.Rmd for code to generate HDF5-enabled 
-# SingleCellExperiment object
-
-# Directory for SingleCellExperiment HDF5 version 
-# SCE object is derived from the Cancer Discovery Seurat object
-hdf5Dir <-
-  "data/sce_hdf5/"
-
-sce <- loadHDF5SummarizedExperiment(dir = hdf5Dir)
-
-sobj <- readRDS("../scExploreR_files/scExploreR/Seurat_Objects/Cancer_discovery_object/pei_cd_20221122.Rds")
+# Functions 
+# repeat_trial: performs n calls of a function and records the time taken for each
+# call. Returns the time for each run in a numeric vector.
+repeat_trial <- 
+  function(func, ..., n){
+    time <- c()
+    
+    for (i in 1:n){
+      cat(paste0("Trial ", i, "\n"))
+      
+      tic()
+      suppressMessages(
+        do.call(
+        func,
+        args = list(...)
+        )
+      )
+      
+      
+      suppressMessages(elapsed <- toc())
+  
+      time <- 
+        c(time, as.numeric(elapsed$toc - elapsed$tic))
+    }
+    
+    time
+  }
 ```
+
+```{r}
+# Load Full AML downsampled object
+sobj <- 
+  readRDS("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_annotated_sig_1k_v2.Rds")
+sce <- 
+  loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce/")
+```
+
 
 # UMAP function
 
@@ -2325,37 +2356,6 @@ DimPlot_FetchData <- function(
 
 
 ```{r}
-library(tictoc)
-library(Seurat)
-library(rlang)
-
-# Function: performs n calls of a function and records the time taken for each
-# call. Returns the time for each run in a numeric vector.
-repeat_trial <- 
-  function(func, ..., n){
-    time <- c()
-    
-    for (i in 1:n){
-      cat(paste0("Trial ", i, "\n"))
-      
-      tic()
-      suppressMessages(
-        do.call(
-        func,
-        args = list(...)
-        )
-      )
-      
-      
-      suppressMessages(elapsed <- toc())
-  
-      time <- 
-        c(time, as.numeric(elapsed$toc - elapsed$tic))
-    }
-    
-    time
-  }
-
 #' Function to run trials on each function
 #'
 #' @param funcs a named vector of functions to run. Time trial results are 
@@ -2770,10 +2770,788 @@ ggplot(data = direct_acc_v_fetchdata, aes(x = Test, y = Time)) +
     )
 ```
 
-# Monday April 10th, 2023
+# Tuesday April 18th, 2023
 ## Does FetchData perform more slowly than direct accession for features?
 
-```{r}
+The tests below are for a single feature from the RNA assay (BCL2).
 
+```{r}
+# Function to fetch reduction coordinates for SingleCellExperiment obejcts
+direct_feature_access_sce <- 
+  function(object, assay, feature){
+    # Inlcude all cells in demo, and use logcounts slot
+    cells <- colnames(object)
+    slot <- "logcounts"
+
+    exp_use <- 
+      if (assay %in% altExpNames(object)){
+        altExps(object)[[assay]]
+      } else {
+        sce
+      }
+    
+    # data <-
+    #   assays(exp_use)[[slot]][feature, cells, drop = FALSE] |>
+    #   as.matrix() |>
+    #   t()
+    data <- assays(exp_use)[[slot]][feature, cells, drop = FALSE] |> t()
+    
+    data <- as.data.frame(data)
+    
+    colnames(data) <- paste0(assay, "_", feature)
+    
+    data
+  }
+
+# Equivalent for Seurat objects (taken from Seurat::DimPlot)
+direct_feature_access_seurat <- 
+  function(object, assay, feature){
+    # Include all cells for demo, and use data slot
+    cells <- colnames(object)
+    slot <- "data" 
+    
+    data <- 
+       sobj@assays[[assay]][[slot]][feature, cells, drop = FALSE]
+    
+    data <- as.data.frame(data)
+    
+    colnames(data) <- paste0(Key(object@assays[[assay]]), feature)
+    
+    data
+  }
+
+# Speed test relative to FetchData
+# Trials of each function, compared to fetchdata
+time <- c()
+test <- c()
+
+# FetchData, Seurat objects
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 10,
+    object = sobj,
+    vars = "rna_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("FetchData_Seurat", 10))
+
+# FetchData, SCE objects
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 3,
+    object = sce,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("FetchData_SCE", 3))
+
+# Direct feature accession, Seurat objects
+results <- 
+  repeat_trial(
+    func = direct_feature_access_seurat, 
+    n = 10,
+    object = sobj,
+    assay = "RNA",
+    feature = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("Direct_accession_Seurat", 10))
+
+# Direct feature accession, SCE objects
+results <- 
+  repeat_trial(
+    func = direct_feature_access_sce, 
+    n = 3,
+    object = sce,
+    assay = "RNA",
+    feature = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("Direct_accession_SCE", 3))
+
+direct_acc_v_fetchdata <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+direct_acc_v_fetchdata$Test <- 
+  factor(
+    direct_acc_v_fetchdata$Test, 
+    levels = 
+      c("FetchData_SCE", 
+        "Direct_accession_SCE", 
+        "FetchData_Seurat",
+        "Direct_accession_Seurat" 
+        )
+    )
+
+plot <- 
+  ggplot(data = direct_acc_v_fetchdata, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        c("#880000", "#000088", "#008800", "#B8AB2F"),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 30, by = 5),
+    limits = c(0, 30)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./Performance_FetchData_vs_direct_accession_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
 ```
+
+Direct accession is not faster than FetchData for feature data. The time taken to fetch feature data from SingleCellExperiment objects is much greater than for Seurat objects.
+
+## Alternate Operations to Improve Processing speed
+
+```{r}
+### Change block size for data.frame creation
+# Create Pointer
+pointer <- assays(sce)[["logcounts"]]["BCL2", colnames(sce), drop = FALSE] |> t()
+
+# Block-level apply function for as.data.frame
+block_dataframe <- function(x, block_nrow) {
+  # 1. Set up the ArrayGrid.
+  grid <- rowAutoGrid(x, nrow = block_nrow)
+  # 2. Load the blocks into memory and compute the block-level statistics.
+  block_level_stat <- blockApply(x, as.data.frame, grid = grid)
+  # 3. Combine the block-level statistics.
+  unlist(block_level_stat)
+}
+
+time <- c()
+nrow_block <- c()
+
+# Speed test of block-level as.data.frame function
+for (i in c(1000, 5000, 10000, 25000, 50000, 100000, nrow(pointer))){
+  tic()
+  
+  block_dataframe(pointer, i)
+  
+  suppressMessages(elapsed <- toc())
+  
+  # Record time elapsed and block size for each trial
+  time <- 
+    c(time, as.numeric(elapsed$toc - elapsed$tic))
+  nrow_block <-
+    c(nrow_block, i)
+}
+
+block_size_v_time <-
+  data.frame(
+    list(
+    "Block_Size" = nrow_block, 
+    "Time" = time
+    )
+  )
+
+ggplot(data = block_size_v_time, aes(x = Block_Size, y = Time)) +
+  geom_point(color = "#000088") +
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 1000, by = 50)
+    ) +
+  scale_x_log10(
+    breaks = seq(from = 1, to = 200000)#,
+    #labels = function(breaks){paste0(breaks, "k")}
+  ) +
+  ylab("Run Time") +
+  xlab("Block Size") +
+  theme_cowplot() 
+```
+
+# Explore Run time of `scater` plotting functions
+
+Scater is a Bioconductor package for plotting on SingleCellExperiment classes. The performance of the `plotReducedDim` function will be compared to FetchData for the Full AML dataset.
+
+```{r}
+#plotReducedDim(sce, dimred = "UMAP", colour_by = "seurat_clusters")
+
+test <- c()
+time <- c()
+
+# FetchData, SCE objects
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 5,
+    object = sce,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("FetchData_SCE", 5))
+
+# scater::plotReducedDim
+results <- 
+  repeat_trial(
+    func = scater::plotReducedDim, 
+    n = 5,
+    object = sce,
+    dimred = "UMAP",
+    colour_by = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("scater::plotReducedDim", 5))
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        c("#430D54", "#3F6326"),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    breaks = seq(from = 25, to = 30, by = 1),
+    limits = c(25, 30)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./Performance_FetchData_vs_scater-plotReducedDim.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+# Are SingleCellExperiment objects faster when saved without compression?
+
+```{r}
+nocompression_sce <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_noCompression/")
+```
+
+```{r}
+test <- c()
+time <- c()
+
+# scater::plotReducedDim (object with compression)
+results <- 
+  repeat_trial(
+    func = scater::plotReducedDim, 
+    n = 5,
+    object = sce,
+    dimred = "UMAP",
+    colour_by = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("scater::plotReducedDim", 5))
+
+# plotReducedDim without compression
+results <- 
+  repeat_trial(
+    func = scater::plotReducedDim, 
+    n = 5,
+    object = nocompression_sce,
+    dimred = "UMAP",
+    colour_by = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("scater::plotReducedDim_without_sce_compression", 5))
+
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        c("#82041B", "#430D54"),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 30, by = 5),
+    limits = c(0, 30)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./plotReducedDim_compression_v_no_compression.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+```{r}
+test <- c()
+time <- c()
+
+# scater::plotReducedDim (object with compression)
+results <- 
+  repeat_trial(
+    func = scater::plotReducedDim, 
+    n = 5,
+    object = sce,
+    dimred = "UMAP",
+    colour_by = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("scater::plotReducedDim", 5))
+
+# FetchData, SCE object with compression
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 5,
+    object = sce,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("FetchData", 5))
+
+# plotReducedDim without compression
+results <- 
+  repeat_trial(
+    func = scater::plotReducedDim, 
+    n = 25,
+    object = nocompression_sce,
+    dimred = "UMAP",
+    colour_by = "BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("scater::plotReducedDim_without_sce_compression", 25))
+
+# FetchData, SCE object with compression
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 25,
+    object = nocompression_sce,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("FetchData_without_sce_compression", 25))
+
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        c("#82041B", "#224DD2","#430D54", "#377046"),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_log10(
+    limits = c(0.1, 100)
+    ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 35, by = 5),
+  #   limits = c(0, 35)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./feature_accession_compression_v_no_compression.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+# How does compression level affect performance?
+
+The speed of data access for SingleCellExperiment objects saved via `HDF5Array::saveHDF5SummarizedExperiment` depends on the compression level chosen when saving to disk. Lower compression levels require more disk space, but allow data to be retrieved more quickly. The speed of data access for each compression level chosen, and for the default compression level, will be assessed below.
+
+```{r}
+# Compressed object creation scripts
+# DelayedArray::set_verbose_block_processing(TRUE)
+# saveHDF5SummarizedExperiment(
+#      sce, 
+#      dir = "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_6", 
+#      level = 6
+#      )
+# 
+# saveHDF5SummarizedExperiment(
+#      sce, 
+#      dir = "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_7/", 
+#      level = 7
+#      )
+
+# Takes too long to run
+# saveHDF5SummarizedExperiment(
+#      sce, 
+#      dir = "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_8/", 
+#      level = 8
+#      )
+# 
+# saveHDF5SummarizedExperiment(
+#      sce, 
+#      dir = "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_9/", 
+#      level = 9
+#      )
+```
+
+```{r}
+nocompression_sce <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_noCompression/")
+
+test <- c()
+time <- c()
+
+# FetchData, SCE object with no compression
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = nocompression_sce,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("0", 100))
+
+sce_level_1 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_1/")
+
+# FetchData, SCE object with compression level 1
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_1,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("1", 100))
+
+rm(sce_level_1)
+
+sce_level_2 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_2/")
+
+# FetchData, SCE object with compression level 2
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_2,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("2", 100))
+
+rm(sce_level_2)
+
+sce_level_3 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_3/")
+
+# FetchData, SCE object with compression level 3
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_3,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("3", 100))
+
+rm(sce_level_3)
+
+sce_level_4 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_4/")
+
+# FetchData, SCE object with compression level 4
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_4,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("4", 100))
+
+rm(sce_level_4)
+
+sce_level_5 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_5/")
+
+# FetchData, SCE object with compression level 5
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_5,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("5", 100))
+
+rm(sce_level_5)
+
+sce_level_6 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_6/")
+
+# FetchData, SCE object with compression level 6
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_6,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("6", 100))
+
+rm(sce_level_6)
+
+sce_level_7 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_7/")
+
+# FetchData, SCE object with compression level 7
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 100,
+    object = sce_level_7,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("7", 100))
+
+rm(sce_level_7)
+
+sce <- 
+  loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce/")
+
+# FetchData, SCE object with default compression
+results <- 
+  repeat_trial(
+    func = FetchData, 
+    n = 3,
+    object = sce,
+    vars = "RNA_BCL2"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("Default_Compression", 3))
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(9),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_log10(
+    limits = c(0.1, 100)
+    ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 35, by = 5),
+  #   limits = c(0, 35)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Compression_Level") +
+  labs(
+    title = "Expression Data Retrieval Time",
+    subtitle = "(One feature from a SingleCellExperiment Object, 200k Cells x 29k Genes)"
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./speed_by_compression.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+## Size of SCE objects at different levels of compression
+
+```{r}
+directory_size <-
+  function(directory){
+    file_size <- c()
+
+    # Store size of each file in the directory
+    for (file in list.files(directory)){
+      file_size <- 
+        c(file_size,
+          file.info(paste0(directory, file))$size
+          )
+    }
+  
+    # Return the total file size
+    sum(file_size)
+  }
+
+# Store file size for each compression level
+sce_size <-
+  c(
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_noCompression/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_1/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_2/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_3/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_4/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_5/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_6/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_7/"
+      ),
+    directory_size(
+      "../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce/"
+    )
+  )
+
+compression_level <-
+  c(
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "Default"
+  )
+
+size_df <-
+  data.frame(
+    list(
+    "Compression_Level" = compression_level, 
+    "Size_on_disk" = sce_size
+    )
+  )
+
+plot <- 
+  ggplot(data = size_df, aes(x = compression_level, y = sce_size/1e+9)) +
+  geom_point(color = "#002F99", size = 2.5) +
+  scale_y_log10(
+    limits = c(8, 100),
+    labels = function(breaks){paste0(breaks, " GB")}
+    ) +
+  ylab("Size on Disk") +
+  xlab("Compression Level") +
+  ggtitle("Size of SingleCellExperiment Object on Disk (200k Cells x 29k Genes)") +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
+plot
+
+ggsave(
+  filename = "./size_by_compression.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+Based on these results, compression level 3 should be used for HDF5-enabled SingleCellExperiment objects.
 
