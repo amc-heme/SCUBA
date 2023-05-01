@@ -32,10 +32,10 @@ FetchData.SingleCellExperiment <-
     cells = NULL
     ){
     # 1. Set default values
-    # Slot (assay): defaults to the first assay stored in the object
-    slot <- slot %||% assayNames(object)[1]
+    # Slot (assay): fill with default if null (via default_slot method)
+    slot <- slot %||% default_slot(object)
     # Cells: if NULL, use all cells in the object
-    cells <- cells %||% colnames(object)
+    cells <- cells %||% get_all_cells(object)
 
     # 2. Identify which experiments/reductions have keyed features requested
     # for them. Loop through experiments and reductions, instead of looping
