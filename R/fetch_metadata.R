@@ -4,8 +4,8 @@
 #'
 #' @param object a single-cell object. Currently, Seurat and
 #' SingleCellExperiment objects are supported.
-#' @param vars metadata variables to pull from object
-#' @param cells cells to include in the returned metadata
+#' @param vars metadata variables to pull from object.
+#' @param cells cells to include in the returned metadata.
 #' @param ... Currently unused.
 #'
 #' @rdname fetch_metadata

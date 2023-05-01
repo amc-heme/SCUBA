@@ -16,7 +16,7 @@ fetch_metadata(object, vars, cells, ...)
 \item{object}{a single-cell object. Currently, Seurat and
 SingleCellExperiment objects are supported.}
 
-\item{vars}{metadata veriables to pull from object}
+\item{vars}{metadata variables to pull from object}
 
 \item{cells}{cells to include in the returned metadata}
 
