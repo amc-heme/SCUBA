@@ -6,19 +6,23 @@
 \alias{fetch_metadata.SingleCellExperiment}
 \title{Fetch metadata}
 \usage{
-fetch_metadata(object, vars, cells, ...)
+fetch_metadata(object, vars, cells, return_class = "dataframe", ...)
 
-\method{fetch_metadata}{Seurat}(object, vars, cells)
+\method{fetch_metadata}{Seurat}(object, vars, cells, return_class = "dataframe")
 
-\method{fetch_metadata}{SingleCellExperiment}(object, vars, cells)
+\method{fetch_metadata}{SingleCellExperiment}(object, vars, cells, return_class = "dataframe")
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
 SingleCellExperiment objects are supported.}
 
-\item{vars}{metadata variables to pull from object}
+\item{vars}{metadata variables to pull from object.}
 
-\item{cells}{cells to include in the returned metadata}
+\item{cells}{cells to include in the returned metadata.}
+
+\item{return_class}{class of data returned. Set to "dataframe" by default to
+return a data.frame, and may also be set to "vector" to yield a vector of
+values.}
 
 \item{...}{Currently unused.}
 }

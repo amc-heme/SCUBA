@@ -6,6 +6,9 @@
 #' SingleCellExperiment objects are supported.
 #' @param vars metadata variables to pull from object.
 #' @param cells cells to include in the returned metadata.
+#' @param return_class class of data returned. Set to "dataframe" by default to
+#' return a data.frame, and may also be set to "vector" to yield a vector of
+#' values.
 #' @param ... Currently unused.
 #'
 #' @rdname fetch_metadata
@@ -16,6 +19,7 @@ fetch_metadata <-
     object,
     vars,
     cells,
+    return_class = "dataframe",
     ...
   ){
     UseMethod("fetch_metadata")
@@ -30,7 +34,8 @@ fetch_metadata.default <-
   function(
     object,
     vars,
-    cells
+    cells,
+    return_class = "dataframe"
   ){
     warning(
       paste0(
@@ -47,15 +52,22 @@ fetch_metadata.Seurat <-
   function(
     object,
     vars,
-    cells
+    cells,
+    return_class = "dataframe"
   ){
     # Seurat objects: pull metadata with `[[`
-    data <-
-      as.data.frame(
-        object[[vars]][cells, ]
+    data <- object[[vars]][cells, ]
+
+    # Use as.data.frame() if return_class is equal to "dataframe"
+    # (if "vector", no additional operations neccessary)
+    if (return_class == "dataframe"){
+      data <-
+        as.data.frame(
+          data
         )
 
-    colnames(data) <- vars
+      colnames(data) <- vars
+    }
 
     data
   }
@@ -66,15 +78,23 @@ fetch_metadata.SingleCellExperiment <-
   function(
     object,
     vars,
-    cells
+    cells,
+    return_class = "dataframe"
   ){
     # SingleCellExperiment objects: use colData
     data <-
-      as.data.frame(
-        colData(object)[cells, vars]
+      colData(object)[cells, vars]
+
+    # Use as.data.frame() if return_class is equal to "dataframe"
+    # (if "vector", no additional operations neccessary)
+    if (return_class == "dataframe"){
+      data <-
+        as.data.frame(
+          data
         )
 
-    colnames(data) <- vars
+      colnames(data) <- vars
+    }
 
     data
   }

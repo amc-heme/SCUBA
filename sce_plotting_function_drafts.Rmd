@@ -68,6 +68,8 @@ repeat_trial <-
 
 ```{r}
 # Load Full AML downsampled object
+library(HDF5Array)
+
 sobj <- 
   readRDS("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_annotated_sig_1k_v2.Rds")
 sce <- 
@@ -2873,6 +2875,12 @@ ggplot(data = results_df, aes(x = Test, y = Time)) +
     aesthetics = "color",
     na.value = "grey50"
     )
+
+# ggsave(
+#   "./FetchData_vs_fetch_metadata.png", 
+#   device = "png",
+#   bg = "#FFFFFF"
+#   )
 ```
 
 The fetch_metadata method is considerably faster than FetchData.
@@ -4195,5 +4203,12 @@ plot <-
     )
 
 plot
+
+ggsave(
+  filename = "./fetchData_vs_direct_accession_1-20_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
 ```
 

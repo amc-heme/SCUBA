@@ -50,10 +50,13 @@ See \code{\link{DiscretePalette}} for details.}
 \item{reduction}{Which dimensionality reduction to use. If not specified, first searches for umap, then tsne, then pca}
 
 \item{group_by}{Name of one or more metadata columns to group (color) cells by
-(for example, orig.ident); pass 'ident' to group by identity class}
+(for example, orig.ident). Unlike \code{Seurat::DimPlot}, "ident" may not be
+passed since the ident functionality is not supported by SingleCellExperiment
+objects. A metadata column name must be passed.}
 
-\item{split_by}{Name of a metadata column to split plot by;
-see \code{\link{FetchData}} for more details}
+\item{split_by}{Name of a metadata column to split plot by. Unlike \code{Seurat::DimPlot},
+"ident" may not be passed since the ident functionality is not supported by SingleCellExperiment
+objects. A metadata column name must be passed, or \code{NULL} to disable split plots.}
 
 \item{shape_by}{If NULL, all points are circles (default). You can specify any
 cell attribute (that can be pulled with FetchData) allowing for both
