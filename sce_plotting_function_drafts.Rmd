@@ -24,6 +24,7 @@ library(ggplot2)
 theme_set(theme_cowplot())
 library(ggsci)
 library(scater)
+library(viridisLite)
 
 library(dplyr)
 
@@ -72,10 +73,14 @@ library(HDF5Array)
 
 sobj <- 
   readRDS("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_annotated_sig_1k_v2.Rds")
-sce <- 
-  loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce/")
 sce_3 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_3/")
 ```
+
+```{r}
+sce <- 
+  loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce/")
+```
+
 
 # UMAP function
 
@@ -4210,5 +4215,617 @@ ggsave(
   device = "png",
   bg = "#FFFFFF"
 )
+```
+
+# Performance comparison of SCEPlots::plot_feature to Seurat::FeaturePlot
+
+```{r}
+# Set up data collected from in silico performance test
+time <- c()
+test <- c()
+
+cells_sobj <- get_all_cells(sobj)
+cells_sce <- get_all_cells(sce_3)
+
+cat("plot_feature on Seurat object \n")
+# Seed is set before each random feature access so the same random feature 
+# is chosen during each trial
+set.seed(2023)
+# Select features (randomly, n = i)
+#features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+# Select one random feature
+features <- rownames(sobj)[sample(1:nrow(sobj), 1)]
+trials <- 20
+trial_name <- "plot_feature, Seurat Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = SCEPlots::plot_feature, 
+    n = trials,
+    object = sobj,
+    features = features
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+
+
+cat("Seurat::FeaturePlot on Seurat object \n")
+set.seed(2023)
+# Select features (randomly, n = i)
+#features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+# Select one random feature
+features <- rownames(sobj)[sample(1:nrow(sobj), 1)]
+trials <- 20
+trial_name <- "FeaturePlot, Seurat Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = Seurat::FeaturePlot, 
+    n = trials,
+    object = sobj,
+    features = features
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+cat("plot_feature on SCE object \n")
+set.seed(2023)
+# Select features (randomly, n = i)
+#features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+# Select one random feature
+features <- rownames(sce_3)[sample(1:nrow(sce_3), 1)]
+trials <- 20
+trial_name <- "plot_feature, SCE Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = SCEPlots::plot_feature, 
+    n = trials,
+    object = sce_3,
+    features = features
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+performance_results <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+performance_results$Test <- 
+  factor(
+    performance_results$Test, 
+    levels = 
+      c("FeaturePlot, Seurat Object",
+        "plot_feature, Seurat Object",
+        "plot_feature, SCE Object"
+        )
+    )
+
+plot <- 
+  ggplot(data = performance_results, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        ggsci::pal_aaas("default")(10)[c(1,4,3)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 30, by = 5),
+    limits = c(0, 12)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+# ggsave(
+#   filename = "./Performance_plot_feature_vs_feature_plot.png",
+#   plot,
+#   device = "png",
+#   bg = "#FFFFFF"
+# )
+```
+
+## How does plot_feature scale with the number of features?
+
+```{r}
+time <- c()
+test <- c()
+n_features <- c()
+
+cells_sobj <- get_all_cells(sobj)
+cells_sce <- get_all_cells(sce_3)
+
+# Greatest amount of n_features to include while testing
+max_n_features <- 10
+
+# Seed is set before each random feature access so the same "random" features
+# are chosen during each trial
+set.seed(2023)
+# plot_feature, Seurat object
+for (i in 1:max_n_features){
+  cat("plot_feature on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "plot_feature, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_feature, 
+      n = trials,
+      object = sobj,
+      features = features
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# FeaturePlot, Seurat object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("FeaturePlot on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "FeaturePlot, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = Seurat::FeaturePlot, 
+      n = trials,
+      object = sobj,
+      features = features
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# plot_feature, SCE object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("plot_feature on SCE object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+  trials <- 10
+  trial_name <- "plot_feature, SCE Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_feature, 
+      n = trials,
+      object = sce_3,
+      features = features
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time,
+    "Features" = n_features
+    )
+  )
+
+results_df$Features <-
+  factor(
+    results_df$Features, 
+    levels = 
+      str_sort(
+        results_df$Features |> unique(), 
+        numeric = TRUE
+        )
+    )
+
+results_df$Test <- 
+  factor(
+    results_df$Test, 
+    levels = 
+      c("FeaturePlot, Seurat Object",
+        "plot_feature, Seurat Object",
+        "plot_feature, SCE Object"
+        )
+    )
+
+# Scatterplot with error bars
+# Create summary stats for results
+summary_df <- 
+  results_df |> 
+  group_by(Test, Features) |> 
+  summarize(
+    mean_time = mean(Time),
+    sd = sd(Time)
+  )
+
+plot <-
+  ggplot(data = summary_df, aes(x = Features, y = mean_time, color = Test, group = Test)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_time - sd, ymax = mean_time + sd)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10)[c(3,6,7)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_continuous(
+    limits = c(0, 9)
+  ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 0.5, by = 0.05),
+  #   limits = c(0, 0.5)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Number of Features") +
+  labs(
+    title = "Feature Plot Performance",
+    subtitle =
+      "(200k Cells x 29k Genes, HDF5Array Compression Level 3 for SCE objects)"
+  ) +
+  guides(
+    color =
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./plot_feature_vs_FeaturePlot_1-10_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+## How does plot_feature scale with the number of splits?
+
+```{r}
+time <- c()
+test <- c()
+n_splits <- c()
+
+cells_sobj <- get_all_cells(sobj)
+cells_sce <- get_all_cells(sce_3)
+
+# Metadata to create split plots from
+test_metadata <- c(
+  "cell_call",
+  "Phase",
+  "HTO_classification",
+  "sample_id",
+  "aml_id",
+  "htb_id",
+  "best_response",
+  "specimen_type",
+  "sample_type",
+  "note",
+  "seurat_clusters",
+  "leiden_clusters_char",
+  "leiden_clusters_char_lngb",
+  "ab200_clusters",
+  "ab200_clusters_lngb",
+  "velten_clusters"
+  )
+
+# Seed is set before each random feature access so the same "random" features
+# are chosen during each trial
+set.seed(2023)
+# plot_feature, Seurat object
+for (i in 1:length(test_metadata)){
+  meta_i <- test_metadata[i]
+  cat(
+    "plot_feature on Seurat object, metadata col ", 
+    i, 
+    "/",
+    length(test_metadata),
+    "\n",
+    "(Number of splits: ",
+    length(unique(sobj@meta.data[[test_metadata[i]]])),
+    ")",
+    "\n",
+    sep = ""
+    )
+  # Select random feature
+  features <- rownames(sobj)[sample(1:nrow(sobj), 1)]
+  trials <- 3
+  trial_name <- "plot_feature, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_feature, 
+      n = trials,
+      object = sobj,
+      features = features,
+      split_by = meta_i
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  
+  # Record number of splits for trial i
+  n_splits_i <-
+    sobj@meta.data[[meta_i]] |>
+          unique() |> 
+          length()
+  
+  n_splits <- 
+    c(n_splits, 
+      rep_len(
+        n_splits_i, 
+        trials
+        )
+      )
+}
+
+# FeaturePlot, Seurat object
+set.seed(2023)
+for (i in 1:length(test_metadata)){
+  meta_i <- test_metadata[i]
+  cat(
+    "FeaturePlot on Seurat object, metadata col ", 
+    i, 
+    "/",
+    length(test_metadata),
+    "\n",
+    "(Number of splits: ",
+    length(unique(sobj@meta.data[[test_metadata[i]]])),
+    ")",
+    "\n",
+    sep = ""
+    )
+  # Select random feature
+  features <- rownames(sobj)[sample(1:nrow(sobj), 1)]
+  trials <- 3
+  trial_name <- "FeaturePlot, Seurat Object"
+  
+  # Trial
+  results <- 
+    results <- 
+    repeat_trial(
+      func = Seurat::FeaturePlot, 
+      n = trials,
+      object = sobj,
+      features = features,
+      split.by = meta_i
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  
+  # Record number of splits for trial i
+  n_splits_i <-
+    sobj@meta.data[[meta_i]] |>
+          unique() |> 
+          length()
+  
+  n_splits <- 
+    c(n_splits, 
+      rep_len(
+        n_splits_i, 
+        trials
+        )
+      )
+}
+
+# plot_feature, SCE object
+set.seed(2023)
+for (i in 1:length(test_metadata)){
+  meta_i <- test_metadata[i]
+  cat(
+    "plot_feature on SCE object, metadata col ", 
+    i, 
+    "/",
+    length(test_metadata),
+    "\n",
+    "(Number of splits: ",
+    length(unique(colData(sce_3)[[test_metadata[i]]])),
+    ")",
+    "\n",
+    sep = ""
+    )
+  # Select random feature
+  features <- rownames(sce_3)[sample(1:nrow(sce_3), 1)]
+  trials <- 3
+  trial_name <- "plot_feature, SCE Object"
+  
+  # Trial
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_feature, 
+      n = trials,
+      object = sce_3,
+      features = features,
+      split_by = meta_i
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  
+  # Record number of splits for trial i
+  n_splits_i <-
+    sobj@meta.data[[meta_i]] |>
+          unique() |> 
+          length()
+  
+  n_splits <- 
+    c(n_splits, 
+      rep_len(
+        n_splits_i, 
+        trials
+        )
+      )
+}
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time,
+    "Splits" = n_splits
+    )
+  )
+
+# results_df$Splits <-
+#   factor(
+#     results_df$Splits, 
+#     )
+
+results_df$Test <-
+  factor(
+    results_df$Test,
+    levels =
+      c("FeaturePlot, Seurat Object",
+        "plot_feature, Seurat Object",
+        "plot_feature, SCE Object"
+        )
+    )
+
+# Scatterplot with error bars
+# Create summary stats for results
+summary_df <- 
+  results_df |> 
+  group_by(Test, Splits) |> 
+  summarize(
+    mean_time = mean(Time),
+    sd = sd(Time)
+  )
+
+plot <-
+  ggplot(data = summary_df, aes(x = Splits, y = mean_time, color = Test, group = Test)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_time - sd, ymax = mean_time + sd)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10)[c(3,6,7)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  # scale_x_continuous(
+  #   limits = c(0, 210)
+  # ) +
+  scale_y_continuous(
+    limits = c(0, 40)
+  ) +
+  # scale_y_log10(
+  #   limits = c(0.9, 100)
+  # ) +
+  ylab("Time (s)") +
+  xlab("Number of Splits") +
+  labs(
+    title = "Feature Plot Performance",
+    subtitle =
+      "(200k Cells x 29k Genes, HDF5Array Compression Level 3 for SCE objects)"
+  ) +
+  guides(
+    color =
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./plot_feature_vs_FeaturePlot_splits.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+```{r}
+for (col in colnames(sobj@meta.data)){
+  n_unique <- 
+    sobj@meta.data[[col]] |> 
+      unique() |> 
+      length()
+  
+  if (class(sobj@meta.data[[col]]) %in% c("character", "factor") && n_unique < 205 && n_unique > 1){
+    cat('"', col, '": ', sep = "")
+    cat(n_unique, '\n', sep = "")
+  }
+}
+
+c(
+  "cell_call",
+  "Phase",
+  "HTO_classification",
+  "sample_id",
+  "aml_id",
+  "htb_id",
+  "best_response",
+  "specimen_type",
+  "sample_type",
+  "note",
+  "seurat_clusters",
+  "leiden_clusters_char",
+  "leiden_clusters_char_lngb",
+  "ab200_clusters",
+  "ab200_clusters_lngb",
+  "velten_clusters"
+  ) |> length()
 ```
 
