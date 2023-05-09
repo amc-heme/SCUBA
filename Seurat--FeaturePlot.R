@@ -314,7 +314,7 @@ FeaturePlot <- function(
 
   # Figure out splits (FeatureHeatmap)
   data$split <- if (is.null(x = split.by)) {
-    Seurat::RandomName()
+    SeuratObject::RandomName()
   } else {
     switch(
       EXPR = split.by,

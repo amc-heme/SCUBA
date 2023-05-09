@@ -5,3 +5,4 @@
 
 # SCE object used for plotting 
 data/sce_hdf5
+plot_feature_utility_script.R
