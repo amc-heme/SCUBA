@@ -23,9 +23,12 @@
 #' @param pt_size Adjust point size for plotting
 #' @param reduction Which dimensionality reduction to use. If not specified, first searches for umap, then tsne, then pca
 #' @param group_by Name of one or more metadata columns to group (color) cells by
-#' (for example, orig.ident); pass 'ident' to group by identity class
-#' @param split_by Name of a metadata column to split plot by;
-#' see \code{\link{FetchData}} for more details
+#' (for example, orig.ident). Unlike \code{Seurat::DimPlot}, "ident" may not be
+#' passed since the ident functionality is not supported by SingleCellExperiment
+#' objects. A metadata column name must be passed.
+#' @param split_by Name of a metadata column to split plot by. Unlike \code{Seurat::DimPlot},
+#' "ident" may not be passed since the ident functionality is not supported by SingleCellExperiment
+#' objects. A metadata column name must be passed, or \code{NULL} to disable split plots.
 #' @param shape_by If NULL, all points are circles (default). You can specify any
 #' cell attribute (that can be pulled with FetchData) allowing for both
 #' different colors and different shapes on cells.  Only applicable if \code{raster = FALSE}.
