@@ -219,6 +219,11 @@ plot_feature <- function(
           cells = cells
         )
       )
+
+    # Convert label_by data to a factor unless it is already
+    if (!is.factor(x = data[[label_by]])) {
+      data[[label_by]] <- factor(x = data[[label_by]])
+    }
   }
 
   ## 2.3. Fetch expression data for the requested features
@@ -232,14 +237,6 @@ plot_feature <- function(
         cells = cells
       )
     )
-
-  # data <-
-  #   FetchData(
-  #   object = object,
-  #   vars = c(dim_names, label_by, features),
-  #   cells = cells,
-  #   slot = slot
-  #   )
 
   ## 2.4. Check that at least one of the features was properly
   # fetched from the object.
@@ -387,18 +384,6 @@ plot_feature <- function(
   rownames(x = data) <- cells
 
   # 4. Add split_by metadata
-
-  #Figure out splits (FeatureHeatmap)
-  # if (is.null(x = split_by)){
-  #   # No split_by variable: store a constant for data$split (random ID that
-  #   # applies to all cells). One panel is created for each unique value in
-  #   # data$split.
-  #   data$split <-
-  #     SeuratObject::RandomName()
-  # } else {
-  #
-  # }
-
   data$split <-
     if (is.null(x = split_by)) {
       SeuratObject::RandomName()
@@ -411,6 +396,7 @@ plot_feature <- function(
           )
         }
 
+  # Convert split_by metadata to a factor if it is not one already
   if (!is.factor(x = data$split)) {
     data$split <- factor(x = data$split)
   }
