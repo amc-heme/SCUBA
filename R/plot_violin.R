@@ -3,7 +3,7 @@
 #' Draws a violin plot of single cell data (gene expression, metrics, PC
 #' scores, etc.)
 #'
-#' @inheritParams RidgePlot
+#' @inheritParams plot_ridge
 #' @param pt_size Point size for geom_violin
 #' @param split_by A variable to split the violin plots by,
 #' @param split_plot  plot each group of the split violin plots by multiple or
@@ -28,7 +28,7 @@
 #' VlnPlot(object = pbmc_small, features = 'PC_1')
 #' VlnPlot(object = pbmc_small, features = 'LYZ', split_by = 'groups')
 #'
-VlnPlot <- function(
+plot_violin <- function(
     object,
     features,
     cols = NULL,
