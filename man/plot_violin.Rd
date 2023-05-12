@@ -7,12 +7,12 @@
 plot_violin(
   object,
   features,
+  group_by,
   cols = NULL,
   pt_size = NULL,
   idents = NULL,
   sort = FALSE,
   assay = NULL,
-  group_by = NULL,
   split_by = NULL,
   adjust = 1,
   y_max = NULL,
@@ -30,23 +30,26 @@ plot_violin(
 )
 }
 \arguments{
-\item{object}{Seurat object}
+\item{object}{A Seurat or SingleCellExperiment object}
 
 \item{features}{Features to plot (gene expression, metrics, PC scores,
-anything that can be retreived by FetchData)}
+anything that can be retreived by FetchData).}
+
+\item{group_by}{Group (color) cells in different ways. Unlike
+\code{Seurat::RidgePlot()} or \code{Seurat::VlnPlot()}, this must be defined
+(SingleCellExperiment objects don't have \code{Idents()} functionality).}
 
 \item{cols}{Colors to use for plotting}
 
 \item{pt_size}{Point size for geom_violin}
 
-\item{idents}{Which classes to include in the plot (default is all)}
+\item{idents}{Which levels of the group by variable to include in the plot
+(default is all)}
 
-\item{sort}{Sort identity classes (on the x-axis) by the average
+\item{sort}{Sort group by levels (on the x-axis) by the average
 expression of the attribute being potted, can also pass 'increasing' or 'decreasing' to change sort direction}
 
 \item{assay}{Name of assay to use, defaults to the active assay}
-
-\item{group_by}{Group (color) cells in different ways (for example, orig.ident)}
 
 \item{split_by}{A variable to split the violin plots by,}
 

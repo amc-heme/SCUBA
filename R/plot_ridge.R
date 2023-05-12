@@ -3,15 +3,18 @@
 #' Draws a ridge plot of single cell data (gene expression, metrics, PC
 #' scores, etc.)
 #'
-#' @param object Seurat object
+#' @param object A Seurat or SingleCellExperiment object
 #' @param features Features to plot (gene expression, metrics, PC scores,
-#' anything that can be retreived by FetchData)
+#' anything that can be retreived by FetchData).
+#' @param group_by Group (color) cells in different ways. Unlike
+#' \code{Seurat::RidgePlot()} or \code{Seurat::VlnPlot()}, this must be defined
+#' (SingleCellExperiment objects don't have \code{Idents()} functionality).
 #' @param cols Colors to use for plotting
-#' @param idents Which classes to include in the plot (default is all)
-#' @param sort Sort identity classes (on the x-axis) by the average
+#' @param idents Which levels of the group by variable to include in the plot
+#' (default is all)
+#' @param sort Sort group by levels (on the x-axis) by the average
 #' expression of the attribute being potted, can also pass 'increasing' or 'decreasing' to change sort direction
 #' @param assay Name of assay to use, defaults to the active assay
-#' @param group_by Group (color) cells in different ways (for example, orig.ident)
 #' @param y_max Maximum y axis value
 #' @param same_y_lims Set all the y-axis limits to the same values
 #' @param log plot the feature axis on log scale
@@ -35,11 +38,11 @@
 plot_ridge <- function(
     object,
     features,
+    group_by,
     cols = NULL,
     idents = NULL,
     sort = FALSE,
     assay = NULL,
-    group_by = NULL,
     y_max = NULL,
     same_y_lims = FALSE,
     log = FALSE,
@@ -57,7 +60,6 @@ plot_ridge <- function(
       idents = idents,
       ncol = ncol,
       sort = sort,
-      assay = assay,
       y_max = y_max,
       same_y_lims = same_y_lims,
       cols = cols,
