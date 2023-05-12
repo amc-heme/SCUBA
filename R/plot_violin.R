@@ -43,7 +43,7 @@ plot_violin <- function(
     same_y_lims = FALSE,
     log = FALSE,
     ncol = NULL,
-    slot = 'data',
+    slot = NULL,
     split_plot = FALSE,
     stack = FALSE,
     combine = TRUE,

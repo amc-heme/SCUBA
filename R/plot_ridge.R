@@ -19,7 +19,9 @@
 #' @param same_y_lims Set all the y-axis limits to the same values
 #' @param log plot the feature axis on log scale
 #' @param ncol Number of columns if multiple plots are displayed
-#' @param slot Slot to pull expression data from (e.g. "counts" or "data")
+#' @param slot Slot (Seurat objects) or assay (SingleCellExperiment objects) to
+#' pull expression data from (counts/data for Seurat objects, counts/logcounts
+#' for SingleCellExperiment objects)
 #' @param stack Horizontally stack plots for each feature
 #' @param combine Combine plots into a single \code{\link[patchwork]{patchwork}ed}
 #' ggplot object. If \code{FALSE}, return a list of ggplot
@@ -47,7 +49,7 @@ plot_ridge <- function(
     same_y_lims = FALSE,
     log = FALSE,
     ncol = NULL,
-    slot = 'data',
+    slot = NULL,
     stack = FALSE,
     combine = TRUE,
     fill_by = 'feature'
