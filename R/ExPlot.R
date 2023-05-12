@@ -16,10 +16,12 @@
 #' @param adjust Adjust parameter for geom_violin
 #' @param pt_size Point size for geom_violin
 #' @param cols Colors to use for plotting
-#' @param group.by Group (color) cells in different ways (for example, orig.ident)
+#' @param group_by Group (color) cells in different ways (for example, orig.ident)
 #' @param split_by A variable to split the plot by
 #' @param log plot Y axis on log scale
-#' @param slot Slot to pull expression data from (e.g. "counts" or "data")
+#' @param slot Slot (Seurat objects) or assay (SingleCellExperiment objects) to
+#' pull expression data from (counts/data for Seurat objects, counts/logcounts
+#' for SingleCellExperiment objects)
 #' @param stack Horizontally stack plots for multiple feature
 #' @param combine Combine plots into a single \code{\link[patchwork]{patchwork}ed}
 #' ggplot object. If \code{FALSE}, return a list of ggplot objects
@@ -40,20 +42,19 @@ ExPlot <-
   function(
     object,
     features,
+    group_by,
     type = 'violin',
     idents = NULL,
     ncol = NULL,
     sort = FALSE,
-    # assay = NULL,
     y_max = NULL,
     same_y_lims = FALSE,
     adjust = 1,
     cols = NULL,
     pt_size = 0,
-    group_by = NULL,
     split_by = NULL,
     log = FALSE,
-    slot = 'data',
+    slot = NULL,
     stack = FALSE,
     combine = TRUE,
     fill_by = NULL,
@@ -61,9 +62,9 @@ ExPlot <-
     add_noise = TRUE,
     raster = NULL
     ){
-    assay <- assay %||% DefaultAssay(object = object)
-    DefaultAssay(object = object) <- assay
-    if (isTRUE(x = stack)) {
+    # 1. Set defaults
+    ## 1.1. Set default number of columns if undefined, and if stack is FALSE
+    if (stack == TRUE) {
       if (!is.null(x = ncol)) {
         warning(
           "'ncol' is ignored with 'stack' is TRUE",
@@ -82,70 +83,126 @@ ExPlot <-
       ncol <- ncol %||% ifelse(
         test = length(x = features) > 9,
         yes = 4,
+        # If less than 9 features, use number of features or 3,
+        # whichever is lower
         no = min(length(x = features), 3)
       )
     }
-    data <- FetchData(object = object, vars = features, slot = slot)
-    pt_size <- pt_size %||% AutoPointSize(data = object)
-    # Set features equal to the returned features *with the assay keys added*
+
+    ## 1.2. Define the default slot
+    slot <-
+      slot %||% default_slot(object)
+
+    # 2. Fetch data
+    ## 2.1. Fetch feature expression data
+    data <-
+      FetchData(
+        object = object,
+        vars = features,
+        slot = slot
+        )
+
+    # Set `features` equal to the colnames of the data
+    # returned (features requested)
     features <- colnames(x = data)
-    # Set cells based on the value of idents
+
+    ## 2.2. Fetch group_by metadata (stored as a separate variable instead of
+    # in `data`)
+    group <-
+      fetch_metadata(
+        object = object,
+        vars = group_by,
+        # Get data for all cells (subsetting will happen later based on `idents`)
+        cells = get_all_cells(object),
+        return_class = "vector"
+      )
+
+    # Convert to factor if it is not already
+    if (!is.factor(x = group)) {
+      group <- factor(x = group)
+    }
+
+    # 3. Settings based on data fetched in 2.
+    ## 3.1. AutoPointSize: Seurat function, may break on other object types
+    pt_size <-
+      pt_size %||% AutoPointSize(data = object)
+
+    ## 3.2. Cells included in plot (based on idents)
     if (is.null(x = idents)) {
-      cells <- colnames(x = object)
+      cells <- get_all_cells(object)
     } else {
-      # ???
-      #cells <- names(x = Idents(object = object)[Idents(object = object) %in% idents])
-      cells <- names(Idents(object)[Idents(object) %in% idents])
+      # Fetch metadata for group_by category, then subset for cells that
+      # are in idents
+      cells <- names(groups[group %in% idents])
+
+      # Code from original Seurat::ExIPlot
+      # cells <- names(Idents(object)[Idents(object) %in% idents])
     }
+
+    # 4. Subset for cells included
+    ## 4.1. Subset expression data
     data <- data[cells, , drop = FALSE]
-    idents <- if (is.null(x = group_by)) {
-      Idents(object = object)[cells]
-    } else {
-      object[[group_by, drop = TRUE]][cells]
-    }
-    if (!is.factor(x = idents)) {
-      idents <- factor(x = idents)
-    }
+
+    ## 4.2. Subset group by data
+    group <- group[cells]
+
+    # 5. Process split_by settings (data is also stored as a separate variable)
     if (is.null(x = split_by)) {
       split <- NULL
     } else {
-      # set `split` to the split by metadata column, subsetted for the cells in
-      # the object, and convert to a factor if it is not already
-      split <- object[[split_by, drop = TRUE]][cells]
+      # Fetch split_by metadata, subsetted for the cells in the object.
+      split <-
+        fetch_metadata(
+          object = object,
+          vars = group_by,
+          cells = cells,
+          return_class = "vector"
+          )
+
+      # Convert split_by metadata to a factor
       if (!is.factor(x = split)) {
         split <- factor(x = split)
       }
-      # Set up colors for a split plot
+
+      # Set up colors for split plot
       if (is.null(x = cols)) {
-        cols <- hue_pal()(length(x = levels(x = idents)))
-        cols <- Interleave(cols, InvertHex(hexadecimal = cols))
+        cols <- hue_pal()(length(x = levels(x = group)))
+        cols <- Seurat:::Interleave(cols, InvertHex(hexadecimal = cols))
       } else if (length(x = cols) == 1 && cols == 'interaction') {
         # Splits each split_by group into secondary violins by ident class and
         # colors each ident-split_by combination separately
-        # base interaction(): shows interaction of the idents and split factors
-        split <- interaction(idents, split)
-        cols <- hue_pal()(length(x = levels(x = idents)))
+        # base interaction(): shows interaction of the group and split factors
+        split <- interaction(group, split)
+        cols <- hue_pal()(length(x = levels(x = group)))
       } else {
         cols <- Col2Hex(cols)
       }
+
       if (length(x = cols) < length(x = levels(x = split))) {
-        cols <- Interleave(cols, InvertHex(hexadecimal = cols))
+        cols <- Seurat:::Interleave(cols, InvertHex(hexadecimal = cols))
       }
+
       cols <- rep_len(x = cols, length.out = length(x = levels(x = split)))
+
       names(x = cols) <- levels(x = split)
+
       if ((length(x = cols) > 2) & (type == "splitViolin")) {
         warning("Split violin is only supported for <3 groups, using multi-violin.")
         type <- "violin"
       }
     }
+
     if (same_y_lims && is.null(x = y_max)) {
       y_max <- max(data)
     }
+
+    # 6. Create individual violin/ridge plots
     if (isTRUE(x = stack)) {
-      return(MultiExIPlot(
+      return(Seurat:::MultiExIPlot(
         type = type,
         data = data,
-        idents = idents,
+        # Idents: group_by data for each cell
+        idents = group,
         split = split,
         sort = sort,
         same.y.lims = same_y_lims,
@@ -161,10 +218,11 @@ ExPlot <-
     plots <- lapply(
       X = features,
       FUN = function(x) {
-        return(SingleExIPlot(
+        return(Seurat:::SingleExIPlot(
           type = type,
           data = data[, x, drop = FALSE],
-          idents = idents,
+          # Idents: group_by data for each cell
+          idents = group,
           split = split,
           sort = sort,
           y.max = y_max,
@@ -177,6 +235,11 @@ ExPlot <-
         ))
       }
     )
+
+    # 7. Modify axis labels based on type features plotted
+    # (default label is "Expression Level")
+
+    ## 7.1. Define label function based on plot type
     label.fxn <- switch(
       EXPR = type,
       'violin' = if (stack) {
@@ -192,27 +255,63 @@ ExPlot <-
       'ridge' = xlab,
       stop("Unknown ExIPlot type ", type, call. = FALSE)
     )
+
+    ## 7.2. Apply changes for each feature
+    # Determine if the key matches an assay or a reduction, and change labels
+    # based on the result
     for (i in 1:length(x = plots)) {
-      key <- paste0(unlist(x = strsplit(x = features[i], split = '_'))[1], '_')
-      obj <- names(x = which(x = Key(object = object) == key))
-      if (length(x = obj) == 1) {
-        if (inherits(x = object[[obj]], what = 'DimReduc')) {
-          plots[[i]] <- plots[[i]] + label.fxn(label = 'Embeddings Value')
-        } else if (inherits(x = object[[obj]], what = 'Assay')) {
+      key <-
+        paste0(
+          unlist(
+            x = strsplit(x = features[i], split = '_'))[1]
+          , '_'
+          )
+
+      key_type <- key_type(object, key)
+
+      if (key_type == "Assay"){
+        # No changes to labels needed in this case
+        next
+      } else if (key_type == "Reduction"){
+        # If the feature is a reduction, label axis with "Embeddings Value"
+        plots[[i]] <-
+          plots[[i]] + label.fxn(label = 'Embeddings Value')
+      } else if (key_type == "Other") {
+        # For "other" cases: key will be a feature name if a feature from the
+        # default assay (or main experiment for SingleCellExperiment objects)
+        # is entered.
+        if (features[i] %in% rownames(x = object)){
+          # No changes needed if this is the case
           next
         } else {
-          warning("Unknown object type ", class(x = object), immediate. = TRUE, call. = FALSE)
-          plots[[i]] <- plots[[i]] + label.fxn(label = NULL)
+          # Warn user in the event the key corresponds to something other than
+          # an assay, reduction, or default assay feature
+          warning(
+            "Unknown object type for key ",
+            key,
+            " from feature ",
+            features[i],
+            " (",
+            class(x = object),
+            ")",
+            immediate. = TRUE,
+            call. = FALSE
+          )
+
+          # Remove label from plot
+          plots[[i]] <-
+            plots[[i]] + label.fxn(label = NULL)
         }
-      } else if (!features[i] %in% rownames(x = object)) {
-        plots[[i]] <- plots[[i]] + label.fxn(label = NULL)
       }
     }
+
+    # 8. Combine plots and return
     if (combine) {
       plots <- wrap_plots(plots, ncol = ncol)
       if (length(x = features) > 1) {
         plots <- plots & NoLegend()
       }
     }
+
     return(plots)
   }

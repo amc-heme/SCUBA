@@ -25,6 +25,10 @@ theme_set(theme_cowplot())
 library(ggsci)
 library(scater)
 library(viridisLite)
+library(patchwork)
+
+# Load Full AML downsampled object
+library(HDF5Array)
 
 library(dplyr)
 
@@ -68,9 +72,6 @@ repeat_trial <-
 ```
 
 ```{r}
-# Load Full AML downsampled object
-library(HDF5Array)
-
 sobj <- 
   readRDS("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_annotated_sig_1k_v2.Rds")
 sce_3 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_3/")
@@ -4827,5 +4828,86 @@ c(
   "ab200_clusters_lngb",
   "velten_clusters"
   ) |> length()
+```
+
+
+# Speed Test of var == TRUE vs. isTRUE(var)
+
+Seurat functions use `isTRUE`, but this is slightly slower than `== TRUE`.
+```{r}
+time <- c()
+test <- c()
+
+true_var <- TRUE
+
+trials <- 100
+trial_name <- "isTRUE"
+  
+is_true <- 
+  function(var){
+    for (i in 1:100000){
+      isTRUE(var)
+    }
+  }
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = is_true, 
+    n = trials,
+    var = true_var
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+trial_name <- "EqualsTrue"
+
+equalsTrue <- function(var){
+  for (i in 1:100000){
+    var == TRUE
+    }
+  }
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = equalsTrue, 
+    n = trials,
+    var = true_var
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        c("#880000", "#000088"),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    limits = c(0, 0.5)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
 ```
 

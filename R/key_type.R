@@ -54,11 +54,19 @@ key_type.Seurat <-
     obj_ref <- names(which(Key(object) == key))
 
     # Seurat objects: Test class of obj[[obj_ref]]
-    if (inherits(x = object[[obj_ref]], what = 'Assay')){
-      return("Assay")
-    } else if (inherits(x = object[[obj_ref]], what = 'DimReduc')){
-      return("Reduction")
+    if (length(obj_ref) == 1){
+      # If the key aligns with the list of all keys, determine the type of the
+      # object corresponding to the key
+      if (inherits(x = object[[obj_ref]], what = 'Assay')){
+        return("Assay")
+      } else if (inherits(x = object[[obj_ref]], what = 'DimReduc')){
+        return("Reduction")
+      } else {
+        return("Other")
+      }
     } else {
+      # Return "other" in the event that `key` does not match any of the object
+      # keys (or if it matches multiple, though this should never happen)
       return("Other")
     }
   }
@@ -71,12 +79,24 @@ key_type.SingleCellExperiment <-
     key
   ){
     # SingleCellExperiment objects: search for key in experiments, reductions
-    if (key %in% c(mainExpName(object), altExpNames(object))){
-      # Return "Assay" for consistency with Seurat method
-      return("Assay")
-    } else if (key %in% reducedDimNames(object)){
-      return("Reduction")
+    # obj_ref: name of "object" (experiment or reduction) corresponding to key
+    obj_ref <- names(which(all_keys(object) == key))
+
+    # Check if key matches exactly one object. If not, return "Other"
+    if (length(obj_ref) == 1){
+      # If exactly one object, return type if recognized
+      if (key %in% c(mainExpName(object), altExpNames(object))){
+        # Return "Assay" for consistency with Seurat method
+        return("Assay")
+      } else if (key %in% reducedDimNames(object)){
+        return("Reduction")
+      } else {
+        return("Other")
+      }
     } else {
       return("Other")
     }
+
+
+
   }
