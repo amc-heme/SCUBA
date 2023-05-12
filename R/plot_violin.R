@@ -65,28 +65,30 @@ VlnPlot <- function(
   #   )
   #   options(Seurat.warn.vlnplot.split = FALSE)
   # }
-  return(ExPlot(
-    object = object,
-    type = ifelse(test = split_plot, yes = 'splitViolin', no = 'violin'),
-    features = features,
-    idents = idents,
-    ncol = ncol,
-    sort = sort,
-    assay = assay,
-    y_max = y_max,
-    same_y_lims = same_y_lims,
-    adjust = adjust,
-    pt_size = pt_size,
-    cols = cols,
-    group_by = group_by,
-    split_by = split_by,
-    log = log,
-    slot = slot,
-    stack = stack,
-    combine = combine,
-    fill_by = fill_by,
-    flip = flip,
-    add_noise = add_noise,
-    raster = raster
-  ))
+  return(
+    expr_plot(
+      object = object,
+      type = ifelse(test = split_plot, yes = 'splitViolin', no = 'violin'),
+      features = features,
+      idents = idents,
+      ncol = ncol,
+      sort = sort,
+      assay = assay,
+      y_max = y_max,
+      same_y_lims = same_y_lims,
+      adjust = adjust,
+      pt_size = pt_size,
+      cols = cols,
+      group_by = group_by,
+      split_by = split_by,
+      log = log,
+      slot = slot,
+      stack = stack,
+      combine = combine,
+      fill_by = fill_by,
+      flip = flip,
+      add_noise = add_noise,
+      raster = raster
+      )
+    )
 }

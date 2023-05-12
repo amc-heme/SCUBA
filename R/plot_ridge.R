@@ -49,22 +49,24 @@ plot_ridge <- function(
     combine = TRUE,
     fill_by = 'feature'
 ) {
-  return(ExPlot(
-    object = object,
-    type = 'ridge',
-    features = features,
-    idents = idents,
-    ncol = ncol,
-    sort = sort,
-    assay = assay,
-    y_max = y_max,
-    same_y_lims = same_y_lims,
-    cols = cols,
-    group_by = group_by,
-    log = log,
-    slot = slot,
-    stack = stack,
-    combine = combine,
-    fill_by = fill_by
-  ))
+  return(
+    expr_plot(
+      object = object,
+      type = 'ridge',
+      features = features,
+      idents = idents,
+      ncol = ncol,
+      sort = sort,
+      assay = assay,
+      y_max = y_max,
+      same_y_lims = same_y_lims,
+      cols = cols,
+      group_by = group_by,
+      log = log,
+      slot = slot,
+      stack = stack,
+      combine = combine,
+      fill_by = fill_by
+      )
+    )
 }

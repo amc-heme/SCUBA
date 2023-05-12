@@ -38,7 +38,7 @@
 #' @importFrom ggplot2 xlab ylab
 #' @importFrom patchwork wrap_plots
 #'
-ExPlot <-
+expr_plot <-
   function(
     object,
     features,
