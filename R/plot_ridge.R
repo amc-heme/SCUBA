@@ -53,7 +53,7 @@ plot_ridge <- function(
     stack = FALSE,
     combine = TRUE,
     fill_by = 'feature'
-) {
+    ){
   return(
     expr_plot(
       object = object,

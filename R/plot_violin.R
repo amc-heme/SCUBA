@@ -51,20 +51,7 @@ plot_violin <- function(
     flip = FALSE,
     add_noise = TRUE,
     raster = NULL
-) {
-  # if (
-  #   !is.null(x = split_by) &
-  #   getOption(x = 'Seurat.warn.vlnplot.split', default = TRUE)
-  # ) {
-  #   message(
-  #     "The default behaviour of split_by has changed.\n",
-  #     "Separate violin plots are now plotted side-by-side.\n",
-  #     "To restore the old behaviour of a single split violin,\n",
-  #     "set split_plot = TRUE.
-  #     \nThis message will be shown once per session."
-  #   )
-  #   options(Seurat.warn.vlnplot.split = FALSE)
-  # }
+    ){
   return(
     expr_plot(
       object = object,
