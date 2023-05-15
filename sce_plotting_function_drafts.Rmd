@@ -25,6 +25,10 @@ theme_set(theme_cowplot())
 library(ggsci)
 library(scater)
 library(viridisLite)
+library(patchwork)
+
+# Load Full AML downsampled object
+library(HDF5Array)
 
 library(dplyr)
 
@@ -68,9 +72,6 @@ repeat_trial <-
 ```
 
 ```{r}
-# Load Full AML downsampled object
-library(HDF5Array)
-
 sobj <- 
   readRDS("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_annotated_sig_1k_v2.Rds")
 sce_3 <- loadHDF5SummarizedExperiment("../scExploreR_files/Testing/Full_AML_Downsampled/full_combined_20230207v1_sce_compression_3/")
@@ -4829,3 +4830,469 @@ c(
   ) |> length()
 ```
 
+
+# Speed Test of var == TRUE vs. isTRUE(var)
+
+Seurat functions use `isTRUE`, but this is slightly slower than `== TRUE`.
+```{r}
+time <- c()
+test <- c()
+
+true_var <- TRUE
+
+trials <- 100
+trial_name <- "isTRUE"
+  
+is_true <- 
+  function(var){
+    for (i in 1:100000){
+      isTRUE(var)
+    }
+  }
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = is_true, 
+    n = trials,
+    var = true_var
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+trial_name <- "EqualsTrue"
+
+equalsTrue <- function(var){
+  for (i in 1:100000){
+    var == TRUE
+    }
+  }
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = equalsTrue, 
+    n = trials,
+    var = true_var
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+plot <- 
+  ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        c("#880000", "#000088"),
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    limits = c(0, 0.5)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+```
+
+# How do plot_violin and plot_ridge scale with number of features?
+## plot_violin
+
+```{r}
+time <- c()
+test <- c()
+n_features <- c()
+
+cells_sobj <- get_all_cells(sobj)
+cells_sce <- get_all_cells(sce_3)
+
+# Greatest amount of n_features to include while testing
+max_n_features <- 10
+
+# Seed is set before each random feature access so the same "random" features
+# are chosen during each trial
+set.seed(2023)
+# plot_feature, Seurat object
+for (i in 1:max_n_features){
+  cat("plot_violin on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "plot_violin, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_violin, 
+      n = trials,
+      object = sobj,
+      features = features,
+      group_by = "rochester"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# FeaturePlot, Seurat object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("VlnPlot on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "VlnPlot, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = Seurat::VlnPlot, 
+      n = trials,
+      object = sobj,
+      features = features,
+      group.by = "rochester"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# plot_feature, SCE object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("plot_violin on SCE object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+  trials <- 5
+  trial_name <- "plot_violin, SCE Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_violin, 
+      n = trials,
+      object = sce_3,
+      features = features,
+      group_by = "rochester"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time,
+    "Features" = n_features
+    )
+  )
+
+results_df$Features <-
+  factor(
+    results_df$Features, 
+    levels = 
+      str_sort(
+        results_df$Features |> unique(), 
+        numeric = TRUE
+        )
+    )
+
+results_df$Test <- 
+  factor(
+    results_df$Test, 
+    levels = 
+      c("VlnPlot, Seurat Object",
+        "plot_violin, Seurat Object",
+        "plot_violin, SCE Object"
+        )
+    )
+
+# Scatterplot with error bars
+# Create summary stats for results
+summary_df <- 
+  results_df |> 
+  group_by(Test, Features) |> 
+  summarize(
+    mean_time = mean(Time),
+    sd = sd(Time)
+  )
+
+plot <-
+  ggplot(data = summary_df, aes(x = Features, y = mean_time, color = Test, group = Test)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_time - sd, ymax = mean_time + sd)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10)[c(3,6,7)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_continuous(
+    limits = c(0, 5)
+  ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 0.5, by = 0.05),
+  #   limits = c(0, 0.5)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Number of Features") +
+  labs(
+    title = "Violin Plot Performance",
+    subtitle =
+      "(200k Cells x 29k Genes, HDF5Array Compression Level 3 for SCE objects)"
+  ) +
+  guides(
+    color =
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./plot_violin_vs_VlnPlot_1-10_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+## plot_ridge
+
+```{r}
+time <- c()
+test <- c()
+n_features <- c()
+
+# Greatest amount of n_features to include while testing
+max_n_features <- 10
+
+# Seed is set before each random feature access so the same "random" features
+# are chosen during each trial
+set.seed(2023)
+# plot_feature, Seurat object
+for (i in 1:max_n_features){
+  cat("plot_ridge on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "plot_ridge, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_ridge, 
+      n = trials,
+      object = sobj,
+      features = features,
+      group_by = "rochester"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# FeaturePlot, Seurat object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("RidgePlot on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "RidgePlot, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = Seurat::RidgePlot, 
+      n = trials,
+      object = sobj,
+      features = features,
+      group.by = "rochester"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# plot_feature, SCE object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("plot_ridge on SCE object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+  trials <- 5
+  trial_name <- "plot_ridge, SCE Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_ridge, 
+      n = trials,
+      object = sce_3,
+      features = features,
+      group_by = "rochester"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time,
+    "Features" = n_features
+    )
+  )
+
+results_df$Features <-
+  factor(
+    results_df$Features, 
+    levels = 
+      str_sort(
+        results_df$Features |> unique(), 
+        numeric = TRUE
+        )
+    )
+
+results_df$Test <- 
+  factor(
+    results_df$Test, 
+    levels = 
+      c("RidgePlot, Seurat Object",
+        "plot_ridge, Seurat Object",
+        "plot_ridge, SCE Object"
+        )
+    )
+
+# Scatterplot with error bars
+# Create summary stats for results
+summary_df <- 
+  results_df |> 
+  group_by(Test, Features) |> 
+  summarize(
+    mean_time = mean(Time),
+    sd = sd(Time)
+  )
+
+plot <-
+  ggplot(data = summary_df, aes(x = Features, y = mean_time, color = Test, group = Test)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_time - sd, ymax = mean_time + sd)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10)[c(3,6,7)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_continuous(
+    limits = c(0, 5)
+  ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 0.5, by = 0.05),
+  #   limits = c(0, 0.5)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Number of Features") +
+  labs(
+    title = "Ridge Plot Performance",
+    subtitle =
+      "(200k Cells x 29k Genes, HDF5Array Compression Level 3 for SCE objects)"
+  ) +
+  guides(
+    color =
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./plot_ridge_vs_RidgePlot_1-10_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```

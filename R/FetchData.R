@@ -89,8 +89,24 @@ FetchData.SingleCellExperiment <-
           # Retrieve data
           if (key == mainExpName(object)){
             # For main experiment
-            # Subset to variables that are included in the experiment, to avoid errors
+            # Subset to variables that are included in the experiment,
+            # to avoid errors
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(object)]
+
+            # Before pulling data, make sure the slot provided by the user
+            # exists in the object. Throw an error if not
+            if (!slot %in% names(assays(object))){
+              stop(
+                "Error for vars",
+                keyless_vars,
+                ": slot ",
+                slot,
+                " does not exist in the indicated experiment (",
+                mainExpName(object),
+                ")"
+                )
+              }
+
             data <-
               assays(object)[[slot]][keyless_vars, cells, drop = FALSE] |>
               # Must be a matrix for feature names to properly display as names in
@@ -107,6 +123,21 @@ FetchData.SingleCellExperiment <-
             alt_sce <- altExps(object)[[key]]
 
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(alt_sce)]
+
+            # Before pulling data, make sure the slot provided by the user
+            # exists in the object. Throw an error if not
+            if (!slot %in% names(assays(alt_sce))){
+              stop(
+                "Error for vars",
+                keyless_vars,
+                ": slot ",
+                slot,
+                " does not exist in the indicated experiment (",
+                mainExpName(alt_sce),
+                ")"
+                )
+              }
+
 
             data <-
               assays(alt_sce)[[slot]][keyless_vars, cells, drop = FALSE] |>
@@ -167,6 +198,18 @@ FetchData.SingleCellExperiment <-
     # with an assay key
     remaining_vars <- vars[!vars %in% names(fetched_data)]
     main_exp_vars <- remaining_vars[remaining_vars %in% rownames(object)]
+
+    if (!slot %in% names(assays(object))){
+      stop(
+        "Error for vars",
+        main_exp_vars,
+        ": slot ",
+        slot,
+        " does not exist in the indicated experiment (",
+        mainExpName(object),
+        ")"
+        )
+      }
 
     # Pull vars from main experiment
     main_exp_data <-
@@ -267,6 +310,18 @@ FetchData.SingleCellExperiment <-
         key <- where_missing_vars[[var]]
         # Load alternate experiment
         alt_sce <- altExps(object)[[key]]
+
+        if (!slot %in% names(assays(alt_sce))){
+          stop(
+            "Error for var",
+            var,
+            ": slot ",
+            slot,
+            " does not exist in the indicated experiment (",
+            mainExpName(alt_sce),
+            ")"
+            )
+        }
 
         data <-
           assays(alt_sce)[[slot]][var, cells, drop = FALSE] |>

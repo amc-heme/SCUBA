@@ -55,18 +55,28 @@ fetch_metadata.Seurat <-
     cells,
     return_class = "dataframe"
   ){
+    # Check return_class for valid entries
+    if (!return_class %in% c("dataframe", "vector")){
+      stop('return_class must be either "dataframe" or "vector".')
+    }
+
     # Seurat objects: pull metadata with `[[`
     data <- object[[vars]][cells, ]
 
     # Use as.data.frame() if return_class is equal to "dataframe"
-    # (if "vector", no additional operations neccessary)
+    # (if "vector", no additional operations necessary)
     if (return_class == "dataframe"){
       data <-
         as.data.frame(
           data
         )
 
+      # Add cell names to rownames, and metadata names to colnames
+      rownames(data) <- cells
       colnames(data) <- vars
+    } else if (return_class == "vector"){
+      # Return named vector with cell names
+      names(data) <- cells
     }
 
     data
@@ -81,19 +91,29 @@ fetch_metadata.SingleCellExperiment <-
     cells,
     return_class = "dataframe"
   ){
+    # Check return_class for valid entries
+    if (!return_class %in% c("dataframe", "vector")){
+      stop('return_class must be either "dataframe" or "vector".')
+    }
+
     # SingleCellExperiment objects: use colData
     data <-
       colData(object)[cells, vars]
 
     # Use as.data.frame() if return_class is equal to "dataframe"
-    # (if "vector", no additional operations neccessary)
+    # (if "vector", no additional operations necessary)
     if (return_class == "dataframe"){
       data <-
         as.data.frame(
           data
         )
 
+      # Add cell names to rownames, and metadata names to colnames
+      rownames(data) <- cells
       colnames(data) <- vars
+    } else if (return_class == "vector"){
+      # Return named vector with cell names
+      names(data) <- cells
     }
 
     data
