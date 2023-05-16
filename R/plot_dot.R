@@ -6,13 +6,17 @@
 #' across all cells within a class (blue is high).
 #'
 #' @param object Seurat object
-#' @param assay Name of assay to use, defaults to the active assay
+#' @param group_by The name of a metadata variable to group the cells by. Unlike
+#'  \code{Seurat::DotPlot()}, this must be defined.
 #' @param features Input vector of features, or named list of feature vectors
 #' if feature-grouped panels are desired (replicates the functionality of the
 #' old SplitDotPlotGG)
-#' @param cols Colors to plot: the name of a palette from
-#' \code{RColorBrewer::brewer_pal_info}, a pair of colors defining a gradient,
-#' or 3+ colors defining multiple gradients (if split_by is set)
+#' @param split_by The name of a metadata variable to split groups by. Each
+#' combination of unique values in the group_by and split_by variables for
+#' which cells exist will appear on the y-axis of the plot.
+#' @param cols Colors to plot. May be the name of a palette from
+#' \code{RColorBrewer::brewer.pal.info}, a pair of colors defining a gradient,
+#' or 3+ colors defining multiple gradients (if split_by is set).
 #' @param col_min Minimum scaled average expression threshold (everything
 #' smaller will be set to this)
 #' @param col_max Maximum scaled average expression threshold (everything larger
@@ -22,10 +26,6 @@
 #' gene will have no dot drawn.
 #' @param dot_scale Scale the size of the points, similar to cex
 #' @param idents Identity classes to include in plot (default is all)
-#' @param group_by Factor to group the cells by
-#' @param split_by Factor to split the groups by (replicates the functionality
-#' of the old SplitDotPlotGG);
-#' see \code{\link{FetchData}} for more details
 #' @param cluster_idents Whether to order identities by hierarchical clusters
 #' based on given features, default is FALSE
 #' @param scale Determine whether the data is scaled, TRUE for default
@@ -43,12 +43,11 @@
 #' facet_grid unit
 #' @importFrom scattermore geom_scattermore
 #' @importFrom stats dist hclust
-#' @importFrom RColorBrewer brewer_pal_info
+#' @importFrom RColorBrewer brewer.pal.info
 #'
 #' @export
-#' @concept visualization
 #'
-#' @seealso \code{RColorBrewer::brewer_pal_info}
+#' @seealso \code{RColorBrewer::brewer.pal.info}
 #'
 #' @examples
 #' data("pbmc_small")
@@ -60,7 +59,7 @@
 plot_dot <-
   function(
     object,
-    assay = NULL,
+    group_by,
     features,
     cols = c("lightgrey", "blue"),
     col_min = -2.5,
@@ -68,7 +67,6 @@ plot_dot <-
     dot_min = 0,
     dot_scale = 6,
     idents = NULL,
-    group_by = NULL,
     split_by = NULL,
     cluster_idents = FALSE,
     scale = TRUE,
@@ -76,30 +74,41 @@ plot_dot <-
     scale_min = NA,
     scale_max = NA
     ){
-    # Determine the assay to use for gene expression data (if not provided)
-    assay <- assay %||% DefaultAssay(object = object)
-    DefaultAssay(object = object) <- assay
-    # Determine whether to use
+    # 1. Process Input Parameters
+    ## 1.1. split_colors based on split_by, cols entry
+    # colors each split separately (only works for categorical
+    # palettes; does not work with RColorBrewer palettes)
     split_colors <-
-      !is.null(x = split_by) && !any(cols %in% rownames(x = brewer_pal_info))
+      !is.null(x = split_by) && !any(cols %in% rownames(x = brewer.pal.info))
 
+    ## 1.2. ggplot2 scale_* function
     # Determine which ggplot2 scale_* function to use for scaling the dots
-    scale_func <- switch(
-      EXPR = scale_by,
-      'size' = scale_size,
-      'radius' = scale_radius,
-      stop("'scale_by' must be either 'size' or 'radius'")
-    )
+    scale_func <-
+      switch(
+        EXPR = scale_by,
+        'size' = scale_size,
+        'radius' = scale_radius,
+        stop("'scale_by' must be either 'size' or 'radius'")
+        )
 
-    # Split features into groups if a named list is passed to `features`
+    ## 1.3. Split features into groups if a named list is passed to `features`
     feature_groups <- NULL
     if (is.list(features) | any(!is.na(names(features)))) {
-      feature_groups <- unlist(x = sapply(
-        X = 1:length(features),
-        FUN = function(x) {
-          return(rep(x = names(x = features)[x], each = length(features[[x]])))
-        }
-      ))
+      feature_groups <-
+        unlist(
+          sapply(
+            X = 1:length(features),
+            FUN = function(x) {
+              return(
+                rep(
+                  x = names(x = features)[x],
+                  each = length(features[[x]])
+                  )
+                )
+              }
+            )
+          )
+
       if (any(is.na(x = feature_groups))) {
         warning(
           "Some feature groups are unnamed.",
@@ -111,41 +120,67 @@ plot_dot <-
       names(x = feature_groups) <- features
     }
 
-    # CellsByIdentities is a SeuratObject method
-    # Prints cell names by each level in the ident class
-    # i.e. if B cells and BM monocytes are passed to `idents`, cell names that
-    # are listed as B cells and BM monocytes (according to the metadata column
-    # set as the ident class) are returned
-    cells <- unlist(x = CellsByIdentities(object = object, idents = idents))
+    # 2. Fetch data
+    ## 2.1. Determine cells to pull data for based on `idents`
+    cells <-
+      if (is.null(idents)){
+        # If `idents` is NULL, pull all cells
+        get_all_cells(object)
+      } else {
+        # Otherwise, use fetch_cells method to specify included cells
+        fetch_cells(
+          object = object,
+          meta_var = group_by,
+          meta_levels = idents
+        )
+      }
 
-    # Fetch data for each feature
+    ## 2.2. group_by data
+    group_by_data <-
+      fetch_metadata(
+        object,
+        vars = group_by,
+        cells = cells,
+        return_class = "vector"
+      )
+
+    # Convert data to factor if it is not already
+    if (!is.factor(x = group_by_data)) {
+      group_by_data <- factor(x = group_by_data)
+    }
+
+    ## 2.3. Expression data for each feature
     expr_data <-
       FetchData(
         object = object,
         vars = features,
-        cells = cells
+        cells = cells,
+        # Seurat::DotPlot always pulls from the "data" slot. plot_dot exhibits
+        # similar behavior by pulling the slot equivalent to "data" using
+        # `default_slot`
+        slot = default_slot(object)
         )
 
-    # Add metadata to table
-    expr_data$id <- if (is.null(x = group_by)) {
-      Idents(object = object)[cells, drop = TRUE]
-    } else {
-      object[[group_by, drop = TRUE]][cells, drop = TRUE]
-    }
-    # Convert metadata column to a factor if it is not already
-    if (!is.factor(x = expr_data$id)) {
-      expr_data$id <- factor(x = expr_data$id)
-    }
-    # Store the factor levels in `id_levels` and convert back to a vector
+    # 3. Add group_by metadata to table
+    expr_data$id <- group_by_data
+
+    # Store the group_by factor levels in `id_levels` and convert back
+    # to a vector
     id_levels <- levels(x = expr_data$id)
     expr_data$id <- as.vector(x = expr_data$id)
 
-    # Handle split_by metadata if defined
+    # 4. Handle split_by metadata if defined
     if (!is.null(x = split_by)) {
-      # pull split_by metadata
-      splits <- object[[split_by, drop = TRUE]][cells, drop = TRUE]
-      # Assign colors to each unique split
-      # Only works when an RColorBrewer palette is passed
+      ## 4.1. Pull split_by metadata
+      splits <-
+        fetch_metadata(
+          object = object,
+          vars = split_by,
+          cells = cells,
+          return_class = "vector"
+          )
+
+      ## 4.2. Assign colors to each unique split
       if (split_colors) {
         if (length(x = unique(x = splits)) > length(x = cols)) {
           stop("Not enough colors for the number of groups")
@@ -153,10 +188,9 @@ plot_dot <-
         cols <- cols[1:length(x = unique(x = splits))]
         names(x = cols) <- unique(x = splits)
       }
-      # Combine
+
+      ## 4.3. Combine splits with group by levels
       expr_data$id <- paste(expr_data$id, splits, sep = '_')
-      print("unique(expr_data$id)")
-      print(unique(expr_data$id))
       unique_splits <- unique(x = splits)
       # Create labels for each group_by and split_by level with an underscore
       # (each combo reads group_by[i]_split_by[j] for all combinations of i
@@ -167,14 +201,12 @@ plot_dot <-
           "_",
           rep(x = unique(x = splits), times = length(x = id_levels))
         )
-      print("id_levels")
-      print(id_levels)
-    }
+      }
 
-    # Compute statistics for each group #
-    # Store results in a list
+    # 5. Form statistics for Avg. expression, pct. expressed
+    ## 5.1. Compute statistics for each group
     # Groups may be levels of the group_by variable, or group_by-split_by
-    # combinations if split_by is enabled
+    # combinations if split_by is enabled. Results are stored in a list
     # If there are multiple features, each element will be a vector with the
     # expression of each feature for the given group
     plot_data <- lapply(
@@ -189,7 +221,7 @@ plot_dot <-
             drop = FALSE
           ]
 
-        # Average expression
+        ## 5.1.1. Average expression
         avg_exp <-
           apply(
             X = data_use,
@@ -200,7 +232,7 @@ plot_dot <-
             }
           )
 
-        # Percent of cells in group expressing feature
+        ### 5.1.2 Percent of cells in group expressing feature
         pct_exp <-
           apply(
             X = data_use,
@@ -221,7 +253,7 @@ plot_dot <-
     )
     names(x = plot_data) <- unique(x = expr_data$id)
 
-    # Cluster groups if `cluster_idents` is TRUE
+    ## 5.2. Cluster groups if `cluster_idents` is TRUE
     # Clustering is performed based on expression statistics for the currently
     # plotted set of features
     if (cluster_idents) {
@@ -233,7 +265,7 @@ plot_dot <-
       id_levels <- id_levels[hclust(d = dist(x = mat))$order]
     }
 
-    # Construct dataframe from list of expression statistics
+    ## 5.3. Construct dataframe from list of expression statistics
     # Return is a list of dataframes, one dataframe per group
     plot_data <- lapply(
       X = names(x = plot_data),
@@ -246,7 +278,8 @@ plot_dot <-
         return(data_use)
       }
     )
-    # Combine list of dataframes produced above
+
+    ## 5.4. Combine list of dataframes produced above
     plot_data <- do.call(what = 'rbind', args = plot_data)
 
     # Convert the new "id" column in the dataframe to a factor
@@ -254,7 +287,8 @@ plot_dot <-
       plot_data$id <- factor(x = plot_data$id, levels = id_levels)
     }
 
-    # Compute number of groups, and warn if the number of groups is 1, or less than 5
+    ## 5.5. Compute number of groups in table
+    # Warn if the number of groups is 1, or less than 5
     ngroup <- length(x = levels(x = plot_data$id))
 
     if (ngroup == 1) {
@@ -272,7 +306,7 @@ plot_dot <-
       )
     }
 
-    # Scale expression across features
+    ## 5.6. Scale expression across features
     avg_exp_scaled <-
       sapply(
         X = unique(x = plot_data$features_plot),
@@ -280,17 +314,11 @@ plot_dot <-
           # Pull average expression column and subset to feature x
           data_use <- plot_data[plot_data$features_plot == x, 'avg_exp']
           if (scale) {
-            print("Data before scaling")
-            print(data_use)
             # Scale data (z-score)
             data_use <- scale(x = data_use)
-            print("Data after scaling")
-            print(data_use)
             # Any values with a z-score outside of col_min and col_max will be
             # normalized to those values
             data_use <- MinMax(data = data_use, min = col_min, max = col_max)
-            print("Data after min/max transformation")
-            print(data_use)
           } else {
             # If `scale` is FALSE, perform a log(x+1) transformation
             data_use <- log1p(x = data_use)
@@ -299,38 +327,31 @@ plot_dot <-
         }
       )
 
-    print("avg_exp.sacaled before conversion to vector")
-    print(avg_exp_scaled)
-
-    # Transfrom average expression to a vector
+    ## 5.7. Transform average expression to a vector
     avg_exp_scaled <- as.vector(x = t(x = avg_exp_scaled))
 
-    print("avg_exp.sacaled after conversion to vector")
-    print(avg_exp_scaled)
-
-    # "Bin" the average expression into 20 bins for split plots
+    ## 5.8. If split_colors, "bin" average expression into 20 bins
     if (split_colors) {
       # Max value will be 20, min value will be 1, and all other values will be
       # binned based on their value
       avg_exp_scaled <- as.numeric(x = cut(x = avg_exp_scaled, breaks = 20))
     }
 
-    # Add scaled data to the plot_data dataframe and convert to factor
+    ## 5.9. Add scaled data to the plot_data dataframe and convert to factor
     plot_data$avg_exp_scaled <- avg_exp_scaled
-    print("Plot data with scaled expression column")
-    print(plot_data)
     plot_data$features_plot <- factor(
       x = plot_data$features_plot,
       levels = features
     )
+
+    ## 5.10. Form final percent expression data
     # Add NAs for percent expression values beneath dot_min
     plot_data$pct_exp[plot_data$pct_exp < dot_min] <- NA
     # Convert percent expression from fraction to percentage
     plot_data$pct_exp <- plot_data$pct_exp * 100
 
-    print("Value of plot_data$id")
-    print(plot_data$id)
-
+    # 6. Apply color scale
+    ## 6.1. Color by splits, if split_colors is TRUE
     if (split_colors) {
       splits_use <- vapply(
         X = as.character(x = plot_data$id),
@@ -369,12 +390,18 @@ plot_dot <-
       print(head(plot_data))
     }
 
-    # Color scale: if there are splits, use 20-level binned scale based on average
+    ## 6.2. Determine color scale
+    # If there are splits, use 20-level binned scale based on average
     # expression (feature-wide).
     # If not (default behavior), apply colors using ggplot2 scales
-    color_by <- ifelse(test = split_colors, yes = 'colors', no = 'avg_exp_scaled')
+    color_by <-
+      ifelse(
+        test = split_colors,
+        yes = 'colors',
+        no = 'avg_exp_scaled'
+        )
 
-    # Apply min/max cutoffs for *percent expression*
+    # 7. Apply min/max cutoffs for *percent expression*
     if (!is.na(x = scale_min)) {
       plot_data[plot_data$pct_exp < scale_min, 'pct_exp'] <- scale_min
     }
@@ -382,7 +409,7 @@ plot_dot <-
       plot_data[plot_data$pct_exp > scale_max, 'pct_exp'] <- scale_max
     }
 
-    # Add data for feature groups to the table (if defined by the user)
+    # 8. Add data for feature groups to the table (if defined by the user)
     if (!is.null(x = feature_groups)) {
       plot_data$feature_groups <- factor(
         x = feature_groups[plot_data$features_plot],
@@ -390,6 +417,7 @@ plot_dot <-
       )
     }
 
+    # 9. Plot data
     plot <-
       ggplot(
         data = plot_data,

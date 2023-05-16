@@ -16,7 +16,7 @@ plot_ridge(
   same_y_lims = FALSE,
   log = FALSE,
   ncol = NULL,
-  slot = "data",
+  slot = NULL,
   stack = FALSE,
   combine = TRUE,
   fill_by = "feature"
@@ -50,7 +50,9 @@ expression of the attribute being potted, can also pass 'increasing' or 'decreas
 
 \item{ncol}{Number of columns if multiple plots are displayed}
 
-\item{slot}{Slot to pull expression data from (e.g. "counts" or "data")}
+\item{slot}{Slot (Seurat objects) or assay (SingleCellExperiment objects) to
+pull expression data from (counts/data for Seurat objects, counts/logcounts
+for SingleCellExperiment objects)}
 
 \item{stack}{Horizontally stack plots for each feature}
 
