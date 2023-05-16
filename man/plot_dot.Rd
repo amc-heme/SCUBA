@@ -7,7 +7,6 @@
 plot_dot(
   object,
   group_by,
-  assay = NULL,
   features,
   cols = c("lightgrey", "blue"),
   col_min = -2.5,
@@ -26,17 +25,16 @@ plot_dot(
 \arguments{
 \item{object}{Seurat object}
 
-\item{group_by}{Factor to group the cells by}
-
-\item{assay}{Name of assay to use, defaults to the active assay}
+\item{group_by}{The name of a metadata variable to group the cells by. Unlike
+\code{Seurat::DotPlot()}, this must be defined.}
 
 \item{features}{Input vector of features, or named list of feature vectors
 if feature-grouped panels are desired (replicates the functionality of the
 old SplitDotPlotGG)}
 
-\item{cols}{Colors to plot: the name of a palette from
+\item{cols}{Colors to plot. May be the name of a palette from
 \code{RColorBrewer::brewer.pal.info}, a pair of colors defining a gradient,
-or 3+ colors defining multiple gradients (if split_by is set)}
+or 3+ colors defining multiple gradients (if split_by is set).}
 
 \item{col_min}{Minimum scaled average expression threshold (everything
 smaller will be set to this)}
@@ -52,9 +50,9 @@ gene will have no dot drawn.}
 
 \item{idents}{Identity classes to include in plot (default is all)}
 
-\item{split_by}{Factor to split the groups by (replicates the functionality
-of the old SplitDotPlotGG);
-see \code{\link{FetchData}} for more details}
+\item{split_by}{The name of a metadata variable to split groups by. Each
+combination of unique values in the group_by and split_by variables for
+which cells exist will appear on the y-axis of the plot.}
 
 \item{cluster_idents}{Whether to order identities by hierarchical clusters
 based on given features, default is FALSE}
@@ -87,4 +85,3 @@ DotPlot(object = pbmc_small, features = cd_genes, split_by = 'groups')
 \seealso{
 \code{RColorBrewer::brewer.pal.info}
 }
-\concept{visualization}
