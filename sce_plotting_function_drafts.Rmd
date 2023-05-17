@@ -5487,3 +5487,116 @@ ggsave(
   bg = "#FFFFFF"
 )
 ```
+
+# Perfromance Testing for plot_scatter (simple comparison)
+
+```{r}
+# Set up data collected from in silico performance test
+time <- c()
+test <- c()
+
+# Trials per test
+trials <- 25
+
+cells_sobj <- get_all_cells(sobj)
+cells_sce <- get_all_cells(sce_3)
+
+cat("plot_scatter on Seurat object \n")
+trial_name <- "plot_scatter, Seurat Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = SCEPlots::plot_scatter, 
+    n = trials,
+    object = sobj,
+    group_by = "ab200_clusters",
+    feature_1 = "MEN1",
+    feature_2 = "MEIS1"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+cat("Seurat::FeatureScatter on Seurat object \n")
+trial_name <- "FeatureScatter, Seurat Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = Seurat::FeatureScatter, 
+    n = trials,
+    object = sobj,
+    group.by = "ab200_clusters",
+    feature1 = "MEN1",
+    feature2 = "MEIS1"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+cat("plot_scatter on SCE object \n")
+trial_name <- "plot_scatter, SCE Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = SCEPlots::plot_scatter, 
+    n = trials,
+    object = sce_3,
+    group_by = "ab200_clusters",
+    feature_1 = "MEN1",
+    feature_2 = "MEIS1"
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+performance_results <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+performance_results$Test <- 
+  factor(
+    performance_results$Test, 
+    levels = 
+      c("FeatureScatter, Seurat Object",
+        "plot_scatter, Seurat Object",
+        "plot_scatter, SCE Object"
+        )
+    )
+
+plot <- 
+  ggplot(data = performance_results, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        ggsci::pal_aaas("default")(10)[c(1,4,3)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    breaks = seq(from = 0, to = 5, by = 1),
+    limits = c(0, 5)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./Performance_plot_scatter_vs_FeatureScatter.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
