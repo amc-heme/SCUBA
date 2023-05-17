@@ -23,7 +23,7 @@ plot_dot(
 )
 }
 \arguments{
-\item{object}{Seurat object}
+\item{object}{a Seurat object or a SingleCellExperiment object}
 
 \item{group_by}{The name of a metadata variable to group the cells by. Unlike
 \code{Seurat::DotPlot()}, this must be defined.}

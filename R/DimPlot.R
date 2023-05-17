@@ -12,7 +12,7 @@
 #' The code for this function was from the {\link[Seurat Package]{https://github.com/satijalab/seurat/blob/master/R/visualization.R}} and adapted for use with
 #' {\link[SingleCellExperiment]{https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html}} objects.
 #'
-#' @param object  a Seurat object or a SingleCellExperiment object
+#' @param object a Seurat object or a SingleCellExperiment object
 #' @param dims Dimensions to plot, must be a two-length numeric vector specifying x- and y-dimensions i.e. c(1,2) to plot the first and second dimensions from the
 #' reduction results.
 #' @param cells Vector of cells to plot (default is all cells)

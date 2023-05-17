@@ -5,7 +5,7 @@
 #' cells within a class, while the color encodes the AverageExpression level
 #' across all cells within a class (blue is high).
 #'
-#' @param object Seurat object
+#' @param object a Seurat object or a SingleCellExperiment object
 #' @param group_by The name of a metadata variable to group the cells by. Unlike
 #'  \code{Seurat::DotPlot()}, this must be defined.
 #' @param features Input vector of features, or named list of feature vectors
