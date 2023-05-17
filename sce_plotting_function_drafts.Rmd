@@ -5296,3 +5296,194 @@ ggsave(
   bg = "#FFFFFF"
 )
 ```
+
+# How does plot_dot scale with the number of features, compared to Seruat::DotPlot()?
+
+```{r}
+time <- c()
+test <- c()
+n_features <- c()
+
+# Greatest amount of n_features to include while testing
+max_n_features <- 10
+
+# Seed is set before each random feature access so the same "random" features
+# are chosen during each trial
+set.seed(2023)
+# plot_feature, Seurat object
+for (i in 1:max_n_features){
+  cat("plot_dot on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 25
+  trial_name <- "plot_dot, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_dot, 
+      n = trials,
+      object = sobj,
+      features = features,
+      group_by = "ab200_clusters"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# FeaturePlot, Seurat object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("DotPlot on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 25
+  trial_name <- "DotPlot, Seurat Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = Seurat::DotPlot, 
+      n = trials,
+      object = sobj,
+      features = features,
+      group.by = "ab200_clusters"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# plot_feature, SCE object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("plot_dot on SCE object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sce_3)[sample(1:nrow(sce_3), i)]
+  trials <- 25
+  trial_name <- "plot_dot, SCE Object"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCEPlots::plot_dot, 
+      n = trials,
+      object = sce_3,
+      features = features,
+      group_by = "ab200_clusters"
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time,
+    "Features" = n_features
+    )
+  )
+
+results_df$Features <-
+  factor(
+    results_df$Features, 
+    levels = 
+      str_sort(
+        results_df$Features |> unique(), 
+        numeric = TRUE
+        )
+    )
+
+results_df$Test <- 
+  factor(
+    results_df$Test, 
+    levels = 
+      c("DotPlot, Seurat Object",
+        "plot_dot, Seurat Object",
+        "plot_dot, SCE Object"
+        )
+    )
+
+# Scatterplot with error bars
+# Create summary stats for results
+summary_df <- 
+  results_df |> 
+  group_by(Test, Features) |> 
+  summarize(
+    mean_time = mean(Time),
+    sd = sd(Time)
+  )
+
+plot <-
+  ggplot(data = summary_df, aes(x = Features, y = mean_time, color = Test, group = Test)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_time - sd, ymax = mean_time + sd)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10)[c(3,6,7)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_continuous(
+    limits = c(0, 5)
+  ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 0.5, by = 0.05),
+  #   limits = c(0, 0.5)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Number of Features") +
+  labs(
+    title = "Dot Plot Performance",
+    subtitle =
+      "(200k Cells x 29k Genes, HDF5Array Compression Level 3 for SCE objects)"
+  ) +
+  guides(
+    color =
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+ggsave(
+  filename = "./plot_dot_vs_DotPlot_1-10_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
