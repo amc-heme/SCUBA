@@ -11,11 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+library(HDF5Array)
 library(SCEPlots)
 library(Seurat)
 library(SingleCellExperiment)
 library(DelayedArray)
-library(HDF5Array)
 library(DelayedMatrixStats)
 library(tictoc)
 library(rlang)
@@ -26,9 +26,6 @@ library(ggsci)
 library(scater)
 library(viridisLite)
 library(patchwork)
-
-# Load Full AML downsampled object
-library(HDF5Array)
 
 library(dplyr)
 
