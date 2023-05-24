@@ -10,7 +10,7 @@
 #' metadata variable.
 #'
 #' @export
-unique_metadata <-
+unique_values <-
   function(
     object,
     var
