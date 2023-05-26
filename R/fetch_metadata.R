@@ -5,7 +5,8 @@
 #' @param object a single-cell object. Currently, Seurat and
 #' SingleCellExperiment objects are supported.
 #' @param vars metadata variables to pull from object.
-#' @param cells cells to include in the returned metadata.
+#' @param cells cells to include in the returned metadata. If unspecified,
+#' metadata will be returned for all cells in the object.
 #' @param return_class class of data returned. Set to "dataframe" by default to
 #' return a data.frame, and may also be set to "vector" to yield a vector of
 #' values.
@@ -18,7 +19,7 @@ fetch_metadata <-
   function(
     object,
     vars,
-    cells,
+    cells = NULL,
     return_class = "dataframe",
     ...
   ){
@@ -34,7 +35,7 @@ fetch_metadata.default <-
   function(
     object,
     vars,
-    cells,
+    cells = NULL,
     return_class = "dataframe"
   ){
     warning(
@@ -52,13 +53,16 @@ fetch_metadata.Seurat <-
   function(
     object,
     vars,
-    cells,
+    cells = NULL,
     return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
       stop('return_class must be either "dataframe" or "vector".')
     }
+
+    # Cells: if undefined, pull data for all cells
+    cells <- cells %||% get_all_cells(object)
 
     # Seurat objects: pull metadata with `[[`
     data <- object[[vars]][cells, ]
@@ -88,13 +92,16 @@ fetch_metadata.SingleCellExperiment <-
   function(
     object,
     vars,
-    cells,
+    cells = NULL,
     return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
       stop('return_class must be either "dataframe" or "vector".')
     }
+
+    # Cells: if undefined, pull data for all cells
+    cells <- cells %||% get_all_cells(object)
 
     # SingleCellExperiment objects: use colData
     data <-
