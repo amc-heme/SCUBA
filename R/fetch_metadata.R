@@ -7,6 +7,8 @@
 #' @param vars metadata variables to pull from object.
 #' @param cells cells to include in the returned metadata. If unspecified,
 #' metadata will be returned for all cells in the object.
+#' @param all if \code{TRUE}, return the entire metadata table (\code{FALSE} by
+#' default).
 #' @param return_class class of data returned. Set to "dataframe" by default to
 #' return a data.frame, and may also be set to "vector" to yield a vector of
 #' values.
@@ -20,6 +22,7 @@ fetch_metadata <-
     object,
     vars,
     cells = NULL,
+    all = FALSE,
     return_class = "dataframe",
     ...
   ){
@@ -36,6 +39,7 @@ fetch_metadata.default <-
     object,
     vars,
     cells = NULL,
+    all = FALSE,
     return_class = "dataframe"
   ){
     warning(
@@ -54,6 +58,7 @@ fetch_metadata.Seurat <-
     object,
     vars,
     cells = NULL,
+    all = FALSE,
     return_class = "dataframe"
   ){
     # Check return_class for valid entries
@@ -65,7 +70,14 @@ fetch_metadata.Seurat <-
     cells <- cells %||% get_all_cells(object)
 
     # Seurat objects: pull metadata with `[[`
-    data <- object[[vars]][cells, ]
+    # if `all`, pull full metadata table
+    data <-
+      if (all == TRUE){
+        object@meta.data
+      } else {
+        object[[vars]][cells, ]
+      }
+
 
     # Use as.data.frame() if return_class is equal to "dataframe"
     # (if "vector", no additional operations necessary)
@@ -103,9 +115,14 @@ fetch_metadata.SingleCellExperiment <-
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
-    # SingleCellExperiment objects: use colData
+    # SingleCellExperiment objects: use colData\
+    # if `all`, pull full metadata table
     data <-
-      colData(object)[cells, vars]
+      if (all == TRUE){
+        colData(object)
+      } else {
+        colData(object)[cells, vars]
+      }
 
     # Use as.data.frame() if return_class is equal to "dataframe"
     # (if "vector", no additional operations necessary)
