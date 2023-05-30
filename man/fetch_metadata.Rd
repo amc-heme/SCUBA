@@ -6,23 +6,47 @@
 \alias{fetch_metadata.SingleCellExperiment}
 \title{Fetch metadata}
 \usage{
-fetch_metadata(object, vars, cells, return_class = "dataframe", ...)
+fetch_metadata(
+  object,
+  vars = NULL,
+  cells = NULL,
+  full_table = FALSE,
+  return_class = "dataframe",
+  ...
+)
 
-\method{fetch_metadata}{Seurat}(object, vars, cells, return_class = "dataframe")
+\method{fetch_metadata}{Seurat}(
+  object,
+  vars = NULL,
+  cells = NULL,
+  full_table = FALSE,
+  return_class = "dataframe"
+)
 
-\method{fetch_metadata}{SingleCellExperiment}(object, vars, cells, return_class = "dataframe")
+\method{fetch_metadata}{SingleCellExperiment}(
+  object,
+  vars = NULL,
+  cells = NULL,
+  full_table = FALSE,
+  return_class = "dataframe"
+)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
 SingleCellExperiment objects are supported.}
 
-\item{vars}{metadata variables to pull from object.}
+\item{vars}{metadata variables to pull from object. This must be defined,
+unless "full_table" is set to \code{TRUE}.}
 
-\item{cells}{cells to include in the returned metadata.}
+\item{cells}{cells to include in the returned metadata. If unspecified,
+metadata will be returned for all cells in the object.}
+
+\item{full_table}{if \code{TRUE}, return the entire metadata table (\code{FALSE} by
+default)}
 
 \item{return_class}{class of data returned. Set to "dataframe" by default to
 return a data.frame, and may also be set to "vector" to yield a vector of
-values.}
+values. This is ignored if "full_table" is set to \code{TRUE}.}
 
 \item{...}{Currently unused.}
 }

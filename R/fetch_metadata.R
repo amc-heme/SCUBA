@@ -12,7 +12,7 @@
 #' default)
 #' @param return_class class of data returned. Set to "dataframe" by default to
 #' return a data.frame, and may also be set to "vector" to yield a vector of
-#' values.
+#' values. This is ignored if "full_table" is set to \code{TRUE}.
 #' @param ... Currently unused.
 #'
 #' @rdname fetch_metadata
