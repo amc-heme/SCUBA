@@ -5597,3 +5597,136 @@ ggsave(
   bg = "#FFFFFF"
 )
 ```
+
+# Performance test: fetch_metadata with all variables, or pulling the full table 
+```{r}
+# Pulling full metadata table: Seurat object
+full_table_seurat <- 
+  function(object){
+    object@meta.data
+  }
+
+# Pull full metadata table for SingleCellExperiment object
+full_table_sce <- 
+  function(object){
+    colData(object)
+  }
+
+# Set up data collected from in silico performance test
+time <- c()
+test <- c()
+
+# Trials per test
+trials <- 25
+
+allmeta_sobj <- SCEPlots::meta_varnames(sobj)
+allmeta_sce <- SCEPlots::meta_varnames(sce_3)
+
+cat("fetch_metadata on Seurat object \n")
+trial_name <- "fetch_metadata, Seurat Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = SCEPlots::fetch_metadata, 
+    n = trials,
+    object = sobj,
+    vars = allmeta_sobj
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+cat("full_table on Seurat object \n")
+trial_name <- "Fetch full table, Seurat Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = full_table_seurat, 
+    n = trials,
+    object = sobj
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+cat("fetch_metadata on SCE object \n")
+trial_name <- "fetch_metadata, SCE object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = SCEPlots::fetch_metadata, 
+    n = trials,
+    object = sce_3,
+    vars = allmeta_sce
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+cat("full_table on Seurat object \n")
+trial_name <- "Fetch full table, SCE Object"
+
+# Trial for n_features == i
+results <- 
+  repeat_trial(
+    func = full_table_sce, 
+    n = trials,
+    object = sce_3
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len(trial_name, trials))
+
+performance_results <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+performance_results$Test <- 
+  factor(
+    performance_results$Test, 
+    levels = 
+      c("fetch_metadata, Seurat Object",
+        "Fetch full table, Seurat Object",
+        "fetch_metadata, SCE object",
+        "Fetch full table, SCE Object"
+        )
+    )
+
+plot <- 
+  ggplot(data = performance_results, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+      values = 
+        ggsci::pal_aaas("default")(10)[c(1,4,5,3)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) + 
+  scale_y_continuous(
+    #breaks = seq(from = 0, to = 1),
+    limits = c(0, 0.75)#,
+    #labels = function(breaks){paste0(breaks, " s")}
+    ) +
+  ylab("Time (s)") +
+  xlab("Function") +
+  theme_cowplot() +
+  theme(
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+# ggsave(
+#   filename = "./Performance_plot_scatter_vs_FeatureScatter.png",
+#   plot,
+#   device = "png",
+#   bg = "#FFFFFF"
+# )
+```
+
