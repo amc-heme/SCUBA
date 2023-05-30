@@ -4,9 +4,12 @@
 #'
 #' @param object a single-cell object. Currently, Seurat and
 #' SingleCellExperiment objects are supported.
-#' @param vars metadata variables to pull from object.
+#' @param vars metadata variables to pull from object. This must be defined,
+#' unless "full_table" is set to \code{TRUE}.
 #' @param cells cells to include in the returned metadata. If unspecified,
 #' metadata will be returned for all cells in the object.
+#' @param full_table if \code{TRUE}, return the entire metadata table (\code{FALSE} by
+#' default)
 #' @param return_class class of data returned. Set to "dataframe" by default to
 #' return a data.frame, and may also be set to "vector" to yield a vector of
 #' values.
@@ -18,8 +21,9 @@
 fetch_metadata <-
   function(
     object,
-    vars,
+    vars = NULL,
     cells = NULL,
+    full_table = FALSE,
     return_class = "dataframe",
     ...
   ){
@@ -34,8 +38,9 @@ fetch_metadata <-
 fetch_metadata.default <-
   function(
     object,
-    vars,
+    vars = NULL,
     cells = NULL,
+    full_table = FALSE,
     return_class = "dataframe"
   ){
     warning(
@@ -52,13 +57,28 @@ fetch_metadata.default <-
 fetch_metadata.Seurat <-
   function(
     object,
-    vars,
+    vars = NULL,
     cells = NULL,
+    full_table = FALSE,
     return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
       stop('return_class must be either "dataframe" or "vector".')
+    }
+
+    # Check vars for valid entries (may be undefined only if full_table or FALSE)
+    if (full_table == FALSE && is.null(vars)){
+      stop("`vars` must be defined, unless `full_table` is TRUE.")
+    }
+    # Also warn if vars is defined when full_table is TRUE
+    if (full_table == TRUE && !is.null(vars)){
+      warning("`full_table` is TRUE, ignoring entries in `vars`.")
+    }
+
+    # Return full table if enabled
+    if (full_table == TRUE){
+      return(object@meta.data)
     }
 
     # Cells: if undefined, pull data for all cells
@@ -91,13 +111,28 @@ fetch_metadata.Seurat <-
 fetch_metadata.SingleCellExperiment <-
   function(
     object,
-    vars,
+    vars = NULL,
     cells = NULL,
+    full_table = FALSE,
     return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
       stop('return_class must be either "dataframe" or "vector".')
+    }
+
+    # Check vars for valid entries (may be undefined only if full_table or FALSE)
+    if (full_table == FALSE && is.null(vars)){
+      stop("`vars` must be defined, unless `full_table` is TRUE.")
+    }
+    # Also warn if vars is defined when full_table is TRUE
+    if (full_table == TRUE && !is.null(vars)){
+      warning("`full_table` is TRUE, ignoring entries in `vars`.")
+    }
+
+    # Return full table if enabled
+    if (full_table == TRUE){
+      return(colData(object))
     }
 
     # Cells: if undefined, pull data for all cells

@@ -5704,13 +5704,13 @@ plot <-
   geom_boxplot(aes(color = Test)) +
   scale_color_manual(
       values = 
-        ggsci::pal_aaas("default")(10)[c(1,4,3)],
+        ggsci::pal_aaas("default")(10)[c(1,4,5,3)],
       aesthetics = "color",
       na.value = "grey50"
       ) + 
   scale_y_continuous(
-    breaks = seq(from = 0, to = 5, by = 1),
-    limits = c(0, 5)#,
+    #breaks = seq(from = 0, to = 1),
+    limits = c(0, 0.75)#,
     #labels = function(breaks){paste0(breaks, " s")}
     ) +
   ylab("Time (s)") +
