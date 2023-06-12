@@ -74,7 +74,7 @@
 #'
 #' @export
 #'
-DimPlot <- function(
+plot_reduction <- function(
     object,
     dims = c(1, 2),
     cells = NULL,
