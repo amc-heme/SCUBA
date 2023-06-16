@@ -3,10 +3,10 @@
 #' Creates a stacked bar plot showing the proportion of cells belonging to each
 #' level of a metadata variable. One bar is created for each level of a second
 #' metadata variable, making the chart able to compare metadata proportions
-#' accross the second variable. For example, the proportion of cells belonging
+#' across the second variable. For example, the proportion of cells belonging
 #' to each cluster in the object can be compared across different samples, with
 #' one bar shown for each sample. The bar will consist of a series of stacked
-#' bars, the heights of which being proprotional to the percentage of cells in
+#' bars, the heights of which being proportional to the percentage of cells in
 #' the sample belonging to each cluster.
 #'
 #' @param object A single cell object. Currently, Seurat and
@@ -83,7 +83,7 @@ shiny_stacked_bar <-
     # Create dataframe from group_by, split_by metadata variables
     df <-
       SCEPlots::fetch_metadata(
-        obect,
+        object,
         vars = c(group_by, split_by)
       )
 
