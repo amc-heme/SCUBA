@@ -3,7 +3,7 @@
 #' Colors single cells on a dimensional reduction plot according to a 'feature'
 #' (i.e. gene expression, PC scores, number of genes detected, etc.)
 #'
-#' @inheritParams DimPlot
+#' @inheritParams plot_reduction
 #' @param order Boolean determining whether to plot cells in order of expression. Can be useful if
 #' cells expressing given feature are getting buried.
 #' @param features Vector of features to plot. Features can come from:

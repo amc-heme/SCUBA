@@ -41,6 +41,8 @@ plot_feature(
 )
 }
 \arguments{
+\item{object}{a Seurat object or a SingleCellExperiment object}
+
 \item{features}{Vector of features to plot. Features can come from:
 \itemize{
 \item An \code{Assay} feature (e.g. a gene name - "MS4A1")
@@ -52,6 +54,11 @@ plot_feature(
 \item{label_by}{A metadata column used for labeling groups on the featute plot,
 if label is \code{TRUE}.}
 
+\item{dims}{Dimensions to plot, must be a two-length numeric vector specifying x- and y-dimensions i.e. c(1,2) to plot the first and second dimensions from the
+reduction results.}
+
+\item{cells}{Vector of cells to plot (default is all cells)}
+
 \item{cols}{The two colors to form the gradient over. Provide as string vector with
 the first color corresponding to low values, the second to high. Also accepts a Brewer
 color scale or vector of colors. Note: this will bin the data into number of colors provided.
@@ -62,11 +69,15 @@ When blend is \code{TRUE}, takes anywhere from 1-3 colors:
 \item{3+ colors:}{First color used for double-negatives, colors 2 and 3 used for per-feature expression, all others ignored}
 }}
 
+\item{pt_size}{Adjust point size for plotting}
+
 \item{order}{Boolean determining whether to plot cells in order of expression. Can be useful if
 cells expressing given feature are getting buried.}
 
 \item{min_cutoff, max_cutoff}{Vector of minimum and maximum cutoff values for each feature,
 may specify quantile in the form of 'q##' where '##' is the quantile (eg, 'q1', 'q10')}
+
+\item{reduction}{Which dimensionality reduction to use. If not specified, first searches for umap, then tsne, then pca}
 
 \item{split_by}{A metadata column to split the feature plot by. Unlike \code{Seurat::FeaturePlot},
 "ident" may not be passed since the ident functionality is not supported by SingleCellExperiment
@@ -79,11 +90,23 @@ objects. A metadata column name must be passed, or \code{NULL} to disable split 
 \item{NULL (no scaling):}{ Each individual plot is scaled to the maximum expression value of the feature in the condition provided to 'split_by'. Be aware setting NULL will result in color scales that are not comparable between plots.}
 }}
 
+\item{shape_by}{If NULL, all points are circles (default). You can specify any
+cell attribute (that can be pulled with FetchData) allowing for both
+different colors and different shapes on cells.  Only applicable if \code{raster = FALSE}.}
+
 \item{slot}{Which slot to pull expression data from? If \code{NULL}, defaults to "data" for Seurat objects, and "logcounts" for SingleCellExperiment objects.}
 
 \item{blend}{Scale and blend expression values to visualize co-expression of two features}
 
 \item{blend_threshold}{The color cutoff from weak signal to strong signal; ranges from 0 to 1.}
+
+\item{label}{Whether to label the clusters}
+
+\item{label_size}{Sets size of labels}
+
+\item{label_color}{Sets the color of the label text}
+
+\item{repel}{Repel labels}
 
 \item{ncol}{Number of columns to combine multiple feature plots to, ignored if \code{split_by} is not \code{NULL}}
 
@@ -93,6 +116,12 @@ objects. A metadata column name must be passed, or \code{NULL} to disable split 
 
 \item{combine}{Combine plots into a single \code{\link[patchwork]{patchwork}ed}
 ggplot object. If \code{FALSE}, return a list of ggplot objects}
+
+\item{raster}{Convert points to raster format, default is \code{NULL} which
+automatically rasterizes if plotting more than 100,000 cells}
+
+\item{raster_dpi}{Pixel resolution for rasterized plots, passed to geom_scattermore().
+Default is c(512, 512).}
 }
 \value{
 A \code{\link[patchwork]{patchwork}ed} ggplot object if
