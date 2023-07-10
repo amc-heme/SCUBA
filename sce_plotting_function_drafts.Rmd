@@ -5730,3 +5730,20 @@ plot
 # )
 ```
 
+# Monday, June 12th, 2023
+Explore potential issue with plot_reduction with non-UMAP reductions
+
+```{r}
+plot_reduction(
+  object = sce_3,
+  group_by = "ab200_clusters",
+  reduction = "TOTALVI_LNGB"
+)
+
+plot_reduction(
+  object = sce_3,
+  group_by = "ab200_clusters",
+  reduction = "UMAP"
+)
+```
+

@@ -97,8 +97,8 @@ FetchData.SingleCellExperiment <-
             # exists in the object. Throw an error if not
             if (!slot %in% names(assays(object))){
               stop(
-                "Error for vars",
-                keyless_vars,
+                "Error for vars ",
+                paste(keyless_vars, collapse = ", "),
                 ": slot ",
                 slot,
                 " does not exist in the indicated experiment (",

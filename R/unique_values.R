@@ -23,6 +23,12 @@ unique_values <-
       stop('"var" is not a character vector. Please pass the name of one metadata variable to "var".')
     }
 
+    # Handle errors caused by passing a var not found in the object
+    # smetadata
+    if (!var %in% SCEPlots::meta_varnames(object)){
+      stop("unique_values: var", var, "not found in object.")
+    }
+
     fetch_metadata(
       object = object,
       vars = var,
