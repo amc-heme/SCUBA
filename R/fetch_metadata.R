@@ -67,13 +67,28 @@ fetch_metadata.Seurat <-
       stop('return_class must be either "dataframe" or "vector".')
     }
 
-    # Check vars for valid entries (may be undefined only if full_table or FALSE)
+    # Check vars for undefined entries
+    # (may be undefined only if full_table or FALSE)
     if (full_table == FALSE && is.null(vars)){
       stop("`vars` must be defined, unless `full_table` is TRUE.")
     }
     # Also warn if vars is defined when full_table is TRUE
     if (full_table == TRUE && !is.null(vars)){
       warning("`full_table` is TRUE, ignoring entries in `vars`.")
+    }
+
+    # Check vars for invalid entries
+    is_valid <- vars %in% colnames(object@meta.data)
+    # Record invalid entries for error message
+    invalid_vars <- vars[!is_valid]
+
+    if (!all(is_valid)){
+      stop(
+        "Invalid entires for `vars`: ",
+        # paste0 adds quotations to each invalid var
+        paste(paste0('"', invalid_vars, '"'), collapse = ", "),
+        ". Must use valid metadata variables from the object, from `colnames(object@meta.data)`."
+      )
     }
 
     # Return full table if enabled
@@ -121,13 +136,27 @@ fetch_metadata.SingleCellExperiment <-
       stop('return_class must be either "dataframe" or "vector".')
     }
 
-    # Check vars for valid entries (may be undefined only if full_table or FALSE)
+    # Check vars for undefined entries
+    # (may be undefined only if full_table or FALSE)
     if (full_table == FALSE && is.null(vars)){
       stop("`vars` must be defined, unless `full_table` is TRUE.")
     }
     # Also warn if vars is defined when full_table is TRUE
     if (full_table == TRUE && !is.null(vars)){
       warning("`full_table` is TRUE, ignoring entries in `vars`.")
+    }
+
+    # Check vars for invalid entries
+    is_valid <- vars %in% colnames(colData(object))
+    # Record invalid entries for error message
+    invalid_vars <- vars[!is_valid]
+
+    if (!all(is_valid)){
+      stop(
+        "Invalid entires for `vars`: ",
+        paste(invalid_vars, collapse = ", "),
+        ". Must use valid metadata variables from the object, from `colnames(colData(object))`."
+        )
     }
 
     # Return full table if enabled
