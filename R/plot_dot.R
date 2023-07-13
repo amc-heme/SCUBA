@@ -367,17 +367,11 @@ plot_dot <-
         replacement = '',
         USE.NAMES = FALSE
       )
-      print("Value of splits_use")
-      print(splits_use)
 
       # Color for each dot: use colorRampPalette to determine the color (using
       # a continuous scale between grey and the color entered, with 20 steps)
       plot_data$colors <- mapply(
         FUN = function(color, value) {
-          print("Value")
-          print(value)
-          print("Color")
-          print(colorRampPalette(colors = c('grey', color))(20)[value])
           return(
             colorRampPalette(colors = c('grey', color))(20)[value]
           )
@@ -385,9 +379,6 @@ plot_dot <-
         color = cols[splits_use],
         value = avg_exp_scaled
       )
-
-      print("Split data after operations")
-      print(head(plot_data))
     }
 
     ## 6.2. Determine color scale
