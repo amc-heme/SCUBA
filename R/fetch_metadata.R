@@ -160,3 +160,60 @@ fetch_metadata.SingleCellExperiment <-
 
     data
   }
+
+
+
+#' @describeIn fetch_metadata AnnDataR6 objects
+#' @export
+fetch_metadata.AnnDataR6 <-
+  function(
+    object,
+    vars = NULL,
+    cells = NULL,
+    full_table = FALSE,
+    return_class = "dataframe"
+  ){
+    # Check return_class for valid entries
+    if (!return_class %in% c("dataframe", "vector")){
+      stop('return_class must be either "dataframe" or "vector".')
+    }
+    
+    # Check vars for valid entries (may be undefined only if full_table or FALSE)
+    if (full_table == FALSE && is.null(vars)){
+      stop("`vars` must be defined, unless `full_table` is TRUE.")
+    }
+    # Also warn if vars is defined when full_table is TRUE
+    if (full_table == TRUE && !is.null(vars)){
+      warning("`full_table` is TRUE, ignoring entries in `vars`.")
+    }
+    
+    # Return full table if enabled
+    if (full_table == TRUE){
+      return(object$obs)
+    }
+    
+    # Cells: if undefined, pull data for all cells
+    cells <- cells %||% get_all_cells(object)
+    
+    # AnnData use obs
+    data <-
+      object$obs[cells, vars]
+    
+    # Use as.data.frame() if return_class is equal to "dataframe"
+    # (if "vector", no additional operations necessary)
+    if (return_class == "dataframe"){
+      data <-
+        as.data.frame(
+          data
+        )
+      
+      # Add cell names to rownames, and metadata names to colnames
+      rownames(data) <- cells
+      colnames(data) <- vars
+    } else if (return_class == "vector"){
+      # Return named vector with cell names
+      names(data) <- cells
+    }
+    
+    data
+  }

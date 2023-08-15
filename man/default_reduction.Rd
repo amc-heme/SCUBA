@@ -4,6 +4,7 @@
 \alias{default_reduction}
 \alias{default_reduction.Seurat}
 \alias{default_reduction.SingleCellExperiment}
+\alias{default_reduction.AnnDataR6}
 \title{Get default reduction from object}
 \usage{
 default_reduction(object, ...)
@@ -11,6 +12,8 @@ default_reduction(object, ...)
 \method{default_reduction}{Seurat}(object)
 
 \method{default_reduction}{SingleCellExperiment}(object)
+
+\method{default_reduction}{AnnDataR6}(object)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
@@ -26,5 +29,7 @@ Returns a reduction from the object to use as the default.
 \item \code{default_reduction(Seurat)}: Seurat objects
 
 \item \code{default_reduction(SingleCellExperiment)}: SingleCellExperiment objects
+
+\item \code{default_reduction(AnnDataR6)}: AnnDataR6 objects
 
 }}

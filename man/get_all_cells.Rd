@@ -4,6 +4,7 @@
 \alias{get_all_cells}
 \alias{get_all_cells.Seurat}
 \alias{get_all_cells.SingleCellExperiment}
+\alias{get_all_cells.AnnDataR6}
 \title{Get all cells from object}
 \usage{
 get_all_cells(object, ...)
@@ -11,6 +12,8 @@ get_all_cells(object, ...)
 \method{get_all_cells}{Seurat}(object)
 
 \method{get_all_cells}{SingleCellExperiment}(object)
+
+\method{get_all_cells}{AnnDataR6}(object)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
@@ -26,5 +29,7 @@ Returns a character vector with all cell names in the object.
 \item \code{get_all_cells(Seurat)}: Seurat objects
 
 \item \code{get_all_cells(SingleCellExperiment)}: SingleCellExperiment objects
+
+\item \code{get_all_cells(AnnDataR6)}: SingleCellExperiment objects
 
 }}

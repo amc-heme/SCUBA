@@ -15,7 +15,10 @@ shiny_stacked_bar(
   show_legend = TRUE,
   palette = NULL,
   sort_groups = NULL,
-  custom_factor_levels = NULL
+  custom_factor_levels = NULL,
+  legend_ncol = NULL,
+  legend_font_size = NULL,
+  legend_key_size = NULL
 )
 }
 \arguments{
@@ -51,9 +54,9 @@ a ggplot2 object with a stacked bar plot created according to user specification
 Creates a stacked bar plot showing the proportion of cells belonging to each
 level of a metadata variable. One bar is created for each level of a second
 metadata variable, making the chart able to compare metadata proportions
-accross the second variable. For example, the proportion of cells belonging
+across the second variable. For example, the proportion of cells belonging
 to each cluster in the object can be compared across different samples, with
 one bar shown for each sample. The bar will consist of a series of stacked
-bars, the heights of which being proprotional to the percentage of cells in
+bars, the heights of which being proportional to the percentage of cells in
 the sample belonging to each cluster.
 }

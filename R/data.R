@@ -40,3 +40,26 @@ AML_SCE <- function(){
     dir = system.file("extdata", "AML_sce", package = "SCEPlots")
   )
 }
+
+
+#' AnnData object for testing
+#'
+#' @usage AML_h5ad()
+#'
+#' @details
+#' The function described here is used to load the AnnData R6 object, it should be called as a function. 
+#' 
+#' @format
+#' An AnnDataR6 object with 659 features and 250 cells. Included experiments:
+#' \describe{
+#'   \item{RNA (main experiment)}{mRNA expression data for 462 genes used as markers for hamatopoietic stem and progenitor (HSPC) cell types at varying stages of differentiation.}
+#'   \item{AB}{Surface protein expression data for 197 surface protein markers associated with HSPCs.}
+#' }
+#'
+#' @export
+#'
+AML_h5ad <- function(){
+  anndata::read_h5ad(
+    system.file("extdata", "AML_h5ad.h5ad", package = "SCEPlots")
+  )
+}
