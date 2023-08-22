@@ -83,3 +83,31 @@ fetch_reduction.SingleCellExperiment <-
       reducedDims(object)[[reduction]][cells, dims]
     )
   }
+
+
+#' @describeIn fetch_reduction AnnDataR6 objects
+#' @export
+fetch_reduction.AnnDataR6 <-
+  function(
+    object,
+    reduction,
+    cells,
+    dims
+  ){
+    if (length(x = dims) != 2) {
+      stop("'dims' must be a two-length vector")
+    }
+    
+    #AnnData Object
+    ret <- as.data.frame(
+      object$obsm[[reduction]], 
+      row.names = object$obs_names, 
+    )
+    colnames(ret) = paste(
+      reduction, 
+      1:dim(object$obsm[[reduction]])[2], 
+      sep = "_"
+    )
+    ret[cells, dims]
+  }
+

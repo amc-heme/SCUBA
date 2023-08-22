@@ -54,3 +54,14 @@ get_all_cells.SingleCellExperiment <-
     # SingleCellExperiment objects: cell names are column names of object
     colnames(object)
   }
+
+#' @describeIn get_all_cells SingleCellExperiment objects
+#' @export
+get_all_cells.AnnDataR6 <-
+  function(
+    object
+  ){
+    # SingleCellExperiment objects: cell names are column names of object
+    rownames(object$X)
+  }
+

@@ -4,6 +4,7 @@
 \alias{fetch_reduction}
 \alias{fetch_reduction.Seurat}
 \alias{fetch_reduction.SingleCellExperiment}
+\alias{fetch_reduction.AnnDataR6}
 \title{Get names of reduction keys}
 \usage{
 fetch_reduction(object, reduction, cells, dims, ...)
@@ -11,6 +12,8 @@ fetch_reduction(object, reduction, cells, dims, ...)
 \method{fetch_reduction}{Seurat}(object, reduction, cells, dims)
 
 \method{fetch_reduction}{SingleCellExperiment}(object, reduction, cells, dims)
+
+\method{fetch_reduction}{AnnDataR6}(object, reduction, cells, dims)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
@@ -34,5 +37,7 @@ the corresponding reduction data.
 \item \code{fetch_reduction(Seurat)}: Seurat objects
 
 \item \code{fetch_reduction(SingleCellExperiment)}: SingleCellExperiment objects
+
+\item \code{fetch_reduction(AnnDataR6)}: AnnDataR6 objects
 
 }}

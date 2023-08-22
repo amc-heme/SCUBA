@@ -77,3 +77,20 @@ reduction_dimnames.SingleCellExperiment <-
     # Simply append each dim after an underscore (<reduction>_<dim>)
     paste0(reduction, "_", dims)
   }
+
+
+#' @describeIn reduction_dimnames AnnDataR6 objects
+#' @export
+reduction_dimnames.AnnDataR6 <-
+  function(
+    object,
+    reduction,
+    dims
+  ){
+    if (length(x = dims) != 2) {
+      stop("'dims' must be a two-length vector")
+    }
+    
+    #AnnData
+    paste0(reduction, "_", dims)
+  }

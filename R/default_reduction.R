@@ -30,7 +30,7 @@ default_reduction.default <-
       paste0(
         "default_reduction does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: AnnDataR6, Seurat and SingleCellExperiment."
       )
     )
   }
@@ -65,6 +65,30 @@ default_reduction.SingleCellExperiment <-
     } else if ("PCA" %in% reductions){
       "PCA"
     } else {
-      stop('Unable to find a reduction matching "UMAP", "TSNE", or "PCA". Please specify the reudction to use via the `reduction` parameter.')
+      stop('Unable to find a reduction matching "UMAP", "TSNE", or "PCA". Please specify the reduction to use via the `reduction` parameter.')
+    }
+  }
+
+#' @describeIn default_reduction AnnDataR6 objects
+#' @export
+default_reduction.AnnDataR6 <-
+  function(
+    object
+  ){
+    reductions <- names(object$obsm)
+    
+    # AnnData objects
+    # Conditional structure reflects priorities of reductions
+    # 1. UMAP
+    # 2. TSNE
+    # 3. PCA
+    if ("X_umap" %in% reductions){
+      "X_umap"
+    } else if ("X_tsne" %in% reductions){
+      "X_tsne"
+    } else if ("X_pca" %in% reductions){
+      "X_pca"
+    } else {
+      stop('Unable to find a reduction matching "X_umap", "X_tsne", or "X_pca". Please specify the reduction to use via the `reduction` parameter.')
     }
   }
