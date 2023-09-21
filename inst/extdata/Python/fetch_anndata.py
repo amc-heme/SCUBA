@@ -367,7 +367,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         
         # Display warning message
         warnings.warn(
-            ("The following variables were found in multiple assays: " +
+            ("The following variables were found in multiple locations: " +
             ", ".join(list(ambiguous_vars.keys())) +
             ". These variables will not be retrieved due to ambiguity. " +
             "To pull data for these variables, please specify which " +
