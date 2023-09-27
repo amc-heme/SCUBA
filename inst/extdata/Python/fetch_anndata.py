@@ -146,6 +146,12 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
                     index = obj.obs_names,
                     columns = keyless_vars
                     )
+                    
+                # Columns returned will be pandas sparse arrays.
+                # Arrays must be densified to be accesssible downstream in R 
+                # Densify with np.asarray
+                for column in data:
+                    data[column] = np.asarray(data[column])
             elif (isinstance(matrix, pd.DataFrame)):
                 # Pandas dataframe: pull data via .loc 
                 data = matrix.loc[cells, keyless_vars]

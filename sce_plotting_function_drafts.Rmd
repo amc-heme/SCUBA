@@ -7254,3 +7254,76 @@ fetch_anndata(
   )
 ```
 
+# Address Issues with Table Return from Reticulate 
+Thursday, September 21st, 2023
+
+The table returned by fetch_anndata is a Pandas dataframe with numpy arrays for columns. Reticulate converts the dataframe as a whole to an R `data.frame` when the table is accessed in R, but the columns remain as numpy arrays, making downstream operation in R impossible. Solutions to this are explored below.
+
+```{r}
+# py$data: output of fetch_anndata
+# Explicit conversion to R data.frame
+r_frame <- 
+    data.frame(py$data)
+# This did not work
+```
+
+```{python}
+# Conversion of python object to a csr_matrix
+from scipy.sparse import csr_matrix, csr_array
+
+csr_array(data)
+```
+
+## Inconsistencies in pd.loc behavior in Reticulate
+
+```{r}
+# Extract a pandas dataframe from the object
+py$matrix = object$obsm$protein
+
+# Define column names to fetch
+var_subset <- c("CD14", "CD45")
+
+var_subset %in% colnames(py$matrix)
+
+# Define rows (cells) to fetch
+cells = SCEPlots::get_all_cells(object)
+
+all(cells %in% rownames(py$matrix))
+
+# Fetch data using pd.loc
+py$matrix$loc[cells, var_subset]
+```
+
+```{python}
+# Same operation in python
+matrix.loc[r.cells, r.var_subset]
+
+matrix.loc(r.cells, r.var_subset)
+```
+
+## Revision to FetchAnndata: pulling data from csr_matrices
+
+```{python}
+import numpy as np
+
+varnames = ["CATSPER4", "KLRC1"]
+
+sub_x = r.object[:,["CATSPER4", "KLRC1"]].X
+
+matrix = pd.DataFrame.sparse.from_spmatrix(
+          sub_x,
+          # csr_matrices don't have row, column names. 
+          # These are added here
+          index = r.object.obs_names,
+          columns = varnames
+          )
+          
+type(matrix["CATSPER4"])
+
+matrix["CATSPER4"] = np.asarray(matrix["CATSPER4"])
+
+for col in matrix:
+  print(col)
+  print(type(col))
+```
+
