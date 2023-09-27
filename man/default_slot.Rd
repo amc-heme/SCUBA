@@ -4,6 +4,7 @@
 \alias{default_slot}
 \alias{default_slot.Seurat}
 \alias{default_slot.SingleCellExperiment}
+\alias{default_slot.AnnDataR6}
 \title{Get default reduction from object}
 \usage{
 default_slot(object, ...)
@@ -11,6 +12,8 @@ default_slot(object, ...)
 \method{default_slot}{Seurat}(object)
 
 \method{default_slot}{SingleCellExperiment}(object)
+
+\method{default_slot}{AnnDataR6}(object)
 }
 \arguments{
 \item{object}{a single cell object. Currently, Seurat and
@@ -26,5 +29,7 @@ Returns the default slot for the object passed.
 \item \code{default_slot(Seurat)}: Seurat objects (default slot is "data")
 
 \item \code{default_slot(SingleCellExperiment)}: SingleCellExperiment objects (default slot is "logcounts")
+
+\item \code{default_slot(AnnDataR6)}: Anndata objects (default slot is NULL, to pull from X)
 
 }}

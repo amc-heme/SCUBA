@@ -7228,21 +7228,14 @@ vars <-
     "1"
     )
 
-py$data <- py$fetch_anndata(
-  obj = object,
-  fetch_vars = vars,
-  cells = NULL,
-  slot = NULL
-  )
+# py$data <- py$fetch_anndata(
+#   obj = object,
+#   fetch_vars = vars,
+#   cells = NULL,
+#   slot = NULL
+#   )
 
 class(py$data)
-```
-
-```{r}
-plot_feature(
-  object = object,
-  features = "X_CATSPER4"
-)
 ```
 
 ```{python}
@@ -7325,5 +7318,22 @@ matrix["CATSPER4"] = np.asarray(matrix["CATSPER4"])
 for col in matrix:
   print(col)
   print(type(col))
+```
+
+# SCUBA Plots on Anndata Objects
+
+```{r}
+plot_feature(
+  object = object,
+  features = "protein_CD36",
+  order = TRUE
+)
+
+plot_violin(
+  object = object,
+  features = c("UBASH3A"),
+  group_by = "cell_call"
+)
+
 ```
 
