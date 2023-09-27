@@ -1,6 +1,6 @@
-Package: SCEPlots
-Title: Seurat Plotting Functions for SingleCellExperiment Objects
-Version: 0.0.2
+Package: SCUBA
+Title: Common data accession for single cell object formats
+Version: 0.9.0
 Authors@R: 
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
@@ -22,5 +22,6 @@ Depends:
     stringr
 LazyData: true
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    reticulate
 Config/testthat/edition: 3
