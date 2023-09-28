@@ -445,7 +445,7 @@ FetchData.AnnDataR6 <-
         "extdata",
         "Python",
         "fetch_anndata.py",
-        package = "SCEPlots"
+        package = "SCUBA"
         )
 
     reticulate::source_python(python_path)
