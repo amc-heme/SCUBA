@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 # Scipy
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, csc_matrix
 
 # Base Python
 from collections import Counter
@@ -135,7 +135,7 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
             # data types possible for the matrix
             # This is not considered "pythonic" and may need to be re-thought 
             # https://stackoverflow.com/questions/2225038/determine-the-type-of-an-object
-            if (isinstance(matrix, csr_matrix)):
+            if (isinstance(matrix, csr_matrix) | isinstance(matrix, csc_matrix)):
                 # Sparse matrix format (X): subset *object for genes, then 
                 # construct a pandas dataframe (sparse matrices don't subset 
                 # easily in python)
