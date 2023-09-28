@@ -6,7 +6,7 @@ AML_anndata <- AML_h5ad()
 test_that("plot_reduction runs without error", {
   # Plotting with SingleCellExperiment object
   expect_no_error(
-    SCEPlots::plot_reduction(
+    SCUBA::plot_reduction(
       sce,
       group_by = "condensed_cell_type",
       split_by = "Batch"
@@ -14,7 +14,7 @@ test_that("plot_reduction runs without error", {
   )
   # Seurat object
   expect_no_error(
-    SCEPlots::plot_reduction(
+    SCUBA::plot_reduction(
       AML_Seurat,
       group_by = "condensed_cell_type",
       split_by = "Batch"
@@ -22,9 +22,9 @@ test_that("plot_reduction runs without error", {
   )
   #AnndataR6 object
   expect_no_error(
-    SCEPlots::plot_reduction(
-      AML_anndata, 
-      group_by="condensed_cell_type", 
+    SCUBA::plot_reduction(
+      AML_anndata,
+      group_by="condensed_cell_type",
       split_by="Batch"
     )
   )
@@ -34,8 +34,8 @@ test_that("plot_reduction runs without error", {
 
 test_that("plot_reduction creates doppelganger.", {
   vdiffr::expect_doppelganger(
-    title = "plot_reduction.SingleCellExperiment test", 
-    SCEPlots::plot_reduction(
+    title = "plot_reduction.SingleCellExperiment test",
+    SCUBA::plot_reduction(
       sce,
       group_by = "condensed_cell_type",
       split_by = "Batch"
@@ -43,8 +43,8 @@ test_that("plot_reduction creates doppelganger.", {
   )
   #Seurat Object
   vdiffr::expect_doppelganger(
-    title = "plot_reduction.Seurat test", 
-    SCEPlots::plot_reduction(
+    title = "plot_reduction.Seurat test",
+    SCUBA::plot_reduction(
       AML_Seurat,
       group_by = "condensed_cell_type",
       split_by = "Batch"
@@ -52,8 +52,8 @@ test_that("plot_reduction creates doppelganger.", {
   )
   #AnnDataR6 Object
   vdiffr::expect_doppelganger(
-    title = "plot_reduction.AnnDataR6 test", 
-    SCEPlots::plot_reduction(
+    title = "plot_reduction.AnnDataR6 test",
+    SCUBA::plot_reduction(
       AML_anndata,
       group_by = "condensed_cell_type",
       split_by = "Batch"

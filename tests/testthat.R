@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(SCEPlots)
+library(SCUBA)
 
-test_check("SCEPlots")
+test_check("SCUBA")

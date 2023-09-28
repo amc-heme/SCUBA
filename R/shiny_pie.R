@@ -35,7 +35,7 @@ shiny_pie <-
     # For patient_level metadata: select for the specified patient metadata
     # column and the chosen group by variable.
     plot_data <-
-      SCEPlots::fetch_metadata(
+      SCUBA::fetch_metadata(
         object,
         vars = c(patient_colname, group_by)
         ) |>

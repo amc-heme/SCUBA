@@ -122,9 +122,9 @@ showtree(countsMat)
 # Using Seurat Plots with SCE objects
 
 ```{r}
-library(SCEPlots)
+library(SCUBA)
 
-SCEPlots::DimPlot(
+SCUBA::DimPlot(
   object = sce,
   reduction = "UMAP",
   group_by = "named_clusters",
