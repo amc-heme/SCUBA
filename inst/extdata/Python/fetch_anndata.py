@@ -233,6 +233,14 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     provided the variable in question is from the X matrix. The slot
     argument is ignored for variables from all other locations.
     """
+    print("Begin python script")
+    # If target_vars was passed as a one-element vector from R, it will be
+    # a string now. This must be converted to a list to avoid issues during
+    # iteration. Multi-element character vectors are properly converted to a 
+    # list.
+    if isinstance(fetch_vars, str):
+        fetch_vars = [fetch_vars]
+    
     # 1. Set default values
     # Slot (assay): if null, data will be pulled from object$X
 

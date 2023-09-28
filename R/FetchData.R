@@ -453,7 +453,7 @@ FetchData.AnnDataR6 <-
     # Runs python fetch_anndata function and returns the resulting data.frame
     py$fetch_anndata(
       obj = object,
-      fetch_vars = list(vars),
+      fetch_vars = vars,
       cells = cells,
       slot = slot
     )
