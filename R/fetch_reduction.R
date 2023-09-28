@@ -97,17 +97,23 @@ fetch_reduction.AnnDataR6 <-
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
     }
-    
-    #AnnData Object
-    ret <- as.data.frame(
-      object$obsm[[reduction]], 
-      row.names = object$obs_names, 
-    )
-    colnames(ret) = paste(
-      reduction, 
-      1:dim(object$obsm[[reduction]])[2], 
-      sep = "_"
-    )
-    ret[cells, dims]
+
+    FetchData(
+        object,
+        vars = reduction_dimnames(object, reduction, dims),
+        cells = cells
+        )
+
+    # #AnnData Object
+    # ret <- as.data.frame(
+    #   object$obsm[[reduction]],
+    #   row.names = object$obs_names,
+    # )
+    # colnames(ret) = paste(
+    #   reduction,
+    #   1:dim(object$obsm[[reduction]])[2],
+    #   sep = "_"
+    # )
+    # res <- ret[cells, dims]
   }
 

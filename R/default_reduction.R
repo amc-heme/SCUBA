@@ -75,8 +75,10 @@ default_reduction.AnnDataR6 <-
   function(
     object
   ){
-    reductions <- names(object$obsm)
-    
+    # All reductions should be stored in obsm. Obsm matrix names are fetched
+    # using obsm_keys().
+    reductions <- object$obsm_keys()
+
     # AnnData objects
     # Conditional structure reflects priorities of reductions
     # 1. UMAP

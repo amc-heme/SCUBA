@@ -7398,6 +7398,10 @@ write_h5ad(
 ## Testing Plotting Functions on Full AML Anndata object
 
 ```{r}
+library(reticulate)
+library(anndata)
+full_adata <- read_h5ad("~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Anndata.h5ad")
+
 the_data <-
   FetchData(
     full_adata,
@@ -7410,5 +7414,329 @@ SCUBA::plot_feature(
   label_by = "ab200_clusters",
   order = TRUE
 )
+```
+
+```{python}
+for var in char:
+    print(var)
+    
+for var in list:
+    print(var)
+```
+
+# Speed Test for FetchData on Anndata vs. other object types
+
+```{r}
+# Trials of each function, compared to fetchdata
+time <- c()
+test <- c()
+
+group_by <- "ab200_clusters"
+
+# Seurat objects
+results <- 
+  repeat_trial(
+    func = SCUBA::plot_feature, 
+    n = 100,
+    object = sobj,
+    features = "rna_FLT3",
+    label_by = group_by,
+    label = TRUE
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("Feature_Seurat", 100))
+
+# SCE objects
+results <- 
+  repeat_trial(
+    func = SCUBA::plot_feature, 
+    n = 100,
+    object = sce,
+    features = "RNA_FLT3",
+    label_by = group_by,
+    label = TRUE
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("Feature_SCE", 100))
+
+# Anndata objects
+results <- 
+  repeat_trial(
+    func = SCUBA::plot_feature, 
+    n = 100,
+    object = full_adata,
+    features = "X_FLT3",
+    label_by = group_by,
+    label = TRUE
+    )
+
+time <- c(time, results)
+test <- c(test, rep_len("Feature_Anndata", 100))
+
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time
+    )
+  )
+
+results_df$Test <- 
+  factor(
+    results_df$Test, 
+    levels = 
+      c("Feature_Seurat",
+        "Feature_SCE",
+        "Feature_Anndata"
+        )
+    )
+
+results_df$Test <- 
+  plyr::revalue(
+    results_df$Test, 
+    c("Feature_Seurat" = "Seurat", 
+      "Feature_SCE" = "SingleCellExperiment", 
+      "Feature_Anndata" = "Anndata")
+    )
+
+ggplot(data = results_df, aes(x = Test, y = Time)) +
+  geom_boxplot(aes(color = Test)) +
+  scale_color_manual(
+    values = 
+      c("#880000", "#000088", "#B8AB2F"),
+    aesthetics = "color",
+    na.value = "grey50"
+    ) +
+  labs(
+    title = "Feature Plot Performance", 
+    subtitle = "Assessed over 100 trials, on full AML dataset, with one feature"
+    ) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 28),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.title.y = element_blank()
+  ) +
+  coord_flip()
+
+#"#008800",
+
+ggsave(
+  "./Feature_plot_comparison.png",
+  device = "png",
+  bg = "#FFFFFF"
+  )
+```
+
+### Speed vs. number of features
+```{r}
+library(reticulate)
+library(anndata)
+full_adata <- read_h5ad("~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Anndata.h5ad")
+
+library(HDF5Array)
+sce <- loadHDF5SummarizedExperiment("~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_sce/")
+
+sobj <- readRDS("~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Seurat.Rds")
+```
+
+```{r}
+time <- c()
+test <- c()
+n_features <- c()
+
+group_by <- "ab200_clusters"
+
+#cells_sobj <- get_all_cells(sobj)
+#cells_sce <- get_all_cells(sce_3)
+
+# Greatest amount of n_features to include while testing
+max_n_features <- 10
+
+# Seed is set before each random feature access so the same "random" features
+# are chosen during each trial
+set.seed(2023)
+# plot_feature, Seurat object
+for (i in 1:max_n_features){
+  cat("plot_feature on Seurat object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sobj)[sample(1:nrow(sobj), i)]
+  trials <- 5
+  trial_name <- "Seurat"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCUBA::plot_feature, 
+      n = trials,
+      object = sobj,
+      features = features,
+      label_by = group_by,
+      label = TRUE
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+
+# plot_feature, SCE object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("plot_feature on SCE object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- rownames(sce)[sample(1:nrow(sce), i)]
+  trials <- 10
+  trial_name <- "SingleCellExperiment"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCUBA::plot_feature, 
+      n = trials,
+      object = sce,
+      features = features,
+      label_by = group_by,
+      label = TRUE
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+# plot_feature, Anndata object
+set.seed(2023)
+for (i in 1:max_n_features){
+  cat("plot_feature on Anndata object, n_features =", i, "\n")
+  # Select features (randomly, n = i)
+  features <- full_adata$var_names[sample(1:length(full_adata$var_names), i)]
+  trials <- 10
+  trial_name <- "Anndata"
+  
+  # Trial for n_features == i
+  results <- 
+    repeat_trial(
+      func = SCUBA::plot_feature, 
+      n = trials,
+      object = full_adata,
+      features = features,
+      label_by = group_by,
+      label = TRUE
+      )
+  
+  time <- c(time, results)
+  test <- c(test, rep_len(trial_name, trials))
+  # Record number of features for the trial (as character)
+  n_features <- 
+    c(n_features, 
+      rep_len(
+        as.character(i), 
+        trials
+        )
+      )
+}
+
+results_df <-
+  data.frame(
+    list(
+    "Test" = test, 
+    "Time" = time,
+    "Features" = n_features
+    )
+  )
+
+results_df$Features <-
+  factor(
+    results_df$Features, 
+    levels = 
+      str_sort(
+        results_df$Features |> unique(), 
+        numeric = TRUE
+        )
+    )
+
+results_df$Test <- 
+  factor(
+    results_df$Test, 
+    levels = 
+      c("Seurat",
+        "SingleCellExperiment",
+        "Anndata"
+        )
+    )
+
+# Scatterplot with error bars
+# Create summary stats for results
+summary_df <- 
+  results_df |> 
+  group_by(Test, Features) |> 
+  summarize(
+    mean_time = mean(Time),
+    sd = sd(Time)
+  )
+
+plot <-
+  ggplot(data = summary_df, aes(x = Features, y = mean_time, color = Test, group = Test)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_time - sd, ymax = mean_time + sd)) +
+  scale_color_manual(
+      values = ggsci::pal_aaas("default")(10)[c(3,6,7)],
+      aesthetics = "color",
+      na.value = "grey50"
+      ) +
+  scale_y_continuous(
+    limits = c(0, 9)
+  ) +
+  # scale_y_continuous(
+  #   breaks = seq(from = 0, to = 0.5, by = 0.05),
+  #   limits = c(0, 0.5)#,
+  #   #labels = function(breaks){paste0(breaks, " s")}
+  #   ) +
+  ylab("Time (s)") +
+  xlab("Number of Features") +
+  labs(
+    title = "Feature Plot Performance",
+    subtitle =
+      "(200k Cells x 29k Genes, HDF5Array Compression Level 3 for SCE objects)"
+  ) +
+  guides(
+    color =
+      guide_legend(
+        title = NULL
+        )
+  ) +
+  theme_cowplot() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(size = 9)
+    )
+
+plot
+
+# ggsave(
+#   filename = "./plot_feature_all_objects_1-10_features.png",
+#   plot,
+#   device = "png",
+#   bg = "#FFFFFF"
+# )
 ```
 
