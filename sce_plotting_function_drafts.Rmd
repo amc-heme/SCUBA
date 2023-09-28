@@ -7337,3 +7337,78 @@ plot_violin(
 
 ```
 
+```{r}
+
+```
+
+# Create AnnData version of Full AML Object
+
+```{r}
+library(sceasy)
+
+full_obj <- readRDS("~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Seurat.Rds")
+
+# Convert format
+sceasy::convertFormat(
+    full_obj, 
+    from = "seurat", 
+    to = "anndata",
+    main_layer = "data",
+    drop_single_values = FALSE,
+    outFile = "Full_AML_Anndata.h5ad" #"~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Anndata.h5ad"
+    )
+
+# Save GEX to HDF5 storage first, then convert addional modalities
+
+
+# Convert ADT, SIG modalities separately
+adata_protein <-
+    convertFormat(
+      full_obj,
+      from = "seurat",
+      to = "anndata",
+      main_layer = "data",
+      assay = "ADT",
+      drop_single_values = FALSE
+    )
+
+adata_sig <-
+    convertFormat(
+      full_obj,
+      from = "seurat",
+      to = "anndata",
+      main_layer = "data",
+      assay = "SIG",
+      drop_single_values = FALSE
+    )
+
+# Load anndata object, append modalities
+library(anndata)
+full_adata <- read_h5ad("~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Anndata.h5ad")
+
+full_adata$obsm[["protein"]] <- adata_protein$to_df()
+full_adata$obsm[["sig"]] <- adata_sig$to_df()
+
+write_h5ad(
+  full_adata, 
+  "~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Anndata.h5ad"
+  )
+```
+
+## Testing Plotting Functions on Full AML Anndata object
+
+```{r}
+the_data <-
+  FetchData(
+    full_adata,
+    var = "X_FLT3"
+  )
+
+SCUBA::plot_feature(
+  full_adata,
+  features = "X_FLT3",
+  label_by = "ab200_clusters",
+  order = TRUE
+)
+```
+
