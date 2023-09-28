@@ -58,7 +58,7 @@ shiny_stacked_bar <-
     # Determine number of colors needed, which is equal to the number of
     # unique values in the group by category
     n_colors <-
-      SCEPlots::unique_values(
+      SCUBA::unique_values(
         object,
         var = group_by
         ) |>
@@ -82,7 +82,7 @@ shiny_stacked_bar <-
 
     # Create dataframe from group_by, split_by metadata variables
     df <-
-      SCEPlots::fetch_metadata(
+      SCUBA::fetch_metadata(
         object,
         vars = c(group_by, split_by)
       )

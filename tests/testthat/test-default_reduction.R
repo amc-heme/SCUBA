@@ -1,4 +1,4 @@
-suppressMessages(library(SCEPlots, quietly = TRUE))
+suppressMessages(library(SCUBA, quietly = TRUE))
 
 # Load Seurat Object
 sobj <- AML_Seurat
