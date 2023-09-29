@@ -233,7 +233,6 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     provided the variable in question is from the X matrix. The slot
     argument is ignored for variables from all other locations.
     """
-    print("Begin python script")
     # If target_vars was passed as a one-element vector from R, it will be
     # a string now. This must be converted to a list to avoid issues during
     # iteration. Multi-element character vectors are properly converted to a 
@@ -269,11 +268,12 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     
     # Report duplicates to the user and notify that only one entry 
     # will be included 
-    warnings.warn(
-        ("Duplicate entries passed to vars: " +
-        ", ".join(duplicate_vars) +
-        ". Only one entry for each variable will be returned.")
-        )
+    if len(duplicate_vars) > 0:
+        warnings.warn(
+            ("Duplicate entries passed to vars: " +
+            ", ".join(duplicate_vars) +
+            ". Only one entry for each variable will be returned.")
+            )
 
     # Remove duplicates by creating a dictionary from the list, and converting
     # back to a list
@@ -427,38 +427,39 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         if keyed_var in fetched_data.columns
         }
 
-    # Warn the user that a variable is duplicated and only one 
-    # copy will be returned
-    # For each key:value pair in duplicate vars, create a set of 
-    # human-readable strings describing the feature entered and its 
-    # equivalent duplicate
-    duplicate_description = [key + ", equivalent to " + value 
-        for (key, value) in duplicate_vars.items()]
-    duplicate_description = "; ".join(duplicate_description)
-    
-    # Example of the keyed variable(s) to be returned
-    will_be_returned = ", ".join(list(duplicate_vars.values()))
-    
-    warnings.warn(
-        ("The following variables entered describe the same variable: " +
-        duplicate_description + 
-        ". Only the copy of the variable with the key entered will be " +
-        "returned (" +
-        will_be_returned +
-        ").")
-        )
-    
-    # Remove the duplicate variable(s) before fetching data
-    new_keyed_vars = [var 
-        for var in new_keyed_vars 
-        if var not in duplicate_vars.values()]
+    if len(duplicate_vars) > 0:
+        # Warn the user that a variable is duplicated and only one 
+        # copy will be returned
+        # For each key:value pair in duplicate vars, create a set of 
+        # human-readable strings describing the feature entered and its 
+        # equivalent duplicate
+        duplicate_description = [key + ", equivalent to " + value 
+            for (key, value) in duplicate_vars.items()]
+        duplicate_description = "; ".join(duplicate_description)
         
-    # Also remove duplicates from fetch_vars (this variable is used later on 
-    # to sort the final dataframe, and duplicate entries in fetch_vars will
-    # cause duplication in the dataframe).
-    fetch_vars = [var 
-        for var in fetch_vars
-        if var not in duplicate_vars.values()]
+        # Example of the keyed variable(s) to be returned
+        will_be_returned = ", ".join(list(duplicate_vars.values()))
+        
+        warnings.warn(
+            ("The following variables entered describe the same variable: " +
+            duplicate_description + 
+            ". Only the copy of the variable with the key entered will be " +
+            "returned (" +
+            will_be_returned +
+            ").")
+            )
+        
+        # Remove the duplicate variable(s) before fetching data
+        new_keyed_vars = [var 
+            for var in new_keyed_vars 
+            if var not in duplicate_vars.values()]
+            
+        # Also remove duplicates from fetch_vars (this variable is used later on 
+        # to sort the final dataframe, and duplicate entries in fetch_vars will
+        # cause duplication in the dataframe).
+        fetch_vars = [var 
+            for var in fetch_vars
+            if var not in duplicate_vars.values()]
 
     ## 6.3. Fetch data for new keyed variables and append to fetched_data ####
     new_data = fetch_keyed_vars(
@@ -526,8 +527,6 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     # Remove variables that are not in the column names of the dataframe
     # to avoid errors
     var_order = [var for var in var_order if var in fetched_data.columns]
-    
-    print("var_order", var_order, sep = "\n")
     
     # Pass list to fetched_data to order columns accordingly
     fetched_data = fetched_data[var_order]
