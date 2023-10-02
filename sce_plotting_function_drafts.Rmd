@@ -7750,3 +7750,16 @@ SCUBA::plot_violin(
 )
 ```
 
+## fetch_cells method for anndata objects
+
+This method is required if the user calls dot_plot with the "idents" parameter to select a subset of group_by metadata values to include.
+
+```{r}
+object <- full_adata
+meta_var <- "best_response"
+meta_levels <- c("CR", "CRi", "MLFS")
+
+object$obs[object$obs[[meta_var]] %in% meta_levels, ] |> rownames()
+```
+ 
+ 
