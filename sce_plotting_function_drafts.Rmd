@@ -7732,11 +7732,21 @@ plot <-
 
 plot
 
-# ggsave(
-#   filename = "./plot_feature_all_objects_1-10_features.png",
-#   plot,
-#   device = "png",
-#   bg = "#FFFFFF"
-# )
+ggsave(
+  filename = "./plot_feature_all_objects_1-10_features.png",
+  plot,
+  device = "png",
+  bg = "#FFFFFF"
+)
+```
+
+# Additional plot types in anndata
+
+```{r}
+SCUBA::plot_violin(
+  full_adata,
+  features = "X_FLT3",
+  group_by = "best_response"
+)
 ```
 

@@ -239,7 +239,7 @@ expr_plot <-
     # 7. Modify axis labels based on type features plotted
     # (default label is "Expression Level")
 
-    ## 7.1. Define label function based on plot type
+    ## 7.1. Define label function to apply based on plot type
     label.fxn <- switch(
       EXPR = type,
       'violin' = if (stack) {
@@ -256,51 +256,27 @@ expr_plot <-
       stop("Unknown ExIPlot type ", type, call. = FALSE)
     )
 
-    ## 7.2. Apply changes for each feature
+    ## 7.2. Apply label function to each plot
     # Determine if the key matches an assay or a reduction, and change labels
     # based on the result
     for (i in 1:length(x = plots)) {
-      key <-
-        paste0(
-          unlist(
-            x = strsplit(x = features[i], split = '_'))[1]
-          , '_'
-          )
+      relabel_value <-
+        relabel_axis(
+          object = object,
+          feature = features[i]
+        )
 
-      key_type <- key_type(object, key)
-
-      if (key_type == "Assay"){
-        # No changes to labels needed in this case
-        next
-      } else if (key_type == "Reduction"){
-        # If the feature is a reduction, label axis with "Embeddings Value"
-        plots[[i]] <-
-          plots[[i]] + label.fxn(label = 'Embeddings Value')
-      } else if (key_type == "Other") {
-        # For "other" cases: key will be a feature name if a feature from the
-        # default assay (or main experiment for SingleCellExperiment objects)
-        # is entered.
-        if (features[i] %in% rownames(x = object)){
-          # No changes needed if this is the case
-          next
-        } else {
-          # Warn user in the event the key corresponds to something other than
-          # an assay, reduction, or default assay feature
-          warning(
-            "Unknown object type for key ",
-            key,
-            " from feature ",
-            features[i],
-            " (",
-            class(x = object),
-            ")",
-            immediate. = TRUE,
-            call. = FALSE
-          )
-
-          # Remove label from plot
+      if (!is.null(relabel_value)){
+        if (relabel_value == ""){
+          # If relabel_axis returns "", remove label from plot
           plots[[i]] <-
-            plots[[i]] + label.fxn(label = NULL)
+            plots[[i]] +
+            label.fxn(label = NULL)
+        } else {
+          # Otherwise, relabel according to relabel_axis output
+          plots[[i]] <-
+            plots[[i]] +
+            label.fxn(label = relabel_value)
         }
       }
     }
