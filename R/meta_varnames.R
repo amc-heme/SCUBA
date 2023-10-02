@@ -2,7 +2,7 @@
 #'
 #' Returns the names of all metadata variables in an object.
 #'
-#' @param object a single-cell object. Currently, Seurat and
+#' @param object a single-cell object. Currently, Seurat, Anndata, and
 #' SingleCellExperiment objects are supported.
 #'
 #' @rdname meta_varnames
@@ -49,4 +49,13 @@ meta_varnames.SingleCellExperiment <-
     object
   ){
     colnames(colData(object))
+  }
+
+#' @describeIn meta_varnames Anndata objects
+#' @export
+meta_varnames.AnnDataR6 <-
+  function(
+    object
+  ){
+    object$obs_keys()
   }
