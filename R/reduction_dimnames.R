@@ -90,7 +90,7 @@ reduction_dimnames.AnnDataR6 <-
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
     }
-    
-    #AnnData
+
+    #AnnData: same as for SingleCellExperiment objects
     paste0(reduction, "_", dims)
   }
