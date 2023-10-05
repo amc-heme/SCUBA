@@ -439,6 +439,8 @@ FetchData.AnnDataR6 <-
     slot = NULL,
     cells = NULL
   ){
+    library(reticulate)
+
     # Source fetch_anndata python script
     python_path =
       system.file(
