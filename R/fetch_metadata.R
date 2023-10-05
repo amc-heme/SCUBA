@@ -164,7 +164,7 @@ fetch_metadata.SingleCellExperiment <-
 
 
 #' @describeIn fetch_metadata AnnDataR6 objects
-#' @export
+#' @exportc
 fetch_metadata.AnnDataR6 <-
   function(
     object,
