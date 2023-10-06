@@ -79,9 +79,8 @@ fetch_reduction(
 For SingleCellExperiment
 
 ```
-sce <- AML_SCE()
 FetchData(
-      sce,
+      AML_SCE(),
       slot = "logcounts",
       vars =
         c("AB_CD117-AB",
@@ -103,7 +102,7 @@ FetchData(
     )
 
 fetch_metadata(
-      sce, 
+      AML_SCE(), 
       vars = c("Batch", 
                "nCount_RNA"
                )
@@ -111,7 +110,7 @@ fetch_metadata(
 #Can use full_table=T which is much more computationally efficient than selecting vars.
 
 fetch_reduction(
-      sce,
+      AML_SCE(),
       dims = c(1, 2), 
       reduction = default_reduction(sce), 
       cells = get_all_cells(sce)
@@ -121,9 +120,8 @@ fetch_reduction(
 AnnData:
 
 ```
-AML_anndata <- AML_h5ad()
 FetchData(
-      AML_anndata,
+      AML_h5ad(),
       vars =
         c("protein_CD123-AB",
           "protein_CD117-AB",
@@ -139,7 +137,7 @@ FetchData(
     )
     
 fetch_metadata(
-      AML_anndata, 
+      AML_h5ad(), 
       vars = c("Batch", 
                "nCount_RNA"
                )
@@ -147,7 +145,7 @@ fetch_metadata(
 #Can use full_table=T which is much more computationally efficient than selecting vars.
 
 fetch_reduction(
-      AML_anndata,
+      AML_h5ad(),
       dims = c(1, 2), 
       reduction = default_reduction(AML_anndata), 
       cells = get_all_cells(AML_anndata)
@@ -157,9 +155,20 @@ fetch_reduction(
 #### Object Exploration Methods
 
 ```
-meta_varnames(AML_Seurat)
+> meta_varnames(AML_h5ad())
+ [1] "nCount_RNA"          "nFeature_RNA"        "nCount_AB"           "nFeature_AB"         "nCount_BOTH"         "nFeature_BOTH"      
+ [7] "BOTH_snn_res.0.9"    "seurat_clusters"     "Prediction_Ind"      "BOTH_snn_res.1"      "ClusterID"           "Batch"              
+[13] "x"                   "y"                   "x_mean"              "y_mean"              "cor"                 "ct"                 
+[19] "prop"                "meandist"            "cDC"                 "B.cells"             "Myelocytes"          "Erythroid"          
+[25] "Megakaryocte"        "Ident"               "RNA_snn_res.0.4"     "condensed_cell_type"
+```
 
-unique_values(AML_Seurat, var="nFeature_RNA")
+```
+> unique_values(AML_h5ad(), var="condensed_cell_type")
+ [1] Plasma cells                 Primitive                    Dendritic cells              Plasmacytoid dendritic cells
+ [5] BM Monocytes                 NK Cells                     CD8+ T Cells                 B Cells                     
+ [9] CD4+ T Cells                 PBMC Monocytes              
+10 Levels: B Cells BM Monocytes CD4+ T Cells CD8+ T Cells Dendritic cells NK Cells PBMC Monocytes ... Primitive
 ```
 
 The following object exploration methods exist for Seurat and SingleCellExperiment objects. They are currently not implemented for AnnData objects.
@@ -176,7 +185,7 @@ SCUBA includes plotting functions that produce Seurat-style plots from all three
 
 ```
 plot_feature(
-    AML_anndata, 
+    AML_h5ad(), 
     feature = "UNG"
   )
 ```
@@ -185,9 +194,9 @@ plot_feature(
 
 ```
 plot_dot(
-      AML_anndata, 
+      AML_h5ad(), 
       group_by = "condensed_cell_type", 
-      features = c("UNG", "GAPDH", "CCR5")
+      features = c("X_UNG", "X_GAPDH", "X_CCR5")
     )
 ```
 ![plot_dot](inst/images/examples/plot_dot.jpeg)
@@ -195,7 +204,7 @@ plot_dot(
 
 ```
 plot_reduction(
-      AML_anndata,
+      AML_h5ad(),
       group_by="condensed_cell_type",
       split_by="Batch"
     )
@@ -204,7 +213,7 @@ plot_reduction(
 
 ```
 plot_ridge(
-      AML_anndata, 
+      AML_h5ad(), 
       group_by = "condensed_cell_type", 
       features = c("UNG", "GAPDH")
     )
@@ -213,7 +222,7 @@ plot_ridge(
 
 ```
 plot_scatter(
-      AML_anndata, 
+      AML_h5ad(), 
       group_by = "condensed_cell_type", 
       feature_1 = "GAPDH", 
       feature_2 = "UNG"
@@ -223,7 +232,7 @@ plot_scatter(
 
 ```
 plot_violin(
-      AML_anndata, 
+      AML_h5ad(), 
       group_by = "condensed_cell_type",
       features = c("UNG", "GAPDH")
     )
