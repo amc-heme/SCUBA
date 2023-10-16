@@ -7,13 +7,13 @@
 \alias{fetch_reduction.AnnDataR6}
 \title{Get names of reduction keys}
 \usage{
-fetch_reduction(object, reduction, cells, dims, ...)
+fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2), ...)
 
-\method{fetch_reduction}{Seurat}(object, reduction, cells, dims)
+\method{fetch_reduction}{Seurat}(object, reduction, cells = NULL, dims = c(1, 2))
 
-\method{fetch_reduction}{SingleCellExperiment}(object, reduction, cells, dims)
+\method{fetch_reduction}{SingleCellExperiment}(object, reduction, cells = NULL, dims = c(1, 2))
 
-\method{fetch_reduction}{AnnDataR6}(object, reduction, cells, dims)
+\method{fetch_reduction}{AnnDataR6}(object, reduction, cells = NULL, dims = c(1, 2))
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
