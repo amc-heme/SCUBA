@@ -164,10 +164,10 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
                 # names, and the user would likely reference variables in these
                 # arrays using an index (i.e. "X_umap_1", "(matrix_name)_1")
                 
-                # Convert numpy array to pandas datafrane, then slice for vars
+                # Convert numpy array to pandas dataframe, then slice for vars
                 matrix = pd.DataFrame(
                     matrix,
-                    index = cells,
+                    index = obj.obs_names,
                     # Construct var names using a 1-based index (for consistency 
                     # with Seurat, R objects used in SCUBA)
                     columns = [str(x) for x in range(1, matrix.shape[1] + 1)]
