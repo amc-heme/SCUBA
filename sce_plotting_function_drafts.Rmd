@@ -7762,4 +7762,24 @@ meta_levels <- c("CR", "CRi", "MLFS")
 object$obs[object$obs[[meta_var]] %in% meta_levels, ] |> rownames()
 ```
  
- 
+## Bug in plot_feature for anndata objects
+
+The bug ocurrs when a subset of cells is passed to plot_feature via `cells`.
+
+```{r}
+adata <- 
+  anndata::read_h5ad(
+    "~/1A_Jordan_Lab/Objects/Full_AML_Downsampled/Full_AML_Anndata.h5ad"
+    )
+
+sub <- adata[adata$obs[["best_response"]] == "CR"]
+
+sub_cells <- sub$obs_names
+
+plot_feature(
+  object = adata,
+  features = "FLT3",
+  cells = sub_cells
+)
+```
+

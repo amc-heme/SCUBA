@@ -98,11 +98,7 @@ FetchData.Seurat <- function(object, vars, cells = NULL, slot = 'data', ...) {
           # if there is a metadata variable named 'rna_mitochondrial_percentage"
           # and an RNA assay)
           vars.use <- vars.use[vars.use %in% rownames(x = data.assay)]
-          print("Summary of data_assay")
-          print(data.assay)
           data.vars <- t(x = as.matrix(data.assay[vars.use, cells, drop = FALSE]))
-          print("data.vars after fetching variables")
-          print(str(data.vars))
           if (ncol(data.vars) > 0) {
             colnames(x = data.vars) <- paste0(key.use, vars.use)
           }

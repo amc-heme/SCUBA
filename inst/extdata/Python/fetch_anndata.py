@@ -140,10 +140,10 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
                 # construct a pandas dataframe (sparse matrices don't subset 
                 # easily in python)
                 data = pd.DataFrame.sparse.from_spmatrix(
-                    obj[:, keyless_vars].X,
+                    obj[cells, keyless_vars].X,
                     # csr_matrices don't have row, column names. 
                     # These are added here
-                    index = obj.obs_names,
+                    index = cells,
                     columns = keyless_vars
                     )
                     
@@ -167,7 +167,7 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
                 # Convert numpy array to pandas datafrane, then slice for vars
                 matrix = pd.DataFrame(
                     matrix,
-                    index = obj.obs_names,
+                    index = cells,
                     # Construct var names using a 1-based index (for consistency 
                     # with Seurat, R objects used in SCUBA)
                     columns = [str(x) for x in range(1, matrix.shape[1] + 1)]
