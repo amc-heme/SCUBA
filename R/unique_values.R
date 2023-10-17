@@ -26,7 +26,7 @@ unique_values <-
     # Handle errors caused by passing a var not found in the object
     # smetadata
     if (!var %in% SCUBA::meta_varnames(object)){
-      stop("unique_values: var", var, "not found in object.")
+      stop("unique_values: var ", var, " not found in object.")
     }
 
     fetch_metadata(
