@@ -175,7 +175,7 @@ expr_plot <-
         split <- interaction(group, split)
         cols <- hue_pal()(length(x = levels(x = group)))
       } else {
-        cols <- Col2Hex(cols)
+        cols <- Seurat:::Col2Hex(cols)
       }
 
       if (length(x = cols) < length(x = levels(x = split))) {
