@@ -154,7 +154,7 @@ expr_plot <-
       split <-
         fetch_metadata(
           object = object,
-          vars = group_by,
+          vars = split_by,
           cells = cells,
           return_class = "vector"
           )
