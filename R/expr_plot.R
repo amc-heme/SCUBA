@@ -167,7 +167,7 @@ expr_plot <-
       # Set up colors for split plot
       if (is.null(x = cols)) {
         cols <- hue_pal()(length(x = levels(x = group)))
-        cols <- Seurat:::Interleave(cols, InvertHex(hexadecimal = cols))
+        cols <- Seurat:::Interleave(cols, Seurat:::InvertHex(hexadecimal = cols))
       } else if (length(x = cols) == 1 && cols == 'interaction') {
         # Splits each split_by group into secondary violins by ident class and
         # colors each ident-split_by combination separately
@@ -179,7 +179,7 @@ expr_plot <-
       }
 
       if (length(x = cols) < length(x = levels(x = split))) {
-        cols <- Seurat:::Interleave(cols, InvertHex(hexadecimal = cols))
+        cols <- Seurat:::Interleave(cols, Seurat:::InvertHex(hexadecimal = cols))
       }
 
       cols <- rep_len(x = cols, length.out = length(x = levels(x = split)))
