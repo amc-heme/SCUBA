@@ -205,6 +205,50 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
     # When finished with iteration, return the dataframe
     return data_return
 
+def remove_key(data, key, vars_modify=None):
+    """
+    Removes the key prefix from all var entries with the defined
+    key. For example, if the key is "obs", all entries with a metadata
+    variable will be changed from "obs_<variable_name>" to
+    "<variable_name>".
+    
+    Arguments
+    ----------
+    data: expression data/metadata returned by fetch_keyed_vars().
+    
+    key: a string giving a key to remove. The key should not contain
+    an underscore. For example, use "obs" instead of "obs_", and "X"
+    instead of "X_".
+    
+    vars_modify (optional): a list giving a subset of vars to remove 
+    the key from. For example, if the key is "X" and vars_modify is
+    ["X_gene1", "X_gene2"], only "gene1" and "gene2" will have the "X"
+    key removed, and all other vars with the "X" key will be unchanged.
+    
+    Returns
+    ----------
+    A pandas dataframe with modified column names. The data itself will
+    be unchanged.
+    """
+    # Identify variables with obs key
+    key_regex = re.compile("^" + key + "_(.*)")
+    
+    if vars_modify==None:
+        target_vars = data.columns.values
+    else:
+        target_vars = vars_modify
+    
+    # Generate names of obs variables without the obs key
+    # Also maps var names with obs keys to var names without the key
+    remove_key = {var:key_regex.search(var).groups()[0] 
+                for var in target_vars
+                if key_regex.search(var)
+                }
+    
+    data.rename(remove_key, axis=1, inplace=True)
+    
+    return data
+
 def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     """
     Fetches the specified variables from an anndata object.
@@ -406,7 +450,9 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     # Add key with underscore to var name 
     map_keyed_vars = {key:value[0] + "_" + key 
         for (key, value) in vars_add_key.items()}
-    
+        
+    print("map_keyed_vars")
+    print(map_keyed_vars)
     
     new_keyed_vars = list(map_keyed_vars.values())
 
@@ -483,6 +529,9 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         for var in map_keyed_vars.keys() 
         if map_keyed_vars[var] in fetched_data.columns
         ]
+    
+    print("new_keyed_vars_found")
+    print(new_keyed_vars_found)
         
     # Remove any vars in new_keyed_vars_found from vars_not_found
     vars_not_found = [var 
@@ -514,8 +563,8 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
             ": " +
             ", ".join(vars_not_found)
             )
-
-    # 9. Sort columns, return fetched data ####
+    
+    # 9. Sort columns ####
     # Order of columns in data should reflect the order entered, not the 
     # order fetched
     # Columns in dataframe use keys for all vars, including those entered 
@@ -531,4 +580,25 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     # Pass list to fetched_data to order columns accordingly
     fetched_data = fetched_data[var_order]
 
+    # 10. Remove keys from obs variables, X variables entered without a key
+    # This is done for consistency with Seurat FetchData
+    fetched_data = remove_key(
+        data = fetched_data,
+        key = "obs"
+        )
+        
+    print("X vars")
+    print(X_vars)
+
+    # Identify X vars entered without a key
+    # Add key at the beginning to pass to vars_modify (vars must be 
+    # identified as they currently appear in fetched_data)
+    X_target_vars = ["X_" + var for var in X_vars]
+    
+    fetched_data = remove_key(
+        data = fetched_data,
+        key = "X",
+        vars_modify = X_target_vars
+        )
+    
     return fetched_data
