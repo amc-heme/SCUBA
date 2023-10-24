@@ -450,9 +450,6 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     # Add key with underscore to var name 
     map_keyed_vars = {key:value[0] + "_" + key 
         for (key, value) in vars_add_key.items()}
-        
-    print("map_keyed_vars")
-    print(map_keyed_vars)
     
     new_keyed_vars = list(map_keyed_vars.values())
 
@@ -529,9 +526,6 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         for var in map_keyed_vars.keys() 
         if map_keyed_vars[var] in fetched_data.columns
         ]
-    
-    print("new_keyed_vars_found")
-    print(new_keyed_vars_found)
         
     # Remove any vars in new_keyed_vars_found from vars_not_found
     vars_not_found = [var 
@@ -586,9 +580,6 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         data = fetched_data,
         key = "obs"
         )
-        
-    print("X vars")
-    print(X_vars)
 
     # Identify X vars entered without a key
     # Add key at the beginning to pass to vars_modify (vars must be 
