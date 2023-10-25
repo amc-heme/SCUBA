@@ -177,7 +177,7 @@ fetch_metadata.AnnDataR6 <-
     if (!return_class %in% c("dataframe", "vector")){
       stop('return_class must be either "dataframe" or "vector".')
     }
-    
+
     # Check vars for valid entries (may be undefined only if full_table or FALSE)
     if (full_table == FALSE && is.null(vars)){
       stop("`vars` must be defined, unless `full_table` is TRUE.")
@@ -186,19 +186,19 @@ fetch_metadata.AnnDataR6 <-
     if (full_table == TRUE && !is.null(vars)){
       warning("`full_table` is TRUE, ignoring entries in `vars`.")
     }
-    
+
     # Return full table if enabled
     if (full_table == TRUE){
       return(object$obs)
     }
-    
+
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
-    
+
     # AnnData use obs
     data <-
       object$obs[cells, vars]
-    
+
     # Use as.data.frame() if return_class is equal to "dataframe"
     # (if "vector", no additional operations necessary)
     if (return_class == "dataframe"){
@@ -206,7 +206,7 @@ fetch_metadata.AnnDataR6 <-
         as.data.frame(
           data
         )
-      
+
       # Add cell names to rownames, and metadata names to colnames
       rownames(data) <- cells
       colnames(data) <- vars
@@ -214,6 +214,6 @@ fetch_metadata.AnnDataR6 <-
       # Return named vector with cell names
       names(data) <- cells
     }
-    
+
     data
   }

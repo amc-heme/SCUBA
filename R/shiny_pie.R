@@ -1,4 +1,4 @@
-#' Pie charts for summarizing metadata in a aingle cell object
+#' Pie charts for summarizing metadata in a single cell object
 #'
 #' shiny_pie summarizes the object by showing the number of patients/samples
 #' represented by each level of a categorical metadata column (patient level, as
@@ -21,7 +21,6 @@
 #' @param plot_title If defined, the value entered will be displayed as the plot
 #' title, if `show_title` is TRUE.
 #'
-#' @export
 shiny_pie <-
   function(
     object,

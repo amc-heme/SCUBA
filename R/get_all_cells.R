@@ -61,7 +61,7 @@ get_all_cells.AnnDataR6 <-
   function(
     object
   ){
-    # SingleCellExperiment objects: cell names are column names of object
-    rownames(object$X)
+    # Use obs_names method from anndata
+    object$obs_names
   }
 

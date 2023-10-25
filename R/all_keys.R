@@ -65,3 +65,26 @@ all_keys.SingleCellExperiment <-
 
     keys
   }
+
+#' @describeIn all_keys SingleCellExperiment objects
+#' @export
+all_keys.AnnDataR6 <-
+  function(
+    object
+  ){
+    # Since anndata objects don't have defined locations for modalities and
+    # reductions, downstream functions calling this method may not work
+    # in the same way they do for Seurat and SingleCellExperiment objects.
+
+    # Anndata objects: return names of experiments and reductions
+    keys <-
+      c("X",
+        object$obsm_keys()
+        )
+
+    # Add names to vector returned for consistency with
+    # SeuratObject.Key() method
+    names(keys) <- keys
+
+    keys
+  }

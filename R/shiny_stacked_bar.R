@@ -25,7 +25,7 @@
 #' @param custom_factor_levels A character vector giving the order of groups if `sort_groups` is set to "custom".
 #'
 #' @return  a ggplot2 object with a stacked bar plot created according to user specifications.
-#' @export
+#'
 shiny_stacked_bar <-
   function(
     object,

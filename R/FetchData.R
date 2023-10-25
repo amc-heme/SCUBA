@@ -398,3 +398,65 @@ FetchData.SingleCellExperiment <-
 
     fetched_data
   }
+
+
+#' FetchData Equivalent for Anndata Objects
+#'
+#' The anndata equivalent of the SeuratObject FetchData method.
+#'
+#' @param object An anndata object.
+#' @param vars A character vector with desired features or metadata variables to
+#'   pull from the object. Any combination of entries in the genes matrix (X),
+#'   metadata (obs), or obsm matrices can be provided here. To include a feature
+#'   from layers, use the `slot` parameter. It is greatly preferred to specify
+#'   the matrix a variable is in with an underscore. for example, to pull the
+#'   FIS1 gene from the genes matrix (X), specify "X_FIS1" instead of "FIS1". To
+#'   pull metadata, use "obs_", and to pull data from a matrix in obsm, use the
+#'   name of that matrix, not obsm. For example, if a matrix in obsm is named
+#'   "protein", use "protein_" to pull data from that matrix. Variables that are
+#'   entered without a key can still be found, as long as there is only one
+#'   matrix in the object with that variable name. Variables that do not have a
+#'   valid key (X_, obs_, and a key from obj.obsm_names()) will be ignored, as
+#'   will duplicate variables.
+#' @param slot The assay (equivalent of slot in Seruat objects) to pull data
+#' from. To view the list of available assays in your object, use
+#' \code{assayNames({your object})}.
+#' @param cells A character vector of cells to include, as they are named in
+#' the object (i.e. according to colNames(object)). If \code{NULL}, data will
+#' be returned for all cells in the object.
+#'
+#' @return A data.frame object containing the requested expression
+#' data or metadata.
+#'
+#' @export
+#'
+#' @method FetchData AnnDataR6
+#'
+FetchData.AnnDataR6 <-
+  function(
+    object,
+    vars,
+    slot = NULL,
+    cells = NULL
+  ){
+    library(reticulate)
+
+    # Source fetch_anndata python script
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_anndata.py",
+        package = "SCUBA"
+        )
+
+    reticulate::source_python(python_path)
+
+    # Runs python fetch_anndata function and returns the resulting data.frame
+    py$fetch_anndata(
+      obj = object,
+      fetch_vars = vars,
+      cells = cells,
+      slot = slot
+    )
+  }

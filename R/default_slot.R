@@ -54,3 +54,12 @@ default_slot.SingleCellExperiment <-
     # SingleCellExperiment: default slot is "logcounts"
     "logcounts"
   }
+
+#' @describeIn default_slot Anndata objects (default slot is NULL, to pull from X)
+#' @export
+default_slot.AnnDataR6 <-
+  function(
+    object
+  ){
+    NULL
+  }

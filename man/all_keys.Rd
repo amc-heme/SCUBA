@@ -4,6 +4,7 @@
 \alias{all_keys}
 \alias{all_keys.Seurat}
 \alias{all_keys.SingleCellExperiment}
+\alias{all_keys.AnnDataR6}
 \title{Get keys for all assays/reductions in an object}
 \usage{
 all_keys(object, ...)
@@ -11,6 +12,8 @@ all_keys(object, ...)
 \method{all_keys}{Seurat}(object)
 
 \method{all_keys}{SingleCellExperiment}(object)
+
+\method{all_keys}{AnnDataR6}(object)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and
@@ -28,5 +31,7 @@ experiments.
 \item \code{all_keys(Seurat)}: Seurat objects
 
 \item \code{all_keys(SingleCellExperiment)}: SingleCellExperiment objects
+
+\item \code{all_keys(AnnDataR6)}: SingleCellExperiment objects
 
 }}

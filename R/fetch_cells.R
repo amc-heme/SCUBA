@@ -68,3 +68,16 @@ fetch_cells.SingleCellExperiment <-
     colData(object)[colData(object)[[meta_var]] %in% meta_levels, ] |>
       rownames()
   }
+
+#' @describeIn fetch_cells Anndata objects
+#' @export
+fetch_cells.AnnDataR6 <-
+  function(
+    object,
+    meta_var,
+    meta_levels
+  ){
+    # Anndata objects: use obs
+    object$obs[object$obs[[meta_var]] %in% meta_levels, ] |>
+      rownames()
+  }

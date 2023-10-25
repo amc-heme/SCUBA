@@ -18,8 +18,8 @@ fetch_reduction <-
   function(
     object,
     reduction,
-    cells,
-    dims,
+    cells = NULL,
+    dims = c(1, 2),
     ...
   ){
     UseMethod("fetch_reduction")
@@ -34,7 +34,8 @@ fetch_reduction.default <-
   function(
     object,
     reduction,
-    dims
+    cells = NULL,
+    dims = c(1, 2)
   ){
     warning(
       paste0(
@@ -51,12 +52,15 @@ fetch_reduction.Seurat <-
   function(
     object,
     reduction,
-    cells,
-    dims
+    cells = NULL,
+    dims = c(1, 2)
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
     }
+
+    # Cells: if NULL, use all cells in the object
+    cells <- cells %||% get_all_cells(object)
 
     # Fetch reduction coordinates using SeuratObject Embeddings method
     as.data.frame(
@@ -70,12 +74,15 @@ fetch_reduction.SingleCellExperiment <-
   function(
     object,
     reduction,
-    cells,
-    dims
+    cells = NULL,
+    dims = c(1, 2)
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
     }
+
+    # Cells: if NULL, use all cells in the object
+    cells <- cells %||% get_all_cells(object)
 
     # SingleCellExperiment objects: pull reduction matrix, then subset for
     # cells and dims
@@ -91,23 +98,20 @@ fetch_reduction.AnnDataR6 <-
   function(
     object,
     reduction,
-    cells,
-    dims
+    cells = NULL,
+    dims = c(1, 2)
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
     }
-    
-    #AnnData Object
-    ret <- as.data.frame(
-      object$obsm[[reduction]], 
-      row.names = object$obs_names, 
-    )
-    colnames(ret) = paste(
-      reduction, 
-      1:dim(object$obsm[[reduction]])[2], 
-      sep = "_"
-    )
-    ret[cells, dims]
+
+    # Cells: if NULL, use all cells in the object
+    cells <- cells %||% get_all_cells(object)
+
+    FetchData(
+        object,
+        vars = reduction_dimnames(object, reduction, dims),
+        cells = cells
+        )
   }
 

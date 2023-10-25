@@ -2,7 +2,7 @@
 % Please edit documentation in R/shiny_pie.R
 \name{shiny_pie}
 \alias{shiny_pie}
-\title{Pie charts for summarizing metadata in a aingle cell object}
+\title{Pie charts for summarizing metadata in a single cell object}
 \usage{
 shiny_pie(
   object,
