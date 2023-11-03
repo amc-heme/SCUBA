@@ -115,8 +115,11 @@ FetchData.SingleCellExperiment <-
               as.matrix() |>
               t()
 
-            # Add experiment key back in
-            colnames(data) <- paste0(key, "_", keyless_vars)
+            # Add experiment key back in (assuming at least one variable was
+            # found. An error will result if none are found at this point)
+            if (length(keyless_vars) >= 1){
+              colnames(data) <- paste0(key, "_", keyless_vars)
+            }
           } else if (key %in% altExpNames(object)){
             # For alternate experimnent(s)
             # Switch to SingleCellExperiment object for the alternate experiment
@@ -144,8 +147,12 @@ FetchData.SingleCellExperiment <-
               as.matrix() |>
               t()
 
-            # Add experiment key back in
-            colnames(data) <- paste0(key, "_", keyless_vars)
+            # Add experiment key back in (assuming at least one variable was
+            # found. An error will result if none are found at this point)
+            if (length(keyless_vars) >= 1){
+              colnames(data) <- paste0(key, "_", keyless_vars)
+            }
+
           } else if (key %in% reducedDimNames(object)){
             # For reductions
             # keyless_vars will be equal to the indices of the dimensions to
