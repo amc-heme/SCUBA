@@ -245,3 +245,7 @@ Paper title and preprint link coming soon!
 
 ### Problems
 If any issues arise please use Github issues on this repository. 
+
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/amc-heme/SCUBA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/amc-heme/SCUBA/actions/workflows/R-CMD-check.yaml)
+  <!-- badges: end -->
