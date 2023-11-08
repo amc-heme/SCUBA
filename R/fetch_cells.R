@@ -20,6 +20,11 @@ fetch_cells <-
     meta_levels,
     ...
   ){
+    # Return an error if meta_levels is equal to NULL
+    if (is.null(meta_levels)){
+      stop("Meta_levels must not be NULL.")
+    }
+
     UseMethod("fetch_cells")
   }
 
@@ -38,7 +43,8 @@ fetch_cells.default <-
       paste0(
         "fetch_cells does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment, ",
+        "and Anndata."
       )
     )
   }
@@ -51,6 +57,20 @@ fetch_cells.Seurat <-
     meta_var,
     meta_levels
   ){
+    # Test if meta_var is a categorical variable. Numeric variables are not
+    # supported
+    if (
+      !inherits(
+        object@meta.data[[meta_var]],
+        c("character", "factor", "logical")
+        )
+      ){
+      stop(
+        meta_var, " is not a categorical variable. Only categorical variables ",
+        "are supported by fetch_cells at this time."
+        )
+    }
+
     # Seurat objects: subset meta.data object, extract rownames
     object@meta.data[object@meta.data[[meta_var]] %in% meta_levels, ] |>
       rownames()
@@ -64,6 +84,20 @@ fetch_cells.SingleCellExperiment <-
     meta_var,
     meta_levels
   ){
+    # Test if meta_var is a categorical variable. Numeric variables are not
+    # supported
+    if (
+      !inherits(
+        colData(object)[[meta_var]],
+        c("character", "factor", "logical")
+      )
+    ){
+      stop(
+        meta_var, " is not a categorical variable. Only categorical variables ",
+        "are supported by fetch_cells at this time."
+      )
+    }
+
     # SingleCellExperiment objects: subset colData, extract rownames
     colData(object)[colData(object)[[meta_var]] %in% meta_levels, ] |>
       rownames()
@@ -77,6 +111,20 @@ fetch_cells.AnnDataR6 <-
     meta_var,
     meta_levels
   ){
+    # Test if meta_var is a categorical variable. Numeric variables are not
+    # supported
+    if (
+      !inherits(
+        object$obs[[meta_var]],
+        c("character", "factor", "logical")
+      )
+    ){
+      stop(
+        meta_var, " is not a categorical variable. Only categorical variables ",
+        "are supported by fetch_cells at this time."
+      )
+    }
+
     # Anndata objects: use obs
     object$obs[object$obs[[meta_var]] %in% meta_levels, ] |>
       rownames()

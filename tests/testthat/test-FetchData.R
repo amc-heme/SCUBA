@@ -1,31 +1,7 @@
-library(SeuratObject, quietly = TRUE, warn.conflicts = FALSE)
-library(Seurat, quietly = TRUE, warn.conflicts = FALSE)
-
-# Dependencies of SingleCellExperiment and HDF5Array
-# (these are loaded quietly to avoid messages in the testing section)
-library(MatrixGenerics, quietly = TRUE, warn.conflicts = FALSE)
-library(BiocGenerics, quietly = TRUE, warn.conflicts = FALSE)
-library(S4Vectors, quietly = TRUE, warn.conflicts = FALSE)
-library(IRanges, quietly = TRUE, warn.conflicts = FALSE)
-library(Biobase, quietly = TRUE, warn.conflicts = FALSE)
-library(SummarizedExperiment, quietly = TRUE, warn.conflicts = FALSE)
-library(Matrix, quietly = TRUE, warn.conflicts = FALSE)
-library(DelayedArray, quietly = TRUE, warn.conflicts = FALSE)
-library(rhdf5, quietly = TRUE, warn.conflicts = FALSE)
-
-library(SingleCellExperiment, quietly = TRUE, warn.conflicts = FALSE)
-library(HDF5Array, quietly = TRUE, warn.conflicts = FALSE)
-
-# Load Seurat Object
-sobj <- AML_Seurat
-
-# Load SCE Object (with DelayedArray integration)
-sce <- AML_SCE()
-
-test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratObject", {
+test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData AnnData all return the same data.", {
   seurat_data <-
     FetchData(
-      sobj,
+      AML_Seurat,
       slot = "data",
       vars =
         c("ab_CD117-AB",
@@ -36,8 +12,6 @@ test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratO
           # Reductions
           "UMAP_1",
           "UMAP_2",
-          # Nonexistent features
-          "ab_CD900",
           # Metadata
           "nCount_RNA",
           "nFeature_RNA",
@@ -48,7 +22,7 @@ test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratO
 
   sce_data <-
     FetchData(
-      sce,
+      AML_SCE(),
       slot = "logcounts",
       vars =
         c("AB_CD117-AB",
@@ -59,8 +33,6 @@ test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratO
           # Reductions
           "UMAP_1",
           "UMAP_2",
-          # Nonexistent features
-          "AB_CD900",
           # Metadata
           "nCount_RNA",
           "nFeature_RNA",
@@ -68,7 +40,27 @@ test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratO
           "CD11a-AB"
         )
     )
-
+  
+  h5ad_data <-  
+    FetchData(
+      AML_h5ad(),
+      vars =
+        c("protein_CD117-AB",
+          "protein_CD123-AB",
+          "protein_CD11c-AB",
+          "X_GAPDH",
+          "X_MEIS1",
+          # Reductions
+          "X_umap_1",
+          "X_umap_2",
+          # Metadata
+          "nCount_RNA",
+          "nFeature_RNA",
+          # "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+      )
+  )
+  
   # Check rowSums and colSums of data
   expect_equal(
     object = rowSums(sce_data),
@@ -82,5 +74,60 @@ test_that("Fetchdata.SingleCellExperiment returns same data as Fetchdata.SeuratO
     expected = colSums(seurat_data),
     tolerance = 1e-6,
     ignore_attr = TRUE
+  )
+  
+  expect_equal(
+    object = rowSums(sce_data),
+    expected = rowSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  expect_equal(
+    object = colSums(sce_data),
+    expected = colSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  
+  #Test for error on missing feature on Seurat
+  expect_error(
+    FetchData(
+      AML_Seurat,
+      slot = "data",
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
+  )
+  #Test for error on missing feature on SingleCellExperiment
+  expect_error(
+    FetchData(
+      AML_SCE(),
+      slot = "logcounts",
+      vars =
+        # Nonexistent feature
+        c("AB_CD900")
+    )
+  )
+  #Test for error on missing feature on AnnData
+  expect_error(
+    FetchData(
+      AML_h5ad(),
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
+  )
+  #Test for error 
+  expect_error(
+    FetchData(
+      AML_Seurat,
+      slot = "data",
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
   )
 })
