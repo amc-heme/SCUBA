@@ -27,7 +27,8 @@ Imports:
     scales,
     scattermore,
     SeuratObject,
-    SummarizedExperiment
+    SummarizedExperiment,
+    anndata
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
