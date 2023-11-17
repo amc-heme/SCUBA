@@ -52,11 +52,7 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          upload-snapshots: true
-
+          
       - uses: actions/setup-python@v4
         if: matrix.config.python != 'debug'
         with:
@@ -81,3 +77,7 @@ jobs:
           writeLines(
             paste0("RETICULATE_PYTHON=", virtualenv_python(path_to_venv)),
             Sys.getenv("GITHUB_ENV"))
+            
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
