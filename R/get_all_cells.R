@@ -2,8 +2,7 @@
 #'
 #' Returns a character vector with all cell names in the object.
 #'
-#' @param object a single-cell object. Currently, Seurat and
-#' SingleCellExperiment objects are supported.
+#' @param object a single-cell object.
 #' @param ... Currently unused.
 #'
 #' @rdname get_all_cells
