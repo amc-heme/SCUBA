@@ -394,7 +394,11 @@ plot_feature <- function(
           cells = cells,
           return_class = "vector"
           )
-        }
+      }
+
+  if (inherits(data$split, c("numeric", "integer"))){
+    stop("Numeric metadata has been passed to split_by. Only categorical metadata can be used.")
+  }
 
   # Convert split_by metadata to a factor if it is not one already
   if (!is.factor(x = data$split)) {
