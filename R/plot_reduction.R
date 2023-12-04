@@ -194,7 +194,21 @@ plot_reduction <- function(
         )
   }
 
-  # 11. If shufffle is TRUE, randomly shuffle cells
+  # 11. Error handling for numeric metadata in table
+  # Throw an error if the group_by metadata is numeric
+  if (inherits(data[[group_by]], c("numeric", "integer"))){
+    stop("Numeric metadata has been passed to group_by. This is not supported by plot_reduction, please use plot_feature instead.")
+  }
+
+  if (inherits(data[[split_by]], c("numeric", "integer"))){
+    stop("Numeric metadata has been passed to shape_by. Only categorical metadata can be used.")
+  }
+
+  if (inherits(data[[shape_by]], c("numeric", "integer"))){
+    stop("Numeric metadata has been passed to split_by. Only categorical metadata can be used for splits.")
+  }
+
+  # 12. If shufffle is TRUE, randomly shuffle cells
   if (isTRUE(shuffle)) {
     set.seed(seed = seed)
     data <- data[sample(x = 1:nrow(x = data)), ]
