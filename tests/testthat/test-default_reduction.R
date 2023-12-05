@@ -19,7 +19,7 @@ test_that("default_reduction works", {
   )
 
   # Delete the UMAP assay from both objects and test if PCA is returned
-  reducedDims(sce)[["UMAP"]] <- NULL
+  SingleCellExperiment::reducedDims(sce)[["UMAP"]] <- NULL
   sobj@reductions$umap <- NULL
 
   expect_equal(
@@ -33,7 +33,7 @@ test_that("default_reduction works", {
   )
 
   # Check if an error is returned if no reductions exist
-  reducedDims(sce)[["PCA"]] <- NULL
+  SingleCellExperiment::reducedDims(sce)[["PCA"]] <- NULL
   sobj@reductions$pca <- NULL
 
   expect_error(
