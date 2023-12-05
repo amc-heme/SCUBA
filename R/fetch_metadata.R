@@ -81,6 +81,15 @@ fetch_metadata.Seurat <-
       return(object@meta.data)
     }
 
+    if (!var %in% colnames(object@meta.data)){
+      stop(
+        "Variable ",
+        var,
+        " not found in object metadata. Run colnames(object@meta.data) to ",
+        "view valid metadata entrires (replace `object` with your object)."
+      )
+    }
+
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
@@ -133,6 +142,15 @@ fetch_metadata.SingleCellExperiment <-
     # Return full table if enabled
     if (full_table == TRUE){
       return(colData(object))
+    }
+
+    if (!var %in% colnames(colData(object))){
+      stop(
+        "Variable ",
+        var,
+        " not found in object metadata. Use the colData() function to ",
+        "view valid metadata."
+      )
     }
 
     # Cells: if undefined, pull data for all cells
@@ -192,10 +210,21 @@ fetch_metadata.AnnDataR6 <-
       return(object$obs)
     }
 
+    # Check if var exists in the object. Return an error if it does not
+    if (!var %in% object$obs_keys()){
+      stop(
+        "Variable ",
+        var,
+        " not found in object metadata. Use the obs_keys() method to ",
+        "view valid metadata."
+        )
+      }
+
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
-    # AnnData use obs
+    # Retrieve metadata
+    # For anndata objects, use obs
     data <-
       object$obs[cells, vars]
 
