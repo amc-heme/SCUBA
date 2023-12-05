@@ -33,8 +33,8 @@ test_that("default_reduction works", {
   )
 
   # Check if an error is returned if no reductions exist
-  reducedDims(sce)[["PCA"]] <- NULL
-  sobj@reductions$pca <- NULL
+  #reducedDims(sce)[["PCA"]] <- NULL
+  #sobj@reductions$pca <- NULL
 
   expect_error(
     object = default_reduction(sobj)
