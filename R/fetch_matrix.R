@@ -38,25 +38,25 @@ fetch_matrix.default <-
     )
   }
 
-# #' @describeIn fetch_matrix Seurat objects
-# #' @export
-#' fetch_matrix.Seurat <-
-#'   function(
-#'     object,
-#'     matrix_location
-#'   ){
-#'
-#'   }
-#'
-# #' @describeIn fetch_matrix SingleCellExperiment objects
-# #' @export
-#' fetch_matrix.SingleCellExperiment <-
-#'   function(
-#'     object,
-#'     matrix_location
-#'     ){
-#'
-#'     }
+# # describeIn fetch_matrix Seurat objects
+# # export
+# fetch_matrix.Seurat <-
+#   function(
+#     object,
+#     matrix_location
+#   ){
+#
+#   }
+#
+# # describeIn fetch_matrix SingleCellExperiment objects
+# # export
+# fetch_matrix.SingleCellExperiment <-
+#   function(
+#     object,
+#     matrix_location
+#     ){
+#
+#     }
 
 
 

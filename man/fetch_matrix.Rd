@@ -18,11 +18,6 @@ fetch_matrix(object, matrix_location, ...)
 }
 \description{
 Returns object metadata for a specified set of cells.
-
-
-}
-\details{
-
 }
 \section{Methods (by class)}{
 \itemize{

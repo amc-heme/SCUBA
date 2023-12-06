@@ -90,6 +90,16 @@ test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData 
     ignore_attr = TRUE
   )
   
+  #Test for warning on misplaced feature on Seurat obj
+  expect_warning(
+    FetchData(
+      AML_Seurat,
+      vars = 
+        c(# "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+        )
+    )
+  )
   
   #Test for error on missing feature on Seurat
   expect_error(
