@@ -24,9 +24,7 @@
 #' @seealso \code{\link{FetchData}}
 #'
 #' @examples
-#' data("pbmc_small")
-#' VlnPlot(object = pbmc_small, features = 'PC_1')
-#' VlnPlot(object = pbmc_small, features = 'LYZ', split_by = 'groups')
+#' plot_violin(AML_Seurat, features = "PC_1", group_by = "condensed_cell_type")
 #'
 plot_violin <- function(
     object,

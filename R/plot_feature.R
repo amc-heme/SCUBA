@@ -66,8 +66,7 @@
 #' \code{\link{CellSelector}}
 #'
 #' @examples
-#' data("pbmc_small")
-#' FeaturePlot(object = pbmc_small, features = 'PC_1')
+#' plot_feature(AML_Seurat, features = "PC_1")
 #'
 plot_feature <- function(
     object,

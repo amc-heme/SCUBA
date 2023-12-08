@@ -34,8 +34,7 @@
 #' @concept visualization
 #'
 #' @examples
-#' data("pbmc_small")
-#' RidgePlot(object = pbmc_small, features = 'PC_1')
+#' plot_ridge(AML_Seurat, features = "PC_1", group_by = "condensed_cell_type")
 #'
 plot_ridge <- function(
     object,
