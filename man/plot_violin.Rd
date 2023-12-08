@@ -92,9 +92,7 @@ Draws a violin plot of single cell data (gene expression, metrics, PC
 scores, etc.)
 }
 \examples{
-data("pbmc_small")
-VlnPlot(object = pbmc_small, features = 'PC_1')
-VlnPlot(object = pbmc_small, features = 'LYZ', split_by = 'groups')
+plot_violin(AML_Seurat, features = "PC_1", group_by = "condensed_cell_type")
 
 }
 \seealso{
