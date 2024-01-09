@@ -9,9 +9,7 @@
 #'
 #' @return Number of unique classes (integer).
 #'
-#' @keywords internal
-#'
-#' @noRd
+#' @export
 n_unique <-
   function(
     object,
