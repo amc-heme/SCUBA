@@ -415,7 +415,7 @@ FetchData.SingleCellExperiment <-
 #' @param vars A character vector with desired features or metadata variables to
 #'   pull from the object. Any combination of entries in the genes matrix (X),
 #'   metadata (obs), or obsm matrices can be provided here. To include a feature
-#'   from layers, use the `slot` parameter. It is greatly preferred to specify
+#'   from layers, use the `layers` parameter. It is greatly preferred to specify
 #'   the matrix a variable is in with an underscore. for example, to pull the
 #'   FIS1 gene from the genes matrix (X), specify "X_FIS1" instead of "FIS1". To
 #'   pull metadata, use "obs_", and to pull data from a matrix in obsm, use the
@@ -425,9 +425,11 @@ FetchData.SingleCellExperiment <-
 #'   matrix in the object with that variable name. Variables that do not have a
 #'   valid key (X_, obs_, and a key from obj.obsm_names()) will be ignored, as
 #'   will duplicate variables.
-#' @param slot The assay (equivalent of slot in Seruat objects) to pull data
-#' from. To view the list of available assays in your object, use
-#' \code{assayNames({your object})}.
+#' @param layer The layer to pull data from. If unspecified, the feature will
+#' be pulled from the X matrix. To view a list of available layers, run
+#' \code{object$layers}. Layers will not work with alternate modalities stored
+#' in \code{obsm}, only the main modality (the modality in the X matrix of the
+#' object).
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
@@ -443,7 +445,7 @@ FetchData.AnnDataR6 <-
   function(
     object,
     vars,
-    slot = NULL,
+    layer = NULL,
     cells = NULL
   ){
     library(reticulate)
@@ -464,6 +466,6 @@ FetchData.AnnDataR6 <-
       obj = object,
       fetch_vars = vars,
       cells = cells,
-      slot = slot
+      layer = layer
     )
   }
