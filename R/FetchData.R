@@ -7,9 +7,9 @@
 #' to pull from the object. To include features from an experiment other than
 #' the main experiment, use the name of the experiment as a prefix (i.e. AB_CD4
 #' for a feature in the experiment "AB" named "CD4".)
-#' @param slot The assay (equivalent of slot in Seruat objects) to pull data
-#' from. To view the list of available assays in your object, use
-#' \code{assayNames({your object})}.
+#' @param layer The assay (equivalent of layer in Seruat objects (slot in v4
+#' and earlier)) to pull data from. To view the list of available assays in
+#' your object, use \code{assayNames({your object})}.
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
@@ -28,12 +28,12 @@ FetchData.SingleCellExperiment <-
   function(
     object,
     vars,
-    slot = NULL,
+    layer = NULL,
     cells = NULL
     ){
     # 1. Set default values
-    # Slot (assay): fill with default if null (via default_slot method)
-    slot <- slot %||% default_slot(object)
+    # Layer (assay): fill with default if null (via default_slot method)
+    layer <- layer %||% default_slot(object)
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% get_all_cells(object)
 
@@ -93,14 +93,14 @@ FetchData.SingleCellExperiment <-
             # to avoid errors
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(object)]
 
-            # Before pulling data, make sure the slot provided by the user
+            # Before pulling data, make sure the layer provided by the user
             # exists in the object. Throw an error if not
-            if (!slot %in% names(assays(object))){
+            if (!layer %in% names(assays(object))){
               stop(
                 "Error for vars ",
                 paste(keyless_vars, collapse = ", "),
-                ": slot ",
-                slot,
+                ": layer ",
+                layer,
                 " does not exist in the indicated experiment (",
                 mainExpName(object),
                 ")"
@@ -108,7 +108,7 @@ FetchData.SingleCellExperiment <-
               }
 
             data <-
-              assays(object)[[slot]][keyless_vars, cells, drop = FALSE] |>
+              assays(object)[[layer]][keyless_vars, cells, drop = FALSE] |>
               # Must be a matrix for feature names to properly display as names in
               # the final list
               # (begins as a DelayedArray)
@@ -127,14 +127,14 @@ FetchData.SingleCellExperiment <-
 
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(alt_sce)]
 
-            # Before pulling data, make sure the slot provided by the user
+            # Before pulling data, make sure the layer provided by the user
             # exists in the object. Throw an error if not
-            if (!slot %in% names(assays(alt_sce))){
+            if (!layer %in% names(assays(alt_sce))){
               stop(
                 "Error for vars",
                 keyless_vars,
-                ": slot ",
-                slot,
+                ": layer ",
+                layer,
                 " does not exist in the indicated experiment (",
                 mainExpName(alt_sce),
                 ")"
@@ -143,7 +143,7 @@ FetchData.SingleCellExperiment <-
 
 
             data <-
-              assays(alt_sce)[[slot]][keyless_vars, cells, drop = FALSE] |>
+              assays(alt_sce)[[layer]][keyless_vars, cells, drop = FALSE] |>
               as.matrix() |>
               t()
 
@@ -206,12 +206,12 @@ FetchData.SingleCellExperiment <-
     remaining_vars <- vars[!vars %in% names(fetched_data)]
     main_exp_vars <- remaining_vars[remaining_vars %in% rownames(object)]
 
-    if (!slot %in% names(assays(object))){
+    if (!layer %in% names(assays(object))){
       stop(
         "Error for vars",
         main_exp_vars,
-        ": slot ",
-        slot,
+        ": layer ",
+        layer,
         " does not exist in the indicated experiment (",
         mainExpName(object),
         ")"
@@ -220,7 +220,7 @@ FetchData.SingleCellExperiment <-
 
     # Pull vars from main experiment
     main_exp_data <-
-      assays(object)[[slot]][main_exp_vars, cells, drop = FALSE] |>
+      assays(object)[[layer]][main_exp_vars, cells, drop = FALSE] |>
       as.matrix() |>
       t()
 
@@ -253,7 +253,7 @@ FetchData.SingleCellExperiment <-
 
         # Determine which of the missing vars are in the current key., if any
         missing_in_exp <-
-          missing_vars[missing_vars %in% rownames(assays(alt_sce)[[slot]])]
+          missing_vars[missing_vars %in% rownames(assays(alt_sce)[[layer]])]
 
         # For each variable found in this experiment, append the assay name to the
         # feature's entry in missing_in_exp (each entry is a vector)
@@ -318,12 +318,12 @@ FetchData.SingleCellExperiment <-
         # Load alternate experiment
         alt_sce <- altExps(object)[[key]]
 
-        if (!slot %in% names(assays(alt_sce))){
+        if (!layer %in% names(assays(alt_sce))){
           stop(
             "Error for var",
             var,
-            ": slot ",
-            slot,
+            ": layer ",
+            layer,
             " does not exist in the indicated experiment (",
             mainExpName(alt_sce),
             ")"
@@ -331,7 +331,7 @@ FetchData.SingleCellExperiment <-
         }
 
         data <-
-          assays(alt_sce)[[slot]][var, cells, drop = FALSE] |>
+          assays(alt_sce)[[layer]][var, cells, drop = FALSE] |>
           # Only one var will be fetched at once in this case, so data can be added
           # as a vector to the list of fetched data
           as.vector()
