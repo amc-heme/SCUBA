@@ -438,7 +438,7 @@ plot_feature <- function(
   if (blend) {
     ncol <- 4
     color_matrix <-
-      BlendMatrix(
+      Seurat:::BlendMatrix(
         two.colors = cols[2:3],
         col.threshold = blend_threshold,
         negative.color = cols[1]
@@ -471,9 +471,15 @@ plot_feature <- function(
       data_plot <-
         cbind(
           data_plot[, c(dim_names, label_by)],
-          BlendExpression(data = data_plot[, features[1:2]])
+          Seurat:::BlendExpression(data = data_plot[, features[1:2]])
           )
-      features <- colnames(x = data_plot)[4:ncol(x = data_plot)]
+      #Account for missing label_by column 
+      if(!is.null(label_by)){
+        features <- colnames(x = data_plot)[4:ncol(x = data_plot)]
+      }
+      else{
+        features <- colnames(x = data_plot)[3:ncol(x = data_plot)]
+      }
     }
     # Make per-feature plots
     for (j in 1:length(x = features)) {
@@ -597,7 +603,7 @@ plot_feature <- function(
   }
   # Add blended color key
   if (blend) {
-    blend_legend <- BlendMap(color.matrix = color_matrix)
+    blend_legend <- Seurat:::BlendMap(color.matrix = color_matrix)
     for (ii in 1:length(x = levels(x = data$split))) {
       suppressMessages(expr = plots <- append(
         x = plots,
