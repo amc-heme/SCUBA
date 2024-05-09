@@ -121,8 +121,10 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
             ### 2.2.1. Pull expression matrix for the current key location ####
             if key == "X":
                 # The X matrix alone supports "layer" (via layers)
-                # TODO: pull from layers when layer != None
-                matrix = obj.X
+                if layer == None:
+                    matrix = obj.X
+                else:
+                    matrix = obj.layers[layer]
             elif key == "obs":
                 # Metadata (obs)
                 matrix = obj.obs
@@ -136,16 +138,27 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
             # This is not considered "pythonic" and may need to be re-thought 
             # https://stackoverflow.com/questions/2225038/determine-the-type-of-an-object
             if (isinstance(matrix, csr_matrix) | isinstance(matrix, csc_matrix)):
-                # Sparse matrix format (X): subset *object for genes, then 
-                # construct a pandas dataframe (sparse matrices don't subset 
-                # easily in python)
-                data = pd.DataFrame.sparse.from_spmatrix(
-                    obj[cells, keyless_vars].X,
-                    # csr_matrices don't have row, column names. 
-                    # These are added here
-                    index = cells,
-                    columns = keyless_vars
-                    )
+                # Sparse matrix format (X and layers) 
+                # subset *object for genes, then construct a pandas dataframe 
+                # (sparse matrices don't subset easily in python)
+                if layer == None:
+                    # Subset object and pull from X if layer is underfined
+                    data = pd.DataFrame.sparse.from_spmatrix(
+                        obj[cells, keyless_vars].X,
+                        # csr_matrices don't have row, column names. 
+                        # These are added here
+                        index = cells,
+                        columns = keyless_vars
+                        )
+                else:
+                    # Otherwise, subset and pull from the specified layer
+                    data = pd.DataFrame.sparse.from_spmatrix(
+                        obj[cells, keyless_vars].layers[layer],
+                        # csr_matrices don't have row, column names. 
+                        # These are added here
+                        index = cells,
+                        columns = keyless_vars
+                        )
                     
                 # Columns returned will be pandas sparse arrays.
                 # Arrays must be densified to be accesssible downstream in R 
