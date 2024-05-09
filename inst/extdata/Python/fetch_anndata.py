@@ -30,7 +30,7 @@ def is_match(regex_search, target):
     else: 
         return False
 
-def fetch_keyed_vars(obj, target_vars, cells, slot):
+def fetch_keyed_vars(obj, target_vars, cells, layer):
     """
     Returns expression data for all variables in target_vars that are
     found in the object at obj. Expression data will be returned only 
@@ -50,8 +50,8 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
     None, data will be returned for all cells in the object. This is 
     passed down from the parent fetch_anndata function.
     
-    slot: Optional, a string specifying the layer to return data from, 
-    provided the variable in question is from the X matrix. The slot
+    layer: Optional, a string specifying the layer to return data from, 
+    provided the variable in question is from the X matrix. The layer
     argument is ignored for variables from all other locations. This is 
     passed down from the parent fetch_anndata function.
     
@@ -120,8 +120,8 @@ def fetch_keyed_vars(obj, target_vars, cells, slot):
             
             ### 2.2.1. Pull expression matrix for the current key location ####
             if key == "X":
-                # The X matrix alone supports "slot" (via layers)
-                # TODO: pull from layers when slot != None
+                # The X matrix alone supports "layer" (via layers)
+                # TODO: pull from layers when layer != None
                 matrix = obj.X
             elif key == "obs":
                 # Metadata (obs)
@@ -249,7 +249,7 @@ def remove_key(data, key, vars_modify=None):
     
     return data
 
-def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
+def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     """
     Fetches the specified variables from an anndata object.
     
@@ -273,9 +273,10 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
     cells: Optional, a list of cells to return data for. If left as 
     None, data will be returned for all cells in the object.
     
-    slot: Optional, a string specifying the layer to return data from, 
-    provided the variable in question is from the X matrix. The slot
-    argument is ignored for variables from all other locations.
+    layer: Optional, a string specifying the layer to return data from, 
+    provided the variable in question is from the X matrix. The layer 
+    argument is ignored for variables from all other locations, including 
+    alternate modalities.
     """
     # If target_vars was passed as a one-element vector from R, it will be
     # a string now. This must be converted to a list to avoid issues during
@@ -285,7 +286,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         fetch_vars = [fetch_vars]
     
     # 1. Set default values
-    # Slot (assay): if null, data will be pulled from object$X
+    # Layer (assay): if null, data will be pulled from object$X
 
     # Cells: if None (NULL), use all cells in the object
     if cells == None:
@@ -332,7 +333,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         obj = obj, 
         target_vars = fetch_vars,
         cells = cells, 
-        slot = slot
+        layer = layer
         )
     
     # 4. Identify location of remaining vars
@@ -509,7 +510,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, slot=None):
         obj = obj, 
         target_vars = new_keyed_vars,
         cells = cells, 
-        slot = slot
+        layer = layer
         )
         
     fetched_data = pd.concat(
