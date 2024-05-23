@@ -16,8 +16,7 @@ get_all_cells(object, ...)
 \method{get_all_cells}{AnnDataR6}(object)
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
+\item{object}{a single-cell object.}
 
 \item{...}{Currently unused.}
 }
