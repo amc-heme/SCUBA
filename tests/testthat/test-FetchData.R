@@ -2,7 +2,7 @@ test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData 
   seurat_data <-
     FetchData(
       AML_Seurat,
-      slot = "data",
+      layer = "data",
       vars =
         c("ab_CD117-AB",
           "ab_CD123-AB",
@@ -23,7 +23,7 @@ test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData 
   sce_data <-
     FetchData(
       AML_SCE(),
-      slot = "logcounts",
+      layer = "logcounts",
       vars =
         c("AB_CD117-AB",
           "AB_CD123-AB",
@@ -105,7 +105,7 @@ test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData 
   expect_error(
     FetchData(
       AML_Seurat,
-      slot = "data",
+      layer = "data",
       vars =
         # Nonexistent feature
         c("ab_CD900")
@@ -134,7 +134,7 @@ test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData 
   expect_error(
     FetchData(
       AML_Seurat,
-      slot = "data",
+      layer = "data",
       vars =
         # Nonexistent feature
         c("ab_CD900")
