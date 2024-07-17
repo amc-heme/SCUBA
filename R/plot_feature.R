@@ -232,7 +232,7 @@ plot_feature <- function(
       FetchData(
         object = object,
         vars = features,
-        slot = slot,
+        layer = slot,
         cells = cells
       )
     )

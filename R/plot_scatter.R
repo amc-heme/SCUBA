@@ -88,7 +88,7 @@ plot_scatter <-
         object,
         vars = c(feature_1, feature_2),
         cells = cells,
-        slot = slot
+        layer = slot
       )
 
     ## 2.3. Return error if either feature is not found

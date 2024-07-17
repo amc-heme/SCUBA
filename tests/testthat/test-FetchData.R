@@ -115,7 +115,7 @@ test_that("Fetchdata.SingleCellExperiment, Fetchdata.SeuratObject and FetchData 
   expect_error(
     FetchData(
       AML_SCE(),
-      slot = "logcounts",
+      layer = "logcounts",
       vars =
         # Nonexistent feature
         c("AB_CD900")

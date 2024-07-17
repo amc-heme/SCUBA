@@ -99,7 +99,7 @@ expr_plot <-
       FetchData(
         object = object,
         vars = features,
-        slot = slot
+        layer = slot
         )
 
     # Set `features` equal to the colnames of the data
