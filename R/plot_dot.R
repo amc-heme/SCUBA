@@ -155,10 +155,10 @@ plot_dot <-
         object = object,
         vars = features,
         cells = cells,
-        # Seurat::DotPlot always pulls from the "data" slot. plot_dot exhibits
+        # Seurat::DotPlot always pulls from the "data" layer. plot_dot exhibits
         # similar behavior by pulling the slot/layer equivalent to "data" using
-        # `default_slot`
-        layer = default_slot(object)
+        # `default_layer`
+        layer = default_layer(object)
         )
 
     # 3. Add group_by metadata to table

@@ -32,8 +32,8 @@ FetchData.SingleCellExperiment <-
     cells = NULL
     ){
     # 1. Set default values
-    # Layer (assay): fill with default if null (via default_slot method)
-    layer <- layer %||% default_slot(object)
+    # Layer (assay): fill with default if null (via default_layer method)
+    layer <- layer %||% default_layer(object)
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% get_all_cells(object)
 

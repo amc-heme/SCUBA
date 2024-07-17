@@ -130,7 +130,7 @@ plot_feature <- function(
   # via the default_reduction S3 method)
   reduction <- reduction %||% default_reduction(object)
   # Set default slot if not defined
-  slot <- slot %||% default_slot(object)
+  slot <- slot %||% default_layer(object)
   # Select all cells if cells is unspecified
   cells <- cells %||% get_all_cells(object)
 

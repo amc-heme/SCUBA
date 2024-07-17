@@ -91,7 +91,7 @@ expr_plot <-
 
     ## 1.2. Define the default slot
     slot <-
-      slot %||% default_slot(object)
+      slot %||% default_layer(object)
 
     # 2. Fetch data
     ## 2.1. Fetch feature expression data

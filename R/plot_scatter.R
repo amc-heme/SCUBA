@@ -64,7 +64,7 @@ plot_scatter <-
     cells <- cells %||% get_all_cells(object)
 
     ## 1.2. Slot: use default slot if undefined
-    slot <- slot %||% default_slot(object)
+    slot <- slot %||% default_layer(object)
 
     ## 1.3. Process shuffle settings
     if (isTRUE(x = shuffle)) {

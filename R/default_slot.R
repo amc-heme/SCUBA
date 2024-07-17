@@ -1,20 +1,22 @@
 #' Get default reduction from object
 #'
-#' Returns the default slot for the object passed.
+#' Returns the default layer for the object passed. The default layer is chosen
+#' based on the conventions used in each object to name the normalized counts
+#' layer.
 #'
-#' @param object a single cell object. Currently, Seurat and
-#' SingleCellExperiment objects are supported.
+#' @param object A single cell object. Currently, Seurat, SingleCellExpleriment, 
+#' and anndata objects are supported.
 #' @param ... Currently unused.
 #'
-#' @rdname default_slot
+#' @rdname default_layer
 #'
 #' @export
-default_slot <-
+default_layer <-
   function(
     object,
     ...
   ){
-    UseMethod("default_slot")
+    UseMethod("default_layer")
   }
 
 #' Function to display an error message when an unsupported object
@@ -22,22 +24,25 @@ default_slot <-
 #'
 #' @noRd
 #' @export
-default_slot.default <-
+default_layer.default <-
   function(
     object
   ){
     warning(
       paste0(
-        "default_slot does not know how to handle object of class ",
+        "default_layer does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
         ". Currently supported classes: Seurat and SingleCellExperiment."
       )
     )
   }
 
-#' @describeIn default_slot Seurat objects (default slot is "data")
+#' @describeIn default_layer Seurat objects
+#' 
+#' For Seurat objects, the default layer is "data".
+#' 
 #' @export
-default_slot.Seurat <-
+default_layer.Seurat <-
   function(
     object
   ){
@@ -45,19 +50,26 @@ default_slot.Seurat <-
     "data"
   }
 
-#' @describeIn default_slot SingleCellExperiment objects (default slot is "logcounts")
+#' @describeIn default_layer SingleCellExperiment objects 
+#' 
+#' For SingleCellExperiment objects, the default layer is "logcounts".
+#' 
 #' @export
-default_slot.SingleCellExperiment <-
+default_layer.SingleCellExperiment <-
   function(
     object
   ){
-    # SingleCellExperiment: default slot is "logcounts"
+    # SingleCellExperiment: default layer is "logcounts"
     "logcounts"
   }
 
-#' @describeIn default_slot Anndata objects (default slot is NULL, to pull from X)
+#' @describeIn default_layer Anndata objects 
+#' 
+#' For Anndata objects, the default layer is \code{NULL}, which will direct 
+#' FetchData to pull feature epxression data from the X matrix.
+#' 
 #' @export
-default_slot.AnnDataR6 <-
+default_layer.AnnDataR6 <-
   function(
     object
   ){
