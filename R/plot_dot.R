@@ -156,8 +156,8 @@ plot_dot <-
         vars = features,
         cells = cells,
         # Seurat::DotPlot always pulls from the "data" layer. plot_dot exhibits
-        # similar behavior by pulling the slot/layer equivalent to "data" using
-        # `default_layer`
+        # similar behavior by pulling the layer equivalent to "data" using
+        # `default_layer`.
         layer = default_layer(object)
         )
 
