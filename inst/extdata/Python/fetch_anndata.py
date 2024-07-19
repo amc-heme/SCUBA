@@ -67,12 +67,6 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
     # Currently supported locations: X, obs, and matrices within obsm
     key_names = ["X", "obs"] + list(obj.obsm_keys())
     
-    print("\nBegin fetch_keyed_vars")
-    print("keys")
-    print(key_names)
-    print("target vars")
-    print(target_vars)
-    
     # Construct a list of keys with the indices of vars that match each key
     keyed_var_locations = []
   
@@ -86,8 +80,6 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         # Capture group will return the text in the var after the key and "_" 
         # (the name of the var in the matrix)
         key_regex = re.compile("^" + key + "_(.*)")
-        print("\nIteration for key {}".format(key))
-        print("Regex: {}".format(key_regex))
         
         # matches: a dictionary mapping the original keyed var to the "keyless" 
         # var produced from removing the key plus an underscore. The keyless var 
@@ -97,17 +89,10 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         # regex search is "truthy". When a match is found, a a regex match 
         # object will be returned, which will evaluate as true in the if 
         # statement below.
-        print("Searching for the following vars")
-        print(target_vars)
         matches = {var:key_regex.search(var).groups()[0] 
             for var in target_vars 
             if key_regex.search(var)
             }
-        
-        print("matches")
-        print(matches)
-        print("matches.values")
-        print(matches.values())
         
         # For the X matrix, the user may use a key that conflicts with the names 
         # of common obsm matrices, such as "X_umap". To prevent "X_umap_1" from 
@@ -144,9 +129,6 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         # Extract values from curated matches dictionary (keyless vars to search 
         # X/obs/obsm matrix for)
         keyless_vars = list(matches.values())
-        
-        print("keyless vars")
-        print(keyless_vars)
         
         ## 2.2. Fetch Data if vars exist in the current location ####
         if (len(keyless_vars) > 0):
