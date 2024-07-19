@@ -67,15 +67,27 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
     # Currently supported locations: X, obs, and matrices within obsm
     key_names = ["X", "obs"] + list(obj.obsm_keys())
     
+    print("\nBegin fetch_keyed_vars")
+    print("keys")
+    print(key_names)
+    print("target vars")
+    print(target_vars)
+    
     # Construct a list of keys with the indices of vars that match each key
     keyed_var_locations = []
   
     for key in key_names:
+        # Conditional that is set to True in 2.2. if there are issues accessing
+        # any variables in a given matrix
+        key_error = False
+        
         ## 2.1. Search for keyed vars for the current location in target_vars ####
         # Create regex object from the current key for searching
         # Capture group will return the text in the var after the key and "_" 
         # (the name of the var in the matrix)
         key_regex = re.compile("^" + key + "_(.*)")
+        print("\nIteration for key {}".format(key))
+        print("Regex: {}".format(key_regex))
         
         # matches: a dictionary mapping the original keyed var to the "keyless" 
         # var produced from removing the key plus an underscore. The keyless var 
@@ -85,15 +97,33 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         # regex search is "truthy". When a match is found, a a regex match 
         # object will be returned, which will evaluate as true in the if 
         # statement below.
+        print("Searching for the following vars")
+        print(target_vars)
         matches = {var:key_regex.search(var).groups()[0] 
             for var in target_vars 
             if key_regex.search(var)
             }
         
+        print("matches")
+        print(matches)
+        print("matches.values")
+        print(matches.values())
+        
         # For the X matrix, the user may use a key that conflicts with the names 
         # of common obsm matrices, such as "X_umap". To prevent "X_umap_1" from 
         # causing the function to search the gene matrix for "umap_1", keyless 
         # vars that contain an object key before an underscore will be removed.
+        
+        # This was found to also happen in obsm_key matrices. For example, if
+        # an object has two reductions named mofa and mofa_umap, and vars 
+        # contains "mofa_umap_1", this function will attempt to search mofa for
+        # "umap_1" (unintended), and it will then search mofa_umap for 
+        # "mofa_umap_1" (intended). Instead of expanding the solution below to
+        # other matrices, which could cause unintended issues with variable not
+        # being searched for at all, I decided to use error handling when 
+        # searching for a feature, so no errors ocurr in the unintended search
+        # example above, and the function will keep iterating through obsm keys
+        # to execute the intended example.
         
         # NOTE: if there happens to be a gene that contains an obsm matrix name 
         # plus an underscore, this gene will be unsearchable due to this 
@@ -114,6 +144,9 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         # Extract values from curated matches dictionary (keyless vars to search 
         # X/obs/obsm matrix for)
         keyless_vars = list(matches.values())
+        
+        print("keyless vars")
+        print(keyless_vars)
         
         ## 2.2. Fetch Data if vars exist in the current location ####
         if (len(keyless_vars) > 0):
@@ -188,8 +221,21 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     
                 # Slice based on keyless vars (should be string format of the 
                 # column desired, "1" for the first column)
-                data = matrix.loc[cells, keyless_vars]
-                
+                try:
+                    data = matrix.loc[cells, keyless_vars]
+                except KeyError:
+                    # If any values are not present, a KeyError is returned.
+                    # If this happens, don't pull anything and keep going
+                    # (the assumption is that for similarly named matrices
+                    # like mofa and mofa_umap, mofa will return an error 
+                    # when searched, but mofa_umap will not). This may result
+                    # in values that are there not being found, but fixes 
+                    # SCUBA #90.
+                    # Set key_error to TRUE to prevent attempts to access the
+                    # non-existent data variable that would have been created
+                    key_error = True
+                    pass
+                  
             else:
                 """
                 Strings wrapped according to PEP-8 style guidelines
@@ -203,17 +249,23 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     ).format(type(matrix), key)
                     )
             
-            # Add location key back in to variable names (if ncol is greater than 
-            # zero)
-            if data.shape[1] > 0:
-                # Lambda function prepends the key and "_" to each element
-                data = data.rename(lambda x: key + "_" + x, axis = "columns")
-                
-            # Concatenate data frame with data already fetched
-            data_return = pd.concat(
-                [data_return, data],
-                axis = 1
-                )
+            # Add location key back in to variable names and concatenate data
+            # to data already fetched
+            # (if there are no errors fetching keyed_vars and ncol of the data
+            # frame is greater than zero)
+            if key_error == False:
+                if data.shape[1] > 0:
+                    # Lambda function prepends the key and "_" to each element
+                    data = data.rename(
+                        lambda x: key + "_" + x, 
+                        axis = "columns"
+                        )
+                    
+                # Concatenate data frame with data already fetched
+                data_return = pd.concat(
+                    [data_return, data],
+                    axis = 1
+                    )
             
     # When finished with iteration, return the dataframe
     return data_return
