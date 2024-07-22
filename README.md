@@ -39,7 +39,7 @@ For Seurat objects
 ```
 FetchData(
       AML_Seurat,
-      slot = "data",
+      layer = "data",
       vars =
         c("ab_CD117-AB",
           "ab_CD123-AB",
@@ -81,7 +81,7 @@ For SingleCellExperiment
 ```
 FetchData(
       AML_SCE(),
-      slot = "logcounts",
+      layer = "logcounts",
       vars =
         c("AB_CD117-AB",
           "AB_CD123-AB",

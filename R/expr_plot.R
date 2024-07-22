@@ -91,7 +91,7 @@ expr_plot <-
 
     ## 1.2. Define the default slot
     slot <-
-      slot %||% default_slot(object)
+      slot %||% default_layer(object)
 
     # 2. Fetch data
     ## 2.1. Fetch feature expression data
@@ -99,7 +99,7 @@ expr_plot <-
       FetchData(
         object = object,
         vars = features,
-        slot = slot
+        layer = slot
         )
 
     # Set `features` equal to the colnames of the data

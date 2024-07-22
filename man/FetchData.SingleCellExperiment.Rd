@@ -4,7 +4,7 @@
 \alias{FetchData.SingleCellExperiment}
 \title{FetchData Equivalent for SingleCellExperiment Objects}
 \usage{
-\method{FetchData}{SingleCellExperiment}(object, vars, slot = NULL, cells = NULL)
+\method{FetchData}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL)
 }
 \arguments{
 \item{object}{A SingleCellExperiment object.}
@@ -14,9 +14,9 @@ to pull from the object. To include features from an experiment other than
 the main experiment, use the name of the experiment as a prefix (i.e. AB_CD4
 for a feature in the experiment "AB" named "CD4".)}
 
-\item{slot}{The assay (equivalent of slot in Seruat objects) to pull data
-from. To view the list of available assays in your object, use
-\code{assayNames({your object})}.}
+\item{layer}{The assay (equivalent of layer in Seruat objects (slot in v4
+and earlier)) to pull data from. To view the list of available assays in
+your object, use \code{assayNames({your object})}.}
 
 \item{cells}{A character vector of cells to include, as they are named in
 the object (i.e. according to colNames(object)). If \code{NULL}, data will
