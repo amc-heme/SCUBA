@@ -18,8 +18,16 @@ You must have the following packages installed and available in your python envi
 
 ### Installation
 
+Run the command below to install SCUBA.
+
+If you plan to use SCUBA with anndata objects, use `dependencies = TRUE`. If you only plan to use SCUBA with Seurat and SingleCellExperiment objects, use `dependencies = FALSE`.
+
 ```
-remotes::install_github("amc-heme/SCUBA")
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+# Set dependencies to FALSE if you do not plan to use anndata objects
+BiocManager::install("username/pkgRepo", dependencies = TRUE)
 ```
 
 
