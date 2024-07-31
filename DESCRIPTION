@@ -27,10 +27,10 @@ Imports:
     scattermore,
     SeuratObject,
     SummarizedExperiment,
-    anndata,
     lifecycle
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
-    reticulate
+    reticulate,
+    anndata
 Config/testthat/edition: 3
