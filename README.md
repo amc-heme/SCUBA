@@ -18,7 +18,7 @@ You must have the following packages installed and available in your python envi
 
 ### Installation
 
-Run the command below to install SCUBA.
+Run the command below to install SCUBA. BiocManager is used to automatically install Bioconductor dependencies (SCUBA is not a Bioconductor package).
 
 If you plan to use SCUBA with anndata objects, use `dependencies = TRUE`. If you only plan to use SCUBA with Seurat and SingleCellExperiment objects, use `dependencies = FALSE`.
 
