@@ -27,7 +27,7 @@ if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 # Set dependencies to FALSE if you do not plan to use anndata objects
-BiocManager::install("username/pkgRepo", dependencies = TRUE)
+BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 ```
 
 
