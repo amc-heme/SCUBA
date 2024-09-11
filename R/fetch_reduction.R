@@ -58,6 +58,23 @@ fetch_reduction.Seurat <-
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
     }
+    
+    # Throw an error if the reduction entered does not exist
+    if (!reduction %in% names(object@reductions)){
+      # Collapse available reductions into a single-length character 
+      # vector for display
+      reductions_str <- paste(names(object@reductions), collapse = ", ")
+      
+      stop(
+        paste0(
+          '\nThe reduction "', reduction, 
+          '" was not found in the object passsed. \n',
+          'Reductions present in object: ', 
+          reductions_str, 
+          '.'
+          )
+        )
+      }
 
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% get_all_cells(object)
@@ -79,6 +96,22 @@ fetch_reduction.SingleCellExperiment <-
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
+    }
+    
+    # Throw an error if the reduction entered does not exist
+    if (!reduction %in% reducedDimNames(object)){
+      # Collapse available reductions into a single-length character 
+      # vector for display
+      reductions_str <- paste(reducedDimNames(object), collapse = ", ")
+      
+      stop(
+        paste0(
+          '\nThe reduction "', reduction, 
+          '" was not found in the object passsed. \n',
+          'Reductions present in object: ', 
+          reductions_str, '.'
+        )
+      )
     }
 
     # Cells: if NULL, use all cells in the object
@@ -105,6 +138,26 @@ fetch_reduction.AnnDataR6 <-
       stop("'dims' must be a two-length vector")
     }
 
+    # Throw an error if the reduction entered does not exist
+    if (!reduction %in% object$obsm_keys()){
+      # Collapse available reductions into a single-length character 
+      # vector for display
+      reductions_str <- paste(object$obsm_keys(), collapse = ", ")
+      
+      stop(
+        paste0(
+          '\nThe reduction "', reduction, 
+          '" was not found in the obsm slot of object passsed. \n',
+          'Available obsm matrices: ', 
+          reductions_str, '.',
+          '\n\n(This list includes all reductions, but is not limited to \n',
+          'them since anndata objects do not have a location specific to \n',
+          'reductions only. obsm matrices that are not reductions can be \n',
+          'entered, but unexpected results may occur.)'
+        )
+      )
+    }
+    
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% get_all_cells(object)
 
