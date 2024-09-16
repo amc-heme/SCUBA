@@ -231,7 +231,8 @@ fetch_metadata.AnnDataR6 <-
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
-    # AnnData use obs
+    # Pull metadata
+    # For anndata objects, use obs
     data <-
       object$obs[cells, vars]
 
