@@ -81,6 +81,18 @@ fetch_metadata.Seurat <-
       return(object@meta.data)
     }
 
+    # Return an error if the variable name is not in the object metadata
+    if (!var %in% colnames(object@meta.data)){
+      stop(
+        paste0(
+          "Variable ",
+          var,
+          " not found in object metadata. To view valid metadata entrires ",
+          "for your object, run SCUBA::meta_varnames()."
+        )
+      )
+    }
+    
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
@@ -133,6 +145,18 @@ fetch_metadata.SingleCellExperiment <-
     # Return full table if enabled
     if (full_table == TRUE){
       return(colData(object))
+    }
+    
+    # Return an error if the variable name is not in the object metadata
+    if (!var %in% colnames(colData(object))){
+      stop(
+        paste0(
+          "Variable ",
+          var,
+          " not found in object metadata. To view valid metadata entrires ",
+          "for your object, run SCUBA::meta_varnames()."
+        )
+      )
     }
 
     # Cells: if undefined, pull data for all cells
@@ -192,6 +216,18 @@ fetch_metadata.AnnDataR6 <-
       return(object$obs)
     }
 
+    # Return an error if the variable name is not in the object metadata
+    if (!var %in% object$obs_keys()){
+      stop(
+        paste0(
+          "Variable ",
+          var,
+          " not found in object metadata. To view valid metadata entrires ",
+          "for your object, run SCUBA::meta_varnames()."
+        )
+      )
+    }
+    
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
