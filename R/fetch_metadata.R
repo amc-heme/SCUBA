@@ -81,6 +81,35 @@ fetch_metadata.Seurat <-
       return(object@meta.data)
     }
 
+    # Return an error if the variable name is not in the object metadata
+    vars_present <- meta_varnames(object)
+    # not_found: TRUE if a var exists in the object, FALSE if not
+    not_found <- !vars %in% vars_present
+    
+    # Return an error if any or all variables entered are not found
+    if (any(not_found)){
+      if (all(not_found)){
+        stop(
+          paste0(
+            "\nNone of the variables entered in `vars` were not found\n",
+            "in the object. To view available entries for your object,\n",
+            "run SCUBA::meta_varnames()."
+            )
+          )
+      } else {
+        # If some but not all variables entered are not found, report the 
+        # variables that are not found
+        stop(
+          paste0(
+            "\nThe following variables entered in `vars` were not found in \n",
+            "the object: ",
+            paste(vars[not_found]), ". \n\n",
+            "To view available entries for your object, run SCUBA::meta_varnames()."
+          )
+        )
+      }
+    }
+    
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
@@ -133,6 +162,35 @@ fetch_metadata.SingleCellExperiment <-
     # Return full table if enabled
     if (full_table == TRUE){
       return(colData(object))
+    }
+    
+    # Return an error if the variable name is not in the object metadata
+    vars_present <- meta_varnames(object)
+    # not_found: TRUE if a var exists in the object, FALSE if not
+    not_found <- !vars %in% vars_present
+    
+    # Return an error if any or all variables entered are not found
+    if (any(not_found)){
+      if (all(not_found)){
+        stop(
+          paste0(
+            "\nNone of the variables entered in `vars` were not found\n",
+            "in the object. To view available entries for your object,\n",
+            "run SCUBA::meta_varnames()."
+          )
+        )
+      } else {
+        # If some but not all variables entered are not found, report the 
+        # variables that are not found
+        stop(
+          paste0(
+            "\nThe following variables entered in `vars` were not found in \n",
+            "the object: ",
+            paste(vars[not_found]), ". \n\n",
+            "To view available entries for your object, run SCUBA::meta_varnames()."
+          )
+        )
+      }
     }
 
     # Cells: if undefined, pull data for all cells
@@ -192,10 +250,40 @@ fetch_metadata.AnnDataR6 <-
       return(object$obs)
     }
 
+    # Return an error if the variable name is not in the object metadata
+    vars_present <- meta_varnames(object)
+    # not_found: TRUE if a var exists in the object, FALSE if not
+    not_found <- !vars %in% vars_present
+    
+    # Return an error if any or all variables entered were not found
+    if (any(not_found)){
+      if (all(not_found)){
+        stop(
+          paste0(
+            "\nNone of the variables entered in `vars` were not found\n",
+            "in the object. To view available entries for your object,\n",
+            "run SCUBA::meta_varnames()."
+          )
+        )
+      } else {
+        # If some but not all variables entered were not found, report the 
+        # variables that are not found
+        stop(
+          paste0(
+            "\nThe following variables entered in `vars` were not found in \n",
+            "the object: ",
+            paste(vars[not_found]), ". \n\n",
+            "To view available entries for your object, run SCUBA::meta_varnames()."
+          )
+        )
+      }
+    }
+    
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
-    # AnnData use obs
+    # Pull metadata
+    # For anndata objects, use obs
     data <-
       object$obs[cells, vars]
 
