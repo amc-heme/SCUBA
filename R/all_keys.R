@@ -88,3 +88,21 @@ all_keys.AnnDataR6 <-
 
     keys
   }
+
+#' @describeIn all_keys MuData objects
+#' @export
+all_keys.md._core.mudata.MuData <-
+  function(
+    object
+  ) {
+    
+     keys <- 
+       c("X",
+         object$obsm_keys()
+         )
+     
+     names(keys) <- keys
+     
+     keys
+  }
+#SCUBA::all_keys(SCUBA::AML_h5mu())
