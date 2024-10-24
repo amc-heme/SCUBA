@@ -63,3 +63,7 @@ AML_h5ad <- function(){
     system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA")
   )
 }
+
+AML_h5mu <- function(){
+  reticulate::py_eval
+}
