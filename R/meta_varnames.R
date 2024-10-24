@@ -2,8 +2,8 @@
 #'
 #' Returns the names of all metadata variables in an object.
 #'
-#' @param object a single-cell object. Currently, Seurat, Anndata, and
-#' SingleCellExperiment objects are supported.
+#' @param object a single-cell object. Currently, Seurat, Anndata,
+#' SingleCellExperiment, and Mudata objects are supported.
 #'
 #' @rdname meta_varnames
 #'
