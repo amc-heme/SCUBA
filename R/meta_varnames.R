@@ -2,8 +2,8 @@
 #'
 #' Returns the names of all metadata variables in an object.
 #'
-#' @param object a single-cell object. Currently, Seurat, Anndata, and
-#' SingleCellExperiment objects are supported.
+#' @param object a single-cell object. Currently, Seurat, Anndata,
+#' SingleCellExperiment, and Mudata objects are supported.
 #'
 #' @rdname meta_varnames
 #'
@@ -28,7 +28,7 @@ meta_varnames.default <-
       paste0(
         "meta_varnames does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment and Anndata (AnnDataR6)."
       )
     )
   }
@@ -54,6 +54,15 @@ meta_varnames.SingleCellExperiment <-
 #' @describeIn meta_varnames Anndata objects
 #' @export
 meta_varnames.AnnDataR6 <-
+  function(
+    object
+  ){
+    object$obs_keys()
+  }
+
+#' @describeIn meta_varnames Mudata objects
+#' @export
+meta_varnames.md._core.mudata.MuData <-
   function(
     object
   ){
