@@ -32,7 +32,7 @@ all_keys.default <-
       paste0(
         "all_keys does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment, and Anndata (AnnDataR6)."
         )
       )
     }
@@ -88,3 +88,21 @@ all_keys.AnnDataR6 <-
 
     keys
   }
+
+#' @describeIn all_keys MuData objects
+#' @export
+all_keys.md._core.mudata.MuData <-
+  function(
+    object
+  ) {
+    
+     keys <- 
+       c("X",
+         object$obsm_keys()
+         )
+     
+     names(keys) <- keys
+     
+     keys
+  }
+#all_keys(SCUBA:::AML_h5mu())
