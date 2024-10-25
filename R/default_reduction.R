@@ -30,7 +30,7 @@ default_reduction.default <-
       paste0(
         "default_reduction does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: AnnDataR6, Seurat and SingleCellExperiment."
+        ". Currently supported classes: AnnDataR6, Seurat, SingleCellExperiment and Mudata."
       )
     )
   }
@@ -93,4 +93,54 @@ default_reduction.AnnDataR6 <-
     } else {
       stop('Unable to find a reduction matching "X_umap", "X_tsne", or "X_pca". Please specify the reduction to use via the `reduction` parameter.')
     }
+  }
+
+
+#' @describeIn default_reduction Mudata objects
+#' @export
+default_reduction.md._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # All reductions should be stored in obsm. Obsm matrix names are fetched
+    # using obsm_keys().
+    reductions <- object$obsm_keys()
+    
+    # AnnData objects
+    # Conditional structure reflects priorities of reductions
+    # 1. UMAP
+    # 2. TSNE
+    # 3. PCA
+    if ("X_umap" %in% reductions){
+      "X_umap"
+    } else if ("X_tsne" %in% reductions){
+      "X_tsne"
+    } else if ("X_pca" %in% reductions){
+      "X_pca"
+    } else {
+        # Construct list of modalities for which the reduction is found, if any
+        mod_reduction_matches <- list()
+        
+        # Cycle through each modality within the Mudata object to locate a default embedding, if any
+        for (modality in object$mod_names){
+          # Search for embeddings by order of preference and return one if found
+          for (embedding in c("X_umap", "X_tsne", "X_pca")){
+            # Return the embedding name if it is found in the modality .obsm
+            if (embedding %in% object$mod[modality]$obsm_keys()){
+              mod_reduction_matches <- c(mod_reduction_matches, modality)
+              return(embedding)
+            }
+          }
+        }
+      
+        # Inspect list of matches
+        # No matches: error, reduction not found
+        if (length(mod_reduction_matches) == 0){
+          # Ambiguous matches in more than one 
+          stop('Unable to find a reduction matching "X_umap", "X_tsne", or "X_pca" in Mudata or individual modalities. Please specify the reduction to use via the `reduction` parameter.')
+        }
+        
+      
+        
+      }
   }
