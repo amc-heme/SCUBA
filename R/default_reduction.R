@@ -139,8 +139,5 @@ default_reduction.md._core.mudata.MuData <-
           # Ambiguous matches in more than one 
           stop('Unable to find a reduction matching "X_umap", "X_tsne", or "X_pca" in Mudata or individual modalities. Please specify the reduction to use via the `reduction` parameter.')
         }
-        
-      
-        
       }
   }
