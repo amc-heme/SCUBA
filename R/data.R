@@ -68,14 +68,6 @@ AML_h5ad <- function(){
 AML_h5mu <- function(){
   path <- system.file("extdata", "AML_mudata.h5mu", package = "SCUBA")
   
-  md <- reticulate::import("mudata", as = "md", convert = FALSE)
-  md$read_h5mu(path)
-}
-
-#' @export
-AML_h5mu_convert <- function(){
-  path <- system.file("extdata", "AML_mudata.h5mu", package = "SCUBA")
-  
   md <- reticulate::import("mudata", as = "md", convert = TRUE)
   md$read_h5mu(path)
-  }
+}

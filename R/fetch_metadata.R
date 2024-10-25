@@ -319,14 +319,13 @@ fetch_metadata.md._core.mudata.MuData <-
   ){
     # Subset for first modality (anndata object, assumed to be the default)]
     # Python indexing is used for mod_names to select the first element
-    adata <- reticulate::py_eval("r.object[r.object.mod_names[0]]")
-    #adata <- object[object$mod_names[[0]]]
+    adata <- object[object$mod_names[[1]]]
     
     print("Class of subset")
     print(class(adata))
     
     # Result is an anndata object, which can be passed to the existing method
-    fetch_metadata.AnnDataR6(
+    fetch_metadata(
       adata,
       vars,
       cells,
