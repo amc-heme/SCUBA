@@ -321,15 +321,21 @@ fetch_metadata.md._core.mudata.MuData <-
     # Python indexing is used for mod_names to select the first element
     adata <- object[object$mod_names[[1]]]
     
-    print("Class of subset")
-    print(class(adata))
+    lapply(
+      object$mod_names,
+      function(mod){
+        # Pull modality (as anndata object)
+        adata <- object[[mod]]
+        
+        # Run fetchdata on the anndata object
+        fetch_metadata(
+          adata,
+          vars,
+          cells,
+          full_table,
+          return_class 
+        )
+      }
+    )
     
-    # Result is an anndata object, which can be passed to the existing method
-    fetch_metadata(
-      adata,
-      vars,
-      cells,
-      full_table,
-      return_class 
-      )
   }

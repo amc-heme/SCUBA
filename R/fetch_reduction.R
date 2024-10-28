@@ -168,3 +168,37 @@ fetch_reduction.AnnDataR6 <-
         )
   }
 
+#' @describeIn fetch_reduction AnnDataR6 objects
+#' @export
+fetch_reduction.md._core.mudata.MuData <-
+  function(
+    object,
+    reduction,
+    cells = NULL,
+    dims = c(1, 2)
+    ){
+    library(reticulate)
+    
+    # Source fetch_reduction python script for mudata
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_reduction_mudata.py",
+        package = "SCUBA"
+        )
+    
+    reticulate::source_python(python_path)
+    
+    # Cells: if NULL, use all cells in the object
+    cells <- cells %||% get_all_cells(object)
+    
+    dims <- as.character(dims)
+    
+    py$fetch_reduction_mudata(
+      obj = object, 
+      reduction = reduction, 
+      cells = cells, 
+      dims = dims
+      )
+    }
