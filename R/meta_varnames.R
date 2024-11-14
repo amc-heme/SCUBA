@@ -64,7 +64,31 @@ meta_varnames.AnnDataR6 <-
 #' @export
 meta_varnames.md._core.mudata.MuData <-
   function(
-    object
+    object,
+    modality
   ){
-    object$obs_keys()
+    library(reticulate)
+    
+    # Source fetch_reduction python script for mudata
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_meta_varnames_mudata.py",
+        package = "SCUBA"
+      )
+    
+    reticulate::source_python(python_path)
+  
+    py$fetch_meta_varnames_mudata(
+      obj = object, 
+      modality = modality
+    )
   }
+  
+#previous implementation for mudata (delete when additional logic is complete):
+  # function(
+  #   object
+  # ){
+  #   object$obs_keys()
+  # }
