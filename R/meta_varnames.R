@@ -5,8 +5,6 @@
 #'
 #' @param object a single-cell object. Currently, Seurat, Anndata,
 #' SingleCellExperiment, and Mudata objects are supported.
-#' @param modality a mudata modality (e.g. "RNA", "ADT") to specify a specific
-#' set of metadata variables
 #'
 #' @rdname meta_varnames
 #'
@@ -14,7 +12,7 @@
 meta_varnames <-
   function(
     object,
-    modality
+    ...
   ){
     UseMethod("meta_varnames")
   }
