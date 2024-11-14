@@ -28,7 +28,7 @@ def fetch_meta_varnames_targeted(obj, use_mudata_obsm, mod):
         return keys
 
 
-def fetch_meta_varnames_mudata(obj, modality):
+def fetch_meta_varnames_mudata(obj, modal):
     """
     fetch_meta_varnames_mudata
     
@@ -40,14 +40,14 @@ def fetch_meta_varnames_mudata(obj, modality):
 
     # Search for modality in the mudata object first
     # If not found, set to use the main object obsm slot
-    if modality in obj.mod_names:
+    if modal in obj.mod_names:
         use_mudata_obsm = False
-    elif modality == None:
+    elif modal == None:
         # Set use_mudata_obsm to True to pull from the main object obsm slot
         use_mudata_obsm = True
     else:
         # Set use_mudata_obsm to True if modality is not found in the object
-        print(modality, " modality not found in mudata object. Pulling metadata variable names from main mudata object obsm slot")
+        print(modal, " modality not found in mudata object. Pulling metadata variable names from main mudata object obsm slot")
         use_mudata_obsm = True
         
     # Fetch reduction from the location determined above
@@ -63,7 +63,7 @@ def fetch_meta_varnames_mudata(obj, modality):
         keys = fetch_meta_varnames_targeted(
             obj, 
             use_mudata_obsm = False, 
-            mod = modality
+            mod = modal
             )
     
         return keys

@@ -1,16 +1,20 @@
 #' Object metadata summary
 #'
-#' Returns the names of all metadata variables in an object.
+#' Returns the names of all metadata variables in an object, or a single
+#' modality of a mudata object.
 #'
 #' @param object a single-cell object. Currently, Seurat, Anndata,
 #' SingleCellExperiment, and Mudata objects are supported.
+#' @param modality a mudata modality (e.g. "RNA", "ADT") to specify a specific
+#' set of metadata variables
 #'
 #' @rdname meta_varnames
 #'
 #' @export
 meta_varnames <-
   function(
-    object
+    object,
+    modality
   ){
     UseMethod("meta_varnames")
   }
@@ -82,7 +86,7 @@ meta_varnames.md._core.mudata.MuData <-
   
     py$fetch_meta_varnames_mudata(
       obj = object, 
-      modality = modality
+      modal = modality
     )
   }
   

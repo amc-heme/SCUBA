@@ -8,7 +8,7 @@
 \alias{meta_varnames.md._core.mudata.MuData}
 \title{Object metadata summary}
 \usage{
-meta_varnames(object)
+meta_varnames(object, modality)
 
 \method{meta_varnames}{Seurat}(object)
 
@@ -21,9 +21,13 @@ meta_varnames(object)
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat, Anndata,
 SingleCellExperiment, and Mudata objects are supported.}
+
+\item{modality}{a mudata modality (e.g. "RNA", "ADT") to specify a specific
+set of metadata variables}
 }
 \description{
-Returns the names of all metadata variables in an object.
+Returns the names of all metadata variables in an object, or a single
+modality of a mudata object.
 }
 \section{Methods (by class)}{
 \itemize{
