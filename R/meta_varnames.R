@@ -65,7 +65,7 @@ meta_varnames.AnnDataR6 <-
 meta_varnames.md._core.mudata.MuData <-
   function(
     object,
-    modality
+    modality = NULL
   ){
     library(reticulate)
     

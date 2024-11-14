@@ -16,7 +16,7 @@ meta_varnames(object)
 
 \method{meta_varnames}{AnnDataR6}(object)
 
-\method{meta_varnames}{md._core.mudata.MuData}(object)
+\method{meta_varnames}{md._core.mudata.MuData}(object, modality = NULL)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat, Anndata,
