@@ -75,3 +75,16 @@ default_layer.AnnDataR6 <-
   ){
     NULL
   }
+
+#' @describeIn default_layer MuData objects
+#' 
+#'  For MuData objects, the default layer is \code{NULL}, which will direct 
+#' FetchData to pull feature epxression data from the X matrix.
+#' 
+#' @export
+default_layer.MuData <-
+  function(
+    object
+  ){
+    NULL
+  }
