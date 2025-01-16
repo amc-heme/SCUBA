@@ -5,6 +5,7 @@
 \alias{get_all_cells.Seurat}
 \alias{get_all_cells.SingleCellExperiment}
 \alias{get_all_cells.AnnDataR6}
+\alias{get_all_cells.md._core.mudata.MuData}
 \title{Get all cells from object}
 \usage{
 get_all_cells(object, ...)
@@ -14,6 +15,8 @@ get_all_cells(object, ...)
 \method{get_all_cells}{SingleCellExperiment}(object)
 
 \method{get_all_cells}{AnnDataR6}(object)
+
+\method{get_all_cells}{md._core.mudata.MuData}(object)
 }
 \arguments{
 \item{object}{a single-cell object.}
@@ -30,5 +33,7 @@ Returns a character vector with all cell names in the object.
 \item \code{get_all_cells(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{get_all_cells(AnnDataR6)}: SingleCellExperiment objects
+
+\item \code{get_all_cells(md._core.mudata.MuData)}: MuData objects
 
 }}
