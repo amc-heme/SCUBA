@@ -8,6 +8,13 @@
 \description{
 SCUBA provides a common accession framework for multiple single cell object formats (Seurat, SingleCellExperiment, Anndata), facilitating analysis.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://amc-heme.github.io/SCUBA/}
+}
+
+}
 \author{
 \strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
 
