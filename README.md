@@ -197,7 +197,7 @@ plot_feature(
     feature = "UNG"
   )
 ```
-![plot_feature](inst/images/examples/plot_feature.jpeg)
+![plot_feature](vignettes/example_plot_feature.jpeg)
 
 
 ```
@@ -207,7 +207,7 @@ plot_dot(
       features = c("X_UNG", "X_GAPDH", "X_CCR5")
     )
 ```
-![plot_dot](inst/images/examples/plot_dot.jpeg)
+![plot_dot](vignettes/example_plot_dot.jpeg)
 
 
 ```
@@ -217,7 +217,7 @@ plot_reduction(
       split_by="Batch"
     )
 ```
-![plot_reduction](inst/images/examples/plot_reduction.jpeg)
+![plot_reduction](vignettes/example_plot_reduction.jpeg)
 
 ```
 plot_ridge(
@@ -226,7 +226,7 @@ plot_ridge(
       features = c("UNG", "GAPDH")
     )
 ```
-![plot_ridge](inst/images/examples/plot_ridge.jpeg)
+![plot_ridge](vignettes/example_plot_ridge.jpeg)
 
 ```
 plot_scatter(
@@ -236,7 +236,7 @@ plot_scatter(
       feature_2 = "UNG"
     )
 ```
-![plot_scatter](inst/images/examples/plot_scatter.jpeg)
+![plot_scatter](vignettes/example_plot_scatter.jpeg)
 
 ```
 plot_violin(
@@ -245,7 +245,7 @@ plot_violin(
       features = c("UNG", "GAPDH")
     )
 ```
-![plot_violin](inst/images/examples/plot_violin.jpeg)
+![plot_violin](vignettes/example_plot_violin.jpeg)
 
 
 ### Citation
