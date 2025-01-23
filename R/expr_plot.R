@@ -37,7 +37,10 @@
 #' @importFrom scales hue_pal
 #' @importFrom ggplot2 xlab ylab
 #' @importFrom patchwork wrap_plots
-#'
+#' 
+#' @keywords internal
+#' 
+#' @export
 expr_plot <-
   function(
     object,
