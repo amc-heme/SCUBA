@@ -60,3 +60,4 @@ one bar shown for each sample. The bar will consist of a series of stacked
 bars, the heights of which being proportional to the percentage of cells in
 the sample belonging to each cluster.
 }
+\keyword{internal}

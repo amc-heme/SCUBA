@@ -33,6 +33,8 @@
 #'
 #' @return A ggplot object
 #'
+#' @keywords internal
+#'
 #' @importFrom ggplot2 geom_smooth aes_string
 #' @importFrom patchwork wrap_plots
 #'

@@ -24,6 +24,8 @@
 #' @param sort_groups the order with which to sort proportion comparisons on the proportion plot. This may be set to "ascending" or "descending". If ascending, groups will be sorted in increasing alphabetical order. If descending, they will be sorted in decreasing alphabetical order.
 #' @param custom_factor_levels A character vector giving the order of groups if `sort_groups` is set to "custom".
 #'
+#' @keywords internal
+#'
 #' @return  a ggplot2 object with a stacked bar plot created according to user specifications.
 #'
 shiny_stacked_bar <-

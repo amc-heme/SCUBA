@@ -43,3 +43,4 @@ shiny_pie summarizes the object by showing the number of patients/samples
 represented by each level of a categorical metadata column (patient level, as
 opposed to number of cells represented by each class).
 }
+\keyword{internal}

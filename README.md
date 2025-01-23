@@ -1,3 +1,9 @@
+<style>
+  h3 {
+    color: #008800;
+  }
+</style>
+
 # SCUBA
 
 ###  *S*ingle *C*ell *U*nified *B*ack end *A*PI 
@@ -37,8 +43,6 @@ The following demonstrates how to use SCUBA to access data in various formats.
 There are three primary data accession methods: `FetchData`, `fetch_metadata` and `fetch_reduction`. 
 
 There are two object exploration methods: `meta_varnames` and `unique_values`
-
-
  
 #### Primary Data Accession Methods
 

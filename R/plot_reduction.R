@@ -72,6 +72,8 @@
 #' @importFrom patchwork wrap_plots
 #' @importFrom SingleCellExperiment reducedDimNames reducedDims colData
 #'
+#' @keywords internal
+#'
 #' @export
 #'
 plot_reduction <- function(

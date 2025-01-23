@@ -122,3 +122,4 @@ colData(). The metadata variable used for coloring cells can be changed with the
 The code for this function was from the {\link[Seurat Package]{https://github.com/satijalab/seurat/blob/master/R/visualization.R}} and adapted for use with
 {\link[SingleCellExperiment]{https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html}} objects.
 }
+\keyword{internal}

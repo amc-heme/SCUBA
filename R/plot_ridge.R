@@ -32,7 +32,9 @@
 #'
 #' @export
 #' @concept visualization
-#'
+#' 
+#' @keywords internal
+#' 
 #' @examples
 #' plot_ridge(AML_Seurat, features = "PC_1", group_by = "condensed_cell_type")
 #'
