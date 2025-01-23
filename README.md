@@ -1,9 +1,3 @@
-<style>
-  h3 {
-    color: #008800;
-  }
-</style>
-
 # SCUBA
 
 ###  *S*ingle *C*ell *U*nified *B*ack end *A*PI 
