@@ -174,14 +174,6 @@ fetch_reduction(
 10 Levels: B Cells BM Monocytes CD4+ T Cells CD8+ T Cells Dendritic cells NK Cells PBMC Monocytes ... Primitive
 ```
 
-The following object exploration methods exist for Seurat and SingleCellExperiment objects. They are currently not implemented for AnnData objects.
-
-```
-reduction_names(AML_Seurat)
-assay_names(AML_Seurat)
-features_in_assay(AML_Seurat, "RNA")
-```
-
 ## Citation
 Paper title and preprint link coming soon! 
 
