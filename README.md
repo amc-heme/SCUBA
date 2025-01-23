@@ -187,67 +187,6 @@ assay_names(AML_Seurat)
 features_in_assay(AML_Seurat, "RNA")
 ```
 
-### Plotting
-
-SCUBA includes plotting functions that produce Seurat-style plots from all three object formats. 
-
-```
-plot_feature(
-    AML_h5ad(), 
-    feature = "UNG"
-  )
-```
-![plot_feature](vignettes/example_plot_feature.jpeg)
-
-
-```
-plot_dot(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type", 
-      features = c("X_UNG", "X_GAPDH", "X_CCR5")
-    )
-```
-![plot_dot](vignettes/example_plot_dot.jpeg)
-
-
-```
-plot_reduction(
-      AML_h5ad(),
-      group_by="condensed_cell_type",
-      split_by="Batch"
-    )
-```
-![plot_reduction](vignettes/example_plot_reduction.jpeg)
-
-```
-plot_ridge(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type", 
-      features = c("UNG", "GAPDH")
-    )
-```
-![plot_ridge](vignettes/example_plot_ridge.jpeg)
-
-```
-plot_scatter(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type", 
-      feature_1 = "GAPDH", 
-      feature_2 = "UNG"
-    )
-```
-![plot_scatter](vignettes/example_plot_scatter.jpeg)
-
-```
-plot_violin(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type",
-      features = c("UNG", "GAPDH")
-    )
-```
-![plot_violin](vignettes/example_plot_violin.jpeg)
-
-
 ### Citation
 Paper title and preprint link coming soon! 
 
