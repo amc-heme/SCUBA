@@ -1,10 +1,8 @@
 # SCUBA
 
-###  *S*ingle *C*ell *U*nified *B*ack end *A*PI 
+SCUBA (*S*ingle *C*ell *U*nified *B*ack end *A*PI) is a unified data accession interface for single-cell object classes. The package streamlines R data analysis for Seurat, SingleCellExperiment, and Anndata objects by providing a consistent interface for data access, exploration, and visualization.
 
-SCUBA is a unified data accession interface for single cell data formats. The package pulls data from Seurat, SingleCellExperiment, and Anndata objects for use in downstream plotting and analysis. Plotting functions that produce Seurat-style plots from all three object formats are also included.
-
-### Pre-requisites
+## Pre-requisites
 
 SCUBA relies on the [reticulate](https://rstudio.github.io/reticulate/) package to operate on AnnData objects. Please make sure you follow the instructions on the reticulate page before moving on.  
 
@@ -16,7 +14,7 @@ You must have the following packages installed and available in your python envi
 - Pandas
 - AnnData
 
-### Installation
+## Installation
 
 Run the command below to install SCUBA. BiocManager is used to automatically install Bioconductor dependencies (SCUBA is not a Bioconductor package).
 
@@ -30,15 +28,14 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 ```
 
-
-### Working with different objects in SCUBA
+## Working with different objects in SCUBA
 The following demonstrates how to use SCUBA to access data in various formats.
 
 There are three primary data accession methods: `FetchData`, `fetch_metadata` and `fetch_reduction`. 
 
 There are two object exploration methods: `meta_varnames` and `unique_values`
  
-#### Primary Data Accession Methods
+### Primary Data Accession Methods
 
 For Seurat objects 
 
@@ -158,7 +155,7 @@ fetch_reduction(
   )
 ```
 
-#### Object Exploration Methods
+### Object Exploration Methods
 
 ```
 > meta_varnames(AML_h5ad())
@@ -185,10 +182,10 @@ assay_names(AML_Seurat)
 features_in_assay(AML_Seurat, "RNA")
 ```
 
-### Citation
+## Citation
 Paper title and preprint link coming soon! 
 
-### Problems
+## Problems
 If any issues arise please use Github issues on this repository. 
 
 <!-- badges: start -->
