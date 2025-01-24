@@ -85,3 +85,4 @@ A \code{\link[patchwork]{patchwork}ed} ggplot object if
 \description{
 Common codebase for violin, ridge plots.
 }
+\keyword{internal}

@@ -24,3 +24,4 @@ Returns object metadata for a specified set of cells.
 \item \code{fetch_matrix(AnnDataR6)}: AnnDataR6 objects
 
 }}
+\keyword{internal}

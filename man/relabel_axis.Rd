@@ -51,3 +51,4 @@ event a different label is more appropriate for the feature being plotted.
 \item \code{relabel_axis(AnnDataR6)}: Anndata objects
 
 }}
+\keyword{internal}
