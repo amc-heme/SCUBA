@@ -7,6 +7,8 @@
 #'
 #' @rdname features_in_assay
 #' 
+#' @export
+#' 
 features_in_assay <-
   function(
     object,
