@@ -63,9 +63,12 @@ features_in_assay.SingleCellExperiment <-
       stop("Assay", assay, "not found in the current object.")
     }
     
+    # If the assay is the main experiment, use rownames(object)
     if (assay == mainExpName(object)){
       rownames(object)
     } else {
+      # For other experiments, use rownames on the alternate experiment 
+      # corresponding to the assay name
       rownames(altExps(object)[[assay]])
     }
   }
