@@ -1,0 +1,440 @@
+---
+title: "User Guide"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{scss document_css, echo = FALSE}
+/* CSS variables */
+:root {
+  --rs_blue: #217CA1;
+}
+
+
+/* Centers text and block elements */
+.center{
+  text-align: center;
+  /* Display must be set to block for centering to work */
+  display: block;
+  }
+
+.white-text{
+  color: white;
+}
+
+/* Bootstrap card elements */
+.card-header{
+  background-color: #CFB87C;
+  /* Adds a mrgin-top of 0 to the existing bootstrap class to remove white space
+   that appears when using the card component in an Rmd */
+  margin-top: 0px;
+}
+
+.card-body{
+  background-color: #E1E1E1; 
+  /* The border radius property is not properly inherited from the parent .card
+    element. The reason is unkown, but explicitly defining it here fixes 
+    the issue */
+  border-radius: 0px 0px var(--bs-card-border-radius) var(--bs-card-border-radius);
+}
+
+/* CSS for callouts
+   From https://codepen.io/superjaberwocky/pen/rLKxOa */
+   /* Requires SASS to be enabled, with sass package and "scss" code chunk*/
+.callout {
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #eee;
+  /* If the border-radius is greater than border-left-width,  
+     the left border will curve inward onto the element's body,
+     creating a cresent-like shape*/
+  border-left-width: 8px;
+  border-radius: 8px;
+  h4, h5 {
+    margin-top: 0;
+    margin-bottom: 5px;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  code {
+    border-radius: 3px;
+  }
+  & + .bs-callout {
+    margin-top: -5px;
+  }
+}
+
+/* Define properties for default, primary, info, etc. classes*/
+@each $name,$color in 
+  (default,#777),
+  (primary,#428bca),
+  (success,#5cb85c),
+  (danger,#d9534f),
+  (warning,#f0ad4e),
+  (info,#5bc0de), 
+  (bdc,#29527a){
+  .callout-#{$name} {
+    border-left-color: $color;
+    /* Background: color above, with an alpha hex value of '35'*/
+    background-color: #{$color + '35'};
+    h4, h5 {
+      color: $color;
+    }
+  }
+}
+
+/* Applied to output of code chunks. Causes a scrollbar to appear 
+   when the output extends beyond the max-height. */
+/* Adapted from https://bookdown.org/yihui/rmarkdown-cookbook/html-scroll.html */
+/* Classes are defined for several max heights */
+@each $height in 
+  80,
+  100,
+  300{
+  .scroll-#{$height} {
+    max-height: #{$height + "px"};
+    overflow-y: auto;
+    background-color: inherit;
+  }
+}
+
+/*
+.scroll-80 {
+  max-height: 80px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+
+.scroll-100 {
+  max-height: 100px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+
+.scroll-300 {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: inherit;
+}*/
+
+/* Accordion Menu CSS */
+details {
+  /* Add spacing beneath each accordion menu */
+  margin-bottom: 10px;
+}
+
+.header{
+    /* Background: RS steel blue */ 
+    background-color: #217CA1; /*var(rs-blue, #0088A1);*/
+    color: #FFFFFF;
+    /* Rounds corners of header */
+    border-radius: 5px;
+    /* To make the layout less crowded, the padding property 
+       adds spacing between the text and the edge of the header.
+       The two-element attribute specification below adds 5 px to the top and 
+       bottom edges, and 15 px to the left and right edges.
+       */
+    padding: 5px 15px;
+    /* Makes text 1.17 times larger than normal text in R markdown (<h3> size)*/
+    font-size: 1.17em;
+}
+
+/* Header text is enclosed in a span element, with spacing before the element */
+.header span {
+  margin-left: 8px;
+}
+
+.content{
+    background-color: #E1E1E1;
+    /* Adds 15 px of padding on all four edges of content */
+    padding: 15px;
+}
+
+/* The classes below apply only when the accordion menu is open */
+/* The goal of the CSS declarations below is to round all corners of the whole 
+   accordion menu, which consists of both the header and the content when the 
+   menu is open. This requires the edge between the header and content to have
+   square corners so these two elements appear contiguous with each other. */
+details[open] .header{
+    /* Use the border radius to round the top corners, and leave the bottom 
+       corners square */
+    border-radius: 10px 10px 0px 0px;
+}
+
+details[open] .content{
+    /* Rounds the bottom-left and bottom-right corners of the content element, 
+       while leaving the top corners square.*/
+    border-radius: 0px 0px 10px 10px;
+}
+```
+
+SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
+
+```{r}
+# Load package
+library(SCUBA)
+```
+
+# Data Exploration
+
+## View Overall Metadata Present
+
+To view the names of all metadata metadata variables in the object, use `meta_varnames`.
+
+<!-- Accordion menu -->
+<!-- "open" attribute initializes as open -->
+<details open>
+  <!-- Summary tag contains the "header" of the accordion. -->
+  <!-- It is assigned the "header" class, which sets the color and applies a 
+       background -->
+  <summary class="header">
+    <!-- span element applied to header text to allow CSS styling -->
+    <span>Seurat Objects</span>
+  </summary>
+  <!-- Content is wrapped in a div of class content to provide a rounded 
+  rectangular background around the content-->
+  <div class = "content">
+```{r}
+meta_varnames(
+  AML_Seurat
+)
+```
+  </div>
+</details>
+
+<!-- Accordion menu -->
+<details>
+  <!-- Summary tag contains the "header" of the accordion. -->
+  <summary class="header">
+    <!-- span element applied to header text to allow CSS styling -->
+    <span>SingleCellExperiment Objects</span>
+  </summary>
+  <!-- Content is wrapped in a div of class content to provide a rounded 
+  rectangular background around the content-->
+  <div class = "content">
+```{r}
+meta_varnames(
+  AML_SCE()
+)
+```
+  </div>
+</details>
+
+<!-- Accordion menu -->
+<details>
+  <!-- Summary tag contains the "header" of the accordion. -->
+  <summary class="header">
+    <!-- span element applied to header text to allow CSS styling -->
+    <span>anndata Objects</span>
+  </summary>
+  <!-- Content is wrapped in a div of class content to provide a rounded 
+  rectangular background around the content-->
+  <div class = "content">
+```{r}
+meta_varnames(
+  AML_h5ad()
+)
+```
+  </div>
+</details>
+
+## Summarize a Metadata Variable
+
+To explore a metadata variable in greater detail, use `unique_values`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames`.
+
+To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
+
+<!-- Accordion menu -->
+<!-- "open" attribute initializes as open -->
+<details open>
+  <!-- Summary tag contains the "header" of the accordion. -->
+  <!-- It is assigned the "header" class, which sets the color and applies a 
+       background -->
+  <summary class="header">
+    <!-- span element applied to header text to allow CSS styling -->
+    <span>Seurat Objects</span>
+  </summary>
+  <!-- Content is wrapped in a div of class content to provide a rounded 
+  rectangular background around the content -->
+  <div class = "content">
+```{r}
+unique_values(
+  AML_Seurat,
+  var = "condensed_cell_type"
+)
+```
+  </div>
+</details>
+
+<!-- Accordion menu -->
+<details>
+  <!-- Summary tag contains the "header" of the accordion. -->
+  <summary class="header">
+    <!-- span element applied to header text to allow CSS styling -->
+    <span>SingleCellExperiment Objects</span>
+  </summary>
+  <!-- Content is wrapped in a div of class content to provide a rounded 
+  rectangular background around the content-->
+  <div class = "content">
+```{r}
+unique_values(
+  AML_SCE(),
+  var = "condensed_cell_type"
+)
+```
+  </div>
+</details>
+
+<!-- Accordion menu -->
+<details>
+  <!-- Summary tag contains the "header" of the accordion. -->
+  <summary class="header">
+    <!-- span element applied to header text to allow CSS styling -->
+    <span>anndata Objects</span>
+  </summary>
+  <!-- Content is wrapped in a div of class content to provide a rounded 
+  rectangular background around the content-->
+  <div class = "content">
+```{r}
+unique_values(
+  AML_h5ad(),
+  var = "condensed_cell_type"
+)
+```
+  </div>
+</details>
+
+# Data Access
+
+The primary data access method in SCUBA is `FetchData`. FetchData is defined for Seurat objects in the `SeuratObject` package, using an S3 generic. SCUBA provides S3 methods that replicate FetchData's behavior in SingleCellExperiment and anndata objects.
+
+FetchData can be used to fetch either metadata, reduction coordinates, or feature expression data, using a single parameter to specify the data to be fetched. FetchData will automatically identify the type of data matching the input and retrieve the data accordingly. 
+
+## Fetching Expression Data
+
+FetchData can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment objects and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter of `FetchData`. 
+
+Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, FetchData implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
+
+```
+{"key" of the modality} + "_" + {feature name}
+```
+
+To determine the key to enter for the desired modality, we provide the `all_keys()` utility function. The output is a named character vector, with names equal to the name of the modality, and values equal to the key to use.
+
+<!-- FetchData expression data examples -->
+### {.tabset .tabset-pills}
+#### Seurat Objects 
+
+```{r}
+all_keys(AML_Seurat)
+```
+
+In this example object, use the "rna" key to pull data from the "RNA" assay. 
+
+To pull gene expression data for FLT3, for example, you would pass "rna_FLT3" to `vars`.
+
+```{r}
+# For Seurat objects, ensure the Seurat package is loaded before 
+# running FetchData
+suppressMessages(library(Seurat, quietly = TRUE, warn.conflicts = FALSE))
+
+FetchData(
+  AML_Seurat,
+  vars = "rna_FLT3"
+  ) |>
+  head(10)
+```
+
+#### SingleCellExperiment Objects
+
+```{r}
+all_keys(AML_SCE())
+```
+
+In this example object, use the "RNA" key to pull data from the "RNA" assay. 
+
+To pull gene expression data for FLT3, for example, you would pass "RNA_FLT3" to `vars`.
+
+```{r}
+FetchData(
+  AML_SCE(),
+  vars = "RNA_FLT3"
+  ) |>
+  head(10)
+```
+
+Any number of features can be passed to vars as a character vector
+
+#### Anndata Objects
+
+```{r}
+all_keys(AML_h5ad())
+```
+
+By convention, the gene expression modality in anndata objects is named "X". In this example object, use the "X" key to pull data from the "RNA" assay.
+
+To pull gene expression data for FLT3, for example, you would pass "X_FLT3" to `vars`.
+
+```{r}
+FetchData(
+  AML_h5ad(),
+  vars = "X_FLT3"
+  ) |>
+  head(10)
+```
+
+### {-}
+
+## Fetching Metadata
+
+To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of FetchData. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and the input syntax does not vary based on whether the variable is categorical or numeric.
+
+## {.tabset .tabset-pills}
+
+### Seurat Objects
+
+```{r}
+# For Seurat objects, ensure the Seurat package is loaded before 
+# running FetchData
+library(Seurat, quietly = TRUE)
+
+FetchData(
+  AML_Seurat,
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+### SingleCellExperiment Objects
+
+```{r}
+FetchData(
+  AML_SCE(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+### anndata Objects
+
+```{r}
+FetchData(
+  AML_h5ad(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+## {-}
+
+# Data Visualization
+
+
