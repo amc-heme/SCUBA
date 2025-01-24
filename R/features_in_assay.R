@@ -46,7 +46,7 @@ features_in_assay.Seurat <-
     object,
     assay
   ){
-    if (!assay %in% assay_names(object)){
+    if (!assay %in% names(object@assays)){
       stop("Assay", assay, "not found in the current object.")
     }
     
@@ -61,7 +61,8 @@ features_in_assay.SingleCellExperiment <-
     object,
     assay
   ){
-    if (!assay %in% assay_names(object)){
+    # Check if assay ("experiment" in SingleCellExperiment) is a valid  
+    if (!assay %in% c(mainExpName(object), altExpNames(object))){
       stop("Assay", assay, "not found in the current object.")
     }
     
@@ -82,8 +83,8 @@ features_in_assay.AnnDataR6 <-
     object,
     assay
   ){
-    if (!assay %in% assay_names(object)){
-      stop("Assay", assay, "not found in the current object.")
+    if (!assay %in% object$obsm_keys()){
+      stop("Assay", assay, "not found in the obsm slot of the current object.")
     }
     
     if (assay == "X"){
