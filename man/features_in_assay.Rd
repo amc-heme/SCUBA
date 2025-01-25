@@ -21,7 +21,7 @@ features_in_assay(object, assay)
 \item{assay}{the name of an assay/modality for which to view features}
 }
 \description{
-Returns the names of all features in an assay/modality
+Returns the names of all features in an assay/modality.
 }
 \section{Methods (by class)}{
 \itemize{

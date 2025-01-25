@@ -174,6 +174,8 @@ details[open] .content{
 
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
 
+<!-- TODO: ADD NOTE ABOUT DIFFERENCES IN NAMING CONVENTIONS BETWEEN OBJECTS. ALSO ADD TABLE. -->
+
 ```{r}
 # Load package
 library(SCUBA)
@@ -368,8 +370,6 @@ FetchData(
   head(10)
 ```
 
-Any number of features can be passed to vars as a character vector
-
 #### Anndata Objects
 
 ```{r}
@@ -388,7 +388,155 @@ FetchData(
   head(10)
 ```
 
+<!-- {-} Ends tabset interface -->
 ### {-}
+
+### {.tabset .tabset-pills}
+
+Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to FetchData. 
+
+#### Seurat Objects
+
+```{r}
+available_genes <-
+  features_in_assay(
+    AML_Seurat,
+    # For this object, "RNA" is the gene expression assay
+    assay = "RNA"
+  )
+
+available_genes |> 
+  head(10)
+
+# Test if a gene is present in the RNA assay before passage to FetchData
+"MEIS1" %in% available_genes
+
+# Request data for multiple features
+FetchData(
+  AML_Seurat,
+  vars = c("rna_FLT3", "rna_MEIS1")
+  ) |>
+  head(10)
+```
+
+#### SingleCellExperiment Objects
+
+```{r}
+available_genes <-
+  features_in_assay(
+    AML_SCE(),
+    # In this object, RNA is the name of the gene expression experiment
+    assay = "RNA"
+  )
+
+available_genes |> 
+  head(10)
+
+# Test if a gene is present in the RNA assay before passage to FetchData
+"MEIS1" %in% available_genes
+
+# Request data for multiple features
+FetchData(
+  AML_SCE(),
+  vars = c("RNA_FLT3", "RNA_MEIS1")
+  ) |>
+  head(10)
+```
+
+#### anndata Objects
+
+```{r}
+available_genes <-
+  features_in_assay(
+    AML_h5ad(),
+    assay = "X"
+  )
+
+available_genes |> 
+  head(10)
+
+# Test if a gene is present in the RNA assay before passage to FetchData
+"MEIS1" %in% available_genes
+
+# Request data for multiple features
+FetchData(
+  AML_h5ad(),
+  vars = c("X_FLT3", "X_MEIS1")
+  ) |>
+  head(10)
+```
+
+<!-- {-} Ends tabset interface -->
+### {-}
+
+### Pulling data from alternate layers 
+
+By default, FetchData will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below.)
+
+To pull data from alternate layers, use the `layer` parameter.
+
+<!-- Tabset interface uses an <h4> header since this is subordinate to the 
+    <h3> section above -->
+#### {.tabset .tabset-pills}
+
+<!-- Tabset buttons are rendered properly as long as they are one header level
+    subordinate of the .tabset element -->
+##### Seurat Objects
+
+Below, feature expression data is pulled from raw counts (the `counts` slot).
+
+```{r}
+FetchData(
+  AML_Seurat,
+  vars = c("rna_FLT3", "rna_MEIS1"),
+  layer = "counts"
+  ) |>
+  head(10)
+```
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>In Seurat v4 and earlier, the `layer` parameter was named `slot`. If you are using a Seurat v4 or earlier object, you will need to use `slot` instead of `layer`. This difference does not affect SingleCellExperiment or anndata objects.</p>
+</div>
+
+##### SingleCellExperiment Objects
+
+Below, feature expression data is pulled from raw counts (the `counts` layer, referred to as the `counts` "assay" in SingleCellExperiment objects).
+
+```{r}
+FetchData(
+  AML_SCE(),
+  vars = c("RNA_FLT3", "RNA_MEIS1"),
+  layer = "counts"
+  ) |>
+  head(10)
+```
+
+##### anndata Objects
+
+If the layer parameter is undefined for anndata objects, `FetchData` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
+
+In the example object below, normalized counts are stored in X, and raw counts are stored in an alternate layer named "counts". 
+
+```{r}
+# Raw counts in "counts"
+FetchData(
+  AML_h5ad(),
+  vars = c("X_FLT3", "X_MEIS1"),
+  layer = "counts"
+  ) |>
+  head(10)
+
+# Normalized counts in X
+FetchData(
+  AML_h5ad(),
+  vars = c("X_FLT3", "X_MEIS1")
+  ) |>
+  head(10)
+```
+
+<!-- {-} Ends tabset interface -->
+#### {-}
 
 ## Fetching Metadata
 

@@ -1,6 +1,6 @@
 #' Get names of all features in an assay/experiment
 #'
-#' Returns the names of all features in an assay/modality
+#' Returns the names of all features in an assay/modality.
 #'
 #' @param object a single-cell object. 
 #' @param assay the name of an assay/modality for which to view features
@@ -83,7 +83,8 @@ features_in_assay.AnnDataR6 <-
     object,
     assay
   ){
-    if (!assay %in% object$obsm_keys()){
+    # Check that assay is valid (either X, or a feature from obsm)
+    if (!assay %in% c("X", object$obsm_keys())){
       stop("Assay", assay, "not found in the obsm slot of the current object.")
     }
     
