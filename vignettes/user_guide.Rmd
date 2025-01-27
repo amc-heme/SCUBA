@@ -170,6 +170,7 @@ details[open] .content{
        while leaving the top corners square.*/
     border-radius: 0px 0px 10px 10px;
 }
+
 ```
 
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
@@ -187,62 +188,33 @@ library(SCUBA)
 
 To view the names of all metadata metadata variables in the object, use `meta_varnames`.
 
-<!-- Accordion menu -->
-<!-- "open" attribute initializes as open -->
-<details open>
-  <!-- Summary tag contains the "header" of the accordion. -->
-  <!-- It is assigned the "header" class, which sets the color and applies a 
-       background -->
-  <summary class="header">
-    <!-- span element applied to header text to allow CSS styling -->
-    <span>Seurat Objects</span>
-  </summary>
-  <!-- Content is wrapped in a div of class content to provide a rounded 
-  rectangular background around the content-->
-  <div class = "content">
+### {.tabset .tabset-pills}
+
+#### Seurat Objects
+
 ```{r}
 meta_varnames(
   AML_Seurat
 )
 ```
-  </div>
-</details>
 
-<!-- Accordion menu -->
-<details>
-  <!-- Summary tag contains the "header" of the accordion. -->
-  <summary class="header">
-    <!-- span element applied to header text to allow CSS styling -->
-    <span>SingleCellExperiment Objects</span>
-  </summary>
-  <!-- Content is wrapped in a div of class content to provide a rounded 
-  rectangular background around the content-->
-  <div class = "content">
+#### SingleCellExperiment Objects
+
 ```{r}
 meta_varnames(
   AML_SCE()
 )
 ```
-  </div>
-</details>
 
-<!-- Accordion menu -->
-<details>
-  <!-- Summary tag contains the "header" of the accordion. -->
-  <summary class="header">
-    <!-- span element applied to header text to allow CSS styling -->
-    <span>anndata Objects</span>
-  </summary>
-  <!-- Content is wrapped in a div of class content to provide a rounded 
-  rectangular background around the content-->
-  <div class = "content">
+#### anndata Objects
+
 ```{r}
 meta_varnames(
   AML_h5ad()
 )
 ```
-  </div>
-</details>
+
+### {-}
 
 ## Summarize a Metadata Variable
 
@@ -250,65 +222,37 @@ To explore a metadata variable in greater detail, use `unique_values`. This will
 
 To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
 
-<!-- Accordion menu -->
-<!-- "open" attribute initializes as open -->
-<details open>
-  <!-- Summary tag contains the "header" of the accordion. -->
-  <!-- It is assigned the "header" class, which sets the color and applies a 
-       background -->
-  <summary class="header">
-    <!-- span element applied to header text to allow CSS styling -->
-    <span>Seurat Objects</span>
-  </summary>
-  <!-- Content is wrapped in a div of class content to provide a rounded 
-  rectangular background around the content -->
-  <div class = "content">
+
+### {.tabset .tabset-pills}
+
+#### Seurat Objects
+
 ```{r}
 unique_values(
   AML_Seurat,
   var = "condensed_cell_type"
 )
 ```
-  </div>
-</details>
 
-<!-- Accordion menu -->
-<details>
-  <!-- Summary tag contains the "header" of the accordion. -->
-  <summary class="header">
-    <!-- span element applied to header text to allow CSS styling -->
-    <span>SingleCellExperiment Objects</span>
-  </summary>
-  <!-- Content is wrapped in a div of class content to provide a rounded 
-  rectangular background around the content-->
-  <div class = "content">
+#### SingleCellExperiment Objects
+
 ```{r}
 unique_values(
   AML_SCE(),
   var = "condensed_cell_type"
 )
 ```
-  </div>
-</details>
 
-<!-- Accordion menu -->
-<details>
-  <!-- Summary tag contains the "header" of the accordion. -->
-  <summary class="header">
-    <!-- span element applied to header text to allow CSS styling -->
-    <span>anndata Objects</span>
-  </summary>
-  <!-- Content is wrapped in a div of class content to provide a rounded 
-  rectangular background around the content-->
-  <div class = "content">
+#### anndata Objects
+
 ```{r}
 unique_values(
   AML_h5ad(),
   var = "condensed_cell_type"
 )
 ```
-  </div>
-</details>
+
+### {-}
 
 # Data Access
 
