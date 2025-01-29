@@ -1,6 +1,10 @@
 ---
 title: "User Guide"
-output: html_document
+output: 
+  html_document:
+    theme:
+      bslib: true
+      version: 5
 ---
 
 ```{r setup, include=FALSE}
@@ -171,7 +175,83 @@ details[open] .content{
     border-radius: 0px 0px 10px 10px;
 }
 
+/* Tabset panel for examples */
+/* Tabset "pills" appear for each object type. Users click the tab and see code 
+  and information for each object */
+/* For each */
+@each $obj_name,$color in 
+  (seurat,#0072B2),
+  (sce,#009E73),
+  (anndata,#D55E00),
+  // will need to add a text color to go with the background colors here 
+  // All wite or all black will not work with all colors here
+  (mudata,#FED105){
+  // Style for buttons forming tabset "pills"
+  button.#{$obj_name} {
+    border: solid 1px;
+    border-color: #000000;
+    /* Shape like a true "tab", like those on manilla folders */
+    border-radius: 10px 10px 0px 0px !important;
+    /* Background when inactive: color above, but with reduced alpha'*/
+    background-color: #{$color + 'AA'} !important;
+    /* Text color: black when inactive, white when active */
+    color: #000000 !important;
+    }
+    
+  button.#{$obj_name}:hover{
+    color: #FFFFFF !important;
+  }
+   
+  button.#{$obj_name}.active{
+    /* Text color: gray when inactive, white when active */
+    color: #FFFFFF !important;
+    /* Use full alpha for active tabs */
+    background-color: $color !important;
+    /* Print a boarder the same color as the tab below active tabs, which will 
+      override the black boarder around the top of the content (appearing as 
+      no boarder, with the tab directly feeding into the content) */
+    border-bottom-color: $color;
+  }
+} 
+
+/* Change boarder around content to black */
+div.tab-content{
+  border-color: #000000 !important; 
+  border-radius: 0px 0px 10px 10px;
+}
 ```
+
+```{js}
+// Custom JavaScript for tabset/navbar panels
+// Panels have classes for each object type, that need to map to both the <div>
+// containing examples for each object, *and* the <button> tags in the tabset 
+// pills that are used to change tabs.
+// The default markdown syntax for tabset pills only applies classes to the 
+// <div>. Here, it is also applied to the <button> tags.
+$(document).ready(function(){
+  // Find the tabset using the .tabset class and locate the decendent <button> 
+  // tags. This only works on the pkgdown site (Rmd docs use <a> instead, and 
+  // and do not appear to properly interperet JavaScript, at least in the R 
+  // Studio browser)
+  // .nav-pills.special-tabs: only apply classes to navbar menus with 
+  // special-tabs class (there are other navbars on the pkgdown website)
+  document.querySelectorAll(".nav-pills button").forEach(tab => {
+      // console.log(tab)
+       if (tab.textContent.trim() === "Seurat Objects") {
+           tab.classList.add("seurat");
+       } else if (tab.textContent.trim() === "SingleCellExperiment Objects"){
+           tab.classList.add("sce");
+       } else if (tab.textContent.trim() === "anndata Objects") {
+           tab.classList.add("anndata");
+       }
+   });
+});
+
+// document.addEventListener("DOMContentLoaded", function() {
+//    
+// });
+```
+
 
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
 
@@ -182,15 +262,19 @@ SCUBA provides several functions for exploration, access, and visualization of d
 library(SCUBA)
 ```
 
-# Data Exploration
+<!-- Starting with header 2 because header 1 tags in pkgdown keep the tabset pills 
+     present in this document from rendering properly -->
+<!-- https://github.com/r-lib/pkgdown/issues/2720 -->
+<!--     ¯\_(ツ)_/¯     -->
+## Data Exploration
 
-## View Overall Metadata Present
+### View Overall Metadata Present
 
 To view the names of all metadata metadata variables in the object, use `meta_varnames`.
 
-### {.tabset .tabset-pills}
+#### {.tabset .tabset-pills .special-tabs}
 
-#### Seurat Objects
+##### Seurat Objects {#seurat_1 .seurat}
 
 ```{r}
 meta_varnames(
@@ -198,7 +282,7 @@ meta_varnames(
 )
 ```
 
-#### SingleCellExperiment Objects
+##### SingleCellExperiment Objects {.active .sce}
 
 ```{r}
 meta_varnames(
@@ -206,7 +290,7 @@ meta_varnames(
 )
 ```
 
-#### anndata Objects
+##### anndata Objects {.anndata}
 
 ```{r}
 meta_varnames(
@@ -214,18 +298,16 @@ meta_varnames(
 )
 ```
 
-### {-}
-
-## Summarize a Metadata Variable
+### Summarize a Metadata Variable
 
 To explore a metadata variable in greater detail, use `unique_values`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames`.
 
 To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
 
 
-### {.tabset .tabset-pills}
+#### {.tabset .tabset-pills}
 
-#### Seurat Objects
+##### Seurat Objects {#seurat}
 
 ```{r}
 unique_values(
@@ -234,7 +316,7 @@ unique_values(
 )
 ```
 
-#### SingleCellExperiment Objects
+##### SingleCellExperiment Objects
 
 ```{r}
 unique_values(
@@ -243,7 +325,7 @@ unique_values(
 )
 ```
 
-#### anndata Objects
+##### anndata Objects
 
 ```{r}
 unique_values(
@@ -252,15 +334,15 @@ unique_values(
 )
 ```
 
-### {-}
+#### {-}
 
-# Data Access
+## Data Access
 
 The primary data access method in SCUBA is `FetchData`. FetchData is defined for Seurat objects in the `SeuratObject` package, using an S3 generic. SCUBA provides S3 methods that replicate FetchData's behavior in SingleCellExperiment and anndata objects.
 
 FetchData can be used to fetch either metadata, reduction coordinates, or feature expression data, using a single parameter to specify the data to be fetched. FetchData will automatically identify the type of data matching the input and retrieve the data accordingly. 
 
-## Fetching Expression Data
+### Fetching Expression Data
 
 FetchData can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment objects and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter of `FetchData`. 
 
@@ -273,8 +355,8 @@ Features may have the same name across different assays/experiments/modalities. 
 To determine the key to enter for the desired modality, we provide the `all_keys()` utility function. The output is a named character vector, with names equal to the name of the modality, and values equal to the key to use.
 
 <!-- FetchData expression data examples -->
-### {.tabset .tabset-pills}
-#### Seurat Objects 
+#### {.tabset .tabset-pills}
+##### Seurat Objects 
 
 ```{r}
 all_keys(AML_Seurat)
@@ -296,7 +378,7 @@ FetchData(
   head(10)
 ```
 
-#### SingleCellExperiment Objects
+##### SingleCellExperiment Objects
 
 ```{r}
 all_keys(AML_SCE())
@@ -314,7 +396,7 @@ FetchData(
   head(10)
 ```
 
-#### Anndata Objects
+##### anndata Objects
 
 ```{r}
 all_keys(AML_h5ad())
@@ -333,13 +415,13 @@ FetchData(
 ```
 
 <!-- {-} Ends tabset interface -->
-### {-}
+#### {-}
 
-### {.tabset .tabset-pills}
+#### {.tabset .tabset-pills}
 
 Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to FetchData. 
 
-#### Seurat Objects
+##### Seurat Objects
 
 ```{r}
 available_genes <-
@@ -363,7 +445,7 @@ FetchData(
   head(10)
 ```
 
-#### SingleCellExperiment Objects
+##### SingleCellExperiment Objects
 
 ```{r}
 available_genes <-
@@ -387,7 +469,7 @@ FetchData(
   head(10)
 ```
 
-#### anndata Objects
+##### anndata Objects
 
 ```{r}
 available_genes <-
@@ -411,16 +493,16 @@ FetchData(
 ```
 
 <!-- {-} Ends tabset interface -->
-### {-}
+#### {-}
 
-### Pulling data from alternate layers 
+### Expression Data from Alternate Layers 
 
 By default, FetchData will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below.)
 
 To pull data from alternate layers, use the `layer` parameter.
 
-<!-- Tabset interface uses an <h4> header since this is subordinate to the 
-    <h3> section above -->
+<!-- Tabset interface uses an <h5> header since this is subordinate to the 
+    <h4> section above -->
 #### {.tabset .tabset-pills}
 
 <!-- Tabset buttons are rendered properly as long as they are one header level
@@ -482,13 +564,13 @@ FetchData(
 <!-- {-} Ends tabset interface -->
 #### {-}
 
-## Fetching Metadata
+### Fetching Metadata
 
 To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of FetchData. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and the input syntax does not vary based on whether the variable is categorical or numeric.
 
-## {.tabset .tabset-pills}
+#### {.tabset .tabset-pills}
 
-### Seurat Objects
+##### Seurat Objects
 
 ```{r}
 # For Seurat objects, ensure the Seurat package is loaded before 
@@ -503,7 +585,7 @@ FetchData(
   head(10)
 ```
 
-### SingleCellExperiment Objects
+##### SingleCellExperiment Objects
 
 ```{r}
 FetchData(
@@ -514,7 +596,7 @@ FetchData(
   head(10)
 ```
 
-### anndata Objects
+##### anndata Objects
 
 ```{r}
 FetchData(
@@ -525,8 +607,8 @@ FetchData(
   head(10)
 ```
 
-## {-}
+#### {-}
 
-# Data Visualization
+## Data Visualization
 
 
