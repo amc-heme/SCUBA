@@ -183,7 +183,7 @@ details[open] .content{
 /* For each */
 @each $obj_name,$color in 
   (seurat,#0072B2),
-  (sce,#009E73),
+  (singlecellexperiment,#009E73),
   (anndata,#D55E00),
   // will need to add a text color to go with the background colors here 
   // All wite or all black will not work with all colors here
@@ -213,6 +213,12 @@ details[open] .content{
       override the black boarder around the top of the content (appearing as 
       no boarder, with the tab directly feeding into the content) */
     border-bottom-color: $color;
+  }
+  
+  /* Code blocks in each tab */
+  div[id*=#{$obj_name}] pre {
+    /* background color: object color above, with very low alpha */
+    background-color: #{$color + '11'};
   }
 } 
 
@@ -260,7 +266,7 @@ $(document).ready(function(){
        if (tab.textContent.trim() === "Seurat") {
            tab.classList.add("seurat");
        } else if (tab.textContent.trim() === "SingleCellExperiment"){
-           tab.classList.add("sce");
+           tab.classList.add("singlecellexperiment");
        } else if (tab.textContent.trim() === "anndata") {
            tab.classList.add("anndata");
        }
@@ -293,7 +299,7 @@ To view the names of all metadata metadata variables in the object, use `meta_va
 
 #### {.tabset .tabset-pills .special-tabs}
 
-##### Seurat {.seurat}
+##### Seurat
 
 ```{r}
 meta_varnames(
@@ -301,7 +307,7 @@ meta_varnames(
 )
 ```
 
-##### SingleCellExperiment {.active .sce}
+##### SingleCellExperiment
 
 ```{r}
 meta_varnames(
@@ -309,7 +315,7 @@ meta_varnames(
 )
 ```
 
-##### anndata {.anndata}
+##### anndata
 
 ```{r}
 meta_varnames(
@@ -327,7 +333,7 @@ To view the unique values for a variable, pass the name of the variable to the `
 
 ##### Seurat
 
-```{r}
+```{r, class.source='seurat', class.output='seurat'}
 unique_values(
   AML_Seurat,
   var = "condensed_cell_type"
@@ -336,7 +342,7 @@ unique_values(
 
 ##### SingleCellExperiment
 
-```{r}
+```{r, class.source=".sce", class.output=".sce"}
 unique_values(
   AML_SCE(),
   var = "condensed_cell_type"
@@ -345,7 +351,7 @@ unique_values(
 
 ##### anndata
 
-```{r}
+```{r, class.source=".anndata", class.output=".anndata"}
 unique_values(
   AML_h5ad(),
   var = "condensed_cell_type"
@@ -573,9 +579,9 @@ fetch_data(
   head(10)
 ```
 
-### Fetching Metadata with `fetch_data`
+### Fetching Metadata
 
-To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of `fetch_data`. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and the input syntax does not vary based on whether the variable is categorical or numeric.
+To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of `fetch_data`. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and there are no differences in input between categorical and numeric metadata variables.
 
 #### {.tabset .tabset-pills}
 
@@ -612,9 +618,96 @@ fetch_data(
   head(10)
 ```
 
-### Fetching Reduction Coordinates with `fetch_data`
+<!-- Empty section header ends tabset and keeps paragraph beneath from appearing
+    under "anndata" tab -->
+#### {-}
 
-In a similar manner to expression data, reduction coordinates to fetch are pased to `vars` using a "key" and underscore system. In this case, you would enter the key of the reduction to use, and an integer specifying the dimension of the reduction to pull from.
+If you are retrieving just metadata from very large single-cell objects, we offer a `fetch_metadata` method that is faster than using `fetch_data`. As with `fetch_data`, desired metadata variables are passed to `vars`.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_metadata(
+  AML_Seurat,
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_metadata(
+  AML_SCE(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
+```{r}
+fetch_metadata(
+  AML_h5ad(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>In anndata objects, `fetch_metadata` does not offer performance advantages over `fetch_data`.</p>
+</div>
+
+<!-- Empty section header ends tabset and keeps content beneath from appearing
+    under "anndata" tab -->
+#### {-}
+
+`fetch_metadata` can also be used to return the full table from the object. This is most useful in a programming context.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_metadata(
+  AML_Seurat,
+  full_table = TRUE
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_metadata(
+  AML_SCE(),
+  full_table = TRUE
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
+```{r}
+fetch_metadata(
+  AML_h5ad(),
+  full_table = TRUE
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+### Fetching Reduction Coordinates
+
+In a similar manner to expression data, reduction coordinates to fetch are passed to `vars` using a "key" and underscore system. In this case, you would enter the key of the reduction to use, and an integer specifying the dimension of the reduction to pull from.
 
 ```
 {"key" of the reduction} + "_" + {dimension}
@@ -662,7 +755,7 @@ fetch_data(
 
 ##### anndata
 
-From running `all_keys()`, the key of the UMAP reduction in this object is "X_umap_". 
+From running `all_keys()`, the key of the UMAP reduction in this object is "X_umap_".
 
 ```{r}
 all_keys(AML_h5ad())
