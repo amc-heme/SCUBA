@@ -219,7 +219,25 @@ details[open] .content{
 /* Change boarder around content to black */
 div.tab-content{
   border-color: #000000 !important; 
-  border-radius: 0px 0px 10px 10px;
+  border-radius: 0px 10px 10px 10px;
+}
+
+/* Fixes whitespace issue in tabset panel */
+/* Pkgdown websites use Bootstrap for tabset panels */
+/* Bootstrap uses visibility: hidden for inactive tabs, which hides the 
+   element, but doesn't set its height to 0. When tabsets are created with 
+   content that is unequal in height (much more content in one panel than 
+   others), the panel's height doesn't re-size to match content, and the result 
+   is large amounts of white space when viewing the tabs with shorter content. */
+/* The display attribute is more appropriate and should be used instead.*/
+/* Inactive tabs: hide */
+.tab-content .tab-pane{
+  display: none !important;
+}
+
+/* Active tabs: show */
+.tab-content .active {
+  display: block !important;
 }
 ```
 
@@ -239,11 +257,11 @@ $(document).ready(function(){
   // special-tabs class (there are other navbars on the pkgdown website)
   document.querySelectorAll(".nav-pills button").forEach(tab => {
       // console.log(tab)
-       if (tab.textContent.trim() === "Seurat Objects") {
+       if (tab.textContent.trim() === "Seurat") {
            tab.classList.add("seurat");
-       } else if (tab.textContent.trim() === "SingleCellExperiment Objects"){
+       } else if (tab.textContent.trim() === "SingleCellExperiment"){
            tab.classList.add("sce");
-       } else if (tab.textContent.trim() === "anndata Objects") {
+       } else if (tab.textContent.trim() === "anndata") {
            tab.classList.add("anndata");
        }
    });
@@ -264,7 +282,7 @@ library(SCUBA)
 ```
 
 <!-- Starting with header 2 because header 1 tags in pkgdown keep the tabset pills 
-     present in this document from rendering properly -->
+     present in this document from rendering properly in pkgdown -->
 <!-- https://github.com/r-lib/pkgdown/issues/2720 -->
 <!--     ¯\_(ツ)_/¯     -->
 ## Data Exploration
@@ -275,7 +293,7 @@ To view the names of all metadata metadata variables in the object, use `meta_va
 
 #### {.tabset .tabset-pills .special-tabs}
 
-##### Seurat Objects {.seurat}
+##### Seurat {.seurat}
 
 ```{r}
 meta_varnames(
@@ -283,7 +301,7 @@ meta_varnames(
 )
 ```
 
-##### SingleCellExperiment Objects {.active .sce}
+##### SingleCellExperiment {.active .sce}
 
 ```{r}
 meta_varnames(
@@ -291,7 +309,7 @@ meta_varnames(
 )
 ```
 
-##### anndata Objects {.anndata}
+##### anndata {.anndata}
 
 ```{r}
 meta_varnames(
@@ -307,7 +325,7 @@ To view the unique values for a variable, pass the name of the variable to the `
 
 #### {.tabset .tabset-pills}
 
-##### Seurat Objects {#seurat}
+##### Seurat
 
 ```{r}
 unique_values(
@@ -316,7 +334,7 @@ unique_values(
 )
 ```
 
-##### SingleCellExperiment Objects
+##### SingleCellExperiment
 
 ```{r}
 unique_values(
@@ -325,7 +343,7 @@ unique_values(
 )
 ```
 
-##### anndata Objects
+##### anndata
 
 ```{r}
 unique_values(
@@ -333,8 +351,6 @@ unique_values(
   var = "condensed_cell_type"
 )
 ```
-
-#### {-}
 
 ## Data Access
 
@@ -344,7 +360,7 @@ The primary data access method in SCUBA is `fetch_data`. This function replicate
 
 ### Fetching Expression Data
 
-`fetch_data` can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment objects and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter.
+`fetch_data` can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter.
 
 Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, `fetch_data` implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
 
@@ -356,7 +372,7 @@ To determine the key to enter for the desired modality, we provide the `all_keys
 
 <!-- fetch_data expression data examples -->
 #### {.tabset .tabset-pills}
-##### Seurat Objects 
+##### Seurat 
 
 ```{r}
 all_keys(AML_Seurat)
@@ -375,7 +391,7 @@ fetch_data(
   head(10)
 ```
 
-##### SingleCellExperiment Objects
+##### SingleCellExperiment
 
 ```{r}
 all_keys(AML_SCE())
@@ -394,7 +410,7 @@ fetch_data(
   head(10)
 ```
 
-##### anndata Objects
+##### anndata
 
 ```{r}
 all_keys(AML_h5ad())
@@ -413,14 +429,11 @@ fetch_data(
   head(10)
 ```
 
-<!-- {-} Ends tabset interface -->
-#### {-}
-
 #### {.tabset .tabset-pills}
 
 Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to fetch_data. 
 
-##### Seurat Objects
+##### Seurat
 
 ```{r}
 available_genes <-
@@ -444,7 +457,7 @@ fetch_data(
   head(10)
 ```
 
-##### SingleCellExperiment Objects
+##### SingleCellExperiment
 
 ```{r}
 available_genes <-
@@ -468,7 +481,7 @@ fetch_data(
   head(10)
 ```
 
-##### anndata Objects
+##### anndata
 
 ```{r}
 available_genes <-
@@ -506,7 +519,7 @@ To pull data from alternate layers, use the `layer` parameter.
 
 <!-- Tabset buttons are rendered properly as long as they are one header level
     subordinate of the .tabset element -->
-##### Seurat Objects
+##### Seurat
 
 Below, feature expression data is pulled from raw counts (the `counts` slot).
 
@@ -524,9 +537,9 @@ fetch_data(
   <p>In Seurat v4 and earlier, the `layer` parameter was named `slot`. If you are using Seurat v4 or earlier, you will need to use `slot` instead of `layer`. This difference does not affect SingleCellExperiment or anndata objects: for these objects, only `layer` should be used. </p>
 </div>
 
-##### SingleCellExperiment Objects
+##### SingleCellExperiment
 
-Below, feature expression data is pulled from raw counts (the `counts` layer, referred to as the `counts` "assay" in SingleCellExperiment objects).
+Below, feature expression data is pulled from raw counts (the `counts` layer, referred to as the `counts` "assay" in SingleCellExperiment).
 
 ```{r}
 fetch_data(
@@ -537,7 +550,7 @@ fetch_data(
   head(10)
 ```
 
-##### anndata Objects
+##### anndata
 
 If the layer parameter is undefined for anndata objects, `fetch_data` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
 
@@ -566,7 +579,7 @@ To retrieve metadata, pass the name of the metadata variable to fetch to the `va
 
 #### {.tabset .tabset-pills}
 
-##### Seurat Objects
+##### Seurat
 
 ```{r}
 fetch_data(
@@ -577,7 +590,7 @@ fetch_data(
   head(10)
 ```
 
-##### SingleCellExperiment Objects
+##### SingleCellExperiment
 
 ```{r}
 fetch_data(
@@ -588,7 +601,7 @@ fetch_data(
   head(10)
 ```
 
-##### anndata Objects
+##### anndata
 
 ```{r}
 fetch_data(
@@ -611,7 +624,7 @@ As with assays/modalities, run `all_keys` to see the key corresponding to the re
 
 #### {.tabset .tabset-pills}
 
-##### Seurat Objects
+##### Seurat
 
 From running `all_keys()`, the key of the UMAP reduction in this object is "UMAP_". 
 
@@ -629,7 +642,7 @@ fetch_data(
   head(10)
 ```
 
-##### SingleCellExperiment Objects
+##### SingleCellExperiment
 
 From running `all_keys()`, the key of the UMAP reduction in this object is "UMAP_". 
 
@@ -647,7 +660,7 @@ fetch_data(
   head(10)
 ```
 
-##### anndata Objects
+##### anndata
 
 From running `all_keys()`, the key of the UMAP reduction in this object is "X_umap_". 
 
