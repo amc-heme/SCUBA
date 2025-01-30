@@ -9,11 +9,11 @@
 \usage{
 default_reduction(object, ...)
 
-\method{default_reduction}{Seurat}(object)
+\method{default_reduction}{Seurat}(object, ...)
 
-\method{default_reduction}{SingleCellExperiment}(object)
+\method{default_reduction}{SingleCellExperiment}(object, ...)
 
-\method{default_reduction}{AnnDataR6}(object)
+\method{default_reduction}{AnnDataR6}(object, ...)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat and

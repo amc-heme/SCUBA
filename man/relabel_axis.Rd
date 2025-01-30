@@ -9,11 +9,11 @@
 \usage{
 relabel_axis(object, feature, ...)
 
-\method{relabel_axis}{Seurat}(object, feature)
+\method{relabel_axis}{Seurat}(object, feature, ...)
 
-\method{relabel_axis}{SingleCellExperiment}(object, feature)
+\method{relabel_axis}{SingleCellExperiment}(object, feature, ...)
 
-\method{relabel_axis}{AnnDataR6}(object, feature)
+\method{relabel_axis}{AnnDataR6}(object, feature, ...)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat,

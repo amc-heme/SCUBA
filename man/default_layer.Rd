@@ -9,11 +9,11 @@
 \usage{
 default_layer(object, ...)
 
-\method{default_layer}{Seurat}(object)
+\method{default_layer}{Seurat}(object, ...)
 
-\method{default_layer}{SingleCellExperiment}(object)
+\method{default_layer}{SingleCellExperiment}(object, ...)
 
-\method{default_layer}{AnnDataR6}(object)
+\method{default_layer}{AnnDataR6}(object, ...)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
