@@ -13,7 +13,8 @@
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
-#'
+#' @param ... parameter provided for consistency with S3 generic/methods
+
 #' @return A data.frame object containing the requested expression
 #' data or metadata.
 #'
@@ -434,6 +435,7 @@ FetchData.SingleCellExperiment <-
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
+#' @param ... parameter provided for consistency with S3 generic/methods
 #' 
 #' @return A data.frame object containing the requested expression
 #' data or metadata.
