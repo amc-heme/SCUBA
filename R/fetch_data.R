@@ -19,11 +19,9 @@
 #' [our user guide]().
 #' @param layer For feature expression data, the layer to pull data from. 
 #' Layers are referred to as "slots" in Seurat objects v4 and earlier, and 
-#' "assays" in SingleCellExperiment objects. Note: the `slot` parameter of 
-#' SeuratObject::FetchData was deprecated in Seruat version 5, and is not 
-#' supported in fetch_data. Seurat version 5 is required to use SCUBA, but 
-#' Seurat objects created in v4 and earlier are still backwards compatible 
-#' and may be loaded.
+#' "assays" in SingleCellExperiment objects.
+#' @param slot This parameter is added for backwards compatability with Seruat 
+#' v4 and earlier. This was deprecated in Seurat version 5.0.0. *If you have Seruat v5.0.0 or later, this should not be used. This parameter should also not be used for SingleCellExperiment objects or anndata objects and will not work at all for these object classes. Use* `layer` *instead.*
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If `NULL`, data will
 #' be returned for all cells in the object.
@@ -39,7 +37,8 @@ fetch_data <-
     object,
     vars = NULL,
     layer = NULL,
-    cells = NULL
+    cells = NULL,
+    ...
   ){
     UseMethod("fetch_data")
   }
@@ -73,15 +72,28 @@ fetch_data.Seurat <-
     object,
     vars = NULL,
     layer = NULL,
-    cells = NULL
+    cells = NULL,
+    slot = NULL
   ){
     # This is a wrapper for SeuratObject::FetchData
-    SeuratObject::FetchData(
-      object = object,
-      vars = vars,
-      later = layer,
-      cells = cells
-      )
+    if (!is.null(slot)){
+      # For backwards compatability with Seruat v4 and earlier, use `slot` 
+      # parameter instead of layer.
+      SeuratObject::FetchData(
+        object = object,
+        vars = vars,
+        slot = slot,
+        cells = cells
+        )
+    } else {
+      # Seurat v5 and later
+      SeuratObject::FetchData(
+        object = object,
+        vars = vars,
+        layer = layer,
+        cells = cells
+        )
+    }
   }
 
 #' @describeIn fetch_data SingleCellExperiment objects

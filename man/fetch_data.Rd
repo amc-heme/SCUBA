@@ -2,11 +2,14 @@
 % Please edit documentation in R/fetch_data.R
 \name{fetch_data}
 \alias{fetch_data}
+\alias{fetch_data.Seurat}
 \alias{fetch_data.SingleCellExperiment}
 \alias{fetch_data.AnnDataR6}
 \title{Fetch Data}
 \usage{
-fetch_data(object, vars = NULL, layer = NULL, cells = NULL)
+fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
+
+\method{fetch_data}{Seurat}(object, vars = NULL, layer = NULL, cells = NULL, slot = NULL)
 
 \method{fetch_data}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL)
 
@@ -14,9 +17,19 @@ fetch_data(object, vars = NULL, layer = NULL, cells = NULL)
 }
 \arguments{
 \item{object}{A single-cell object. Currently, Seurat, SingleCellExperiment,
-and anndata objects are supported.}
+and anndata objects are supported. If a Seruat object is passed to this
+generic, the FetchData method from the SeruatObject method will be ran.
+For all other objects, methods that replicate the behavior of FetchData in
+that object will be ran.}
 
-\item{vars}{A character vector with desired features, metadata variables, or reduction dimensions to pull from the object. By default, features are returned from the default assay (or "experiment" in SingleCellExperiment objects, or "modality" in anndata objects). To pull feature expression data, the assay to pull data from should be defined using the "key" of the assay before the feature name. To determine the key that corresponds to the assay to pull data from, run \code{all_keys}. For more information, see \url{our user guide}.}
+\item{vars}{A character vector with desired features, metadata variables, or
+reduction dimensions to pull from the object. By default, features are
+returned from the default assay (or "experiment" in SingleCellExperiment
+objects, or "modality" in anndata objects). To pull feature expression data,
+the assay to pull data from should be defined using the "key" of the assay
+before the feature name. To determine the key that corresponds to the assay
+to pull data from, run \code{all_keys}. For more information, see
+\url{our user guide}.}
 
 \item{layer}{For feature expression data, the layer to pull data from.
 Layers are referred to as "slots" in Seurat objects v4 and earlier, and
@@ -25,19 +38,25 @@ Layers are referred to as "slots" in Seurat objects v4 and earlier, and
 \item{cells}{A character vector of cells to include, as they are named in
 the object (i.e. according to colNames(object)). If \code{NULL}, data will
 be returned for all cells in the object.}
+
+\item{slot}{This parameter is added for backwards compatability with Seruat
+v4 and earlier. This was deprecated in Seurat version 5.0.0. \emph{If you have Seruat v5.0.0 or later, this should not be used. This should also not be used for SingleCellExperiment objects or anndata objects and will not work at all for these classes. Use} \code{layer} *\emph{instead.}}
 }
 \value{
-A data.frame with the requested \code{vars} as columns and the cells as rows.
+A data.frame with the requested \code{vars} as columns and the cells as
+rows.
 }
 \description{
-This function extends the behavior of SeuratObject's FetchData to other single-cell objects, allowing for expression data, metdadata, or reduction coordinates to be pulled using consistent syntax.
-}
-\details{
-For Seruat objects passed to this generic, the FetchData method from the SeruatObject method will be ran. For all other objects, methods added by SCUBA that replicate the behavior of FetchData will will be ran.
+This function extends the behavior of SeuratObject's FetchData to other
+single-cell objects, allowing for expression data, metdadata, or reduction
+coordinates to be pulled using consistent syntax.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{fetch_data(SingleCellExperiment)}: SingleCellExperiment Objects
+\item \code{fetch_data(Seurat)}: Seurat objects. This will run FetchData from the
+SeuratObject package.
+
+\item \code{fetch_data(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{fetch_data(AnnDataR6)}: anndata Objects
 

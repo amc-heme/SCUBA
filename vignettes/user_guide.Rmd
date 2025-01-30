@@ -5,6 +5,8 @@ output:
     theme:
       bslib: true
       version: 5
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -515,7 +517,7 @@ Below, feature expression data is pulled from raw counts (the `counts` slot).
 FetchData(
   AML_Seurat,
   vars = c("rna_FLT3", "rna_MEIS1"),
-  layer = "counts"
+  slot = "counts"
   ) |>
   head(10)
 ```
