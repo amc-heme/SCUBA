@@ -452,7 +452,13 @@ FetchData.AnnDataR6 <-
     cells = NULL,
     ...
   ){
-    library(reticulate)
+    
+    if (!requireNamespace("reticulate", quietly = TRUE)) {
+      stop(
+        "Package \"reticulate\" must be installed to use this function.",
+        call. = FALSE
+      )
+    }
 
     # Source fetch_anndata python script
     python_path =
