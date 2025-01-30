@@ -291,72 +291,6 @@ library(SCUBA)
      present in this document from rendering properly in pkgdown -->
 <!-- https://github.com/r-lib/pkgdown/issues/2720 -->
 <!--     ¯\_(ツ)_/¯     -->
-## Data Exploration
-
-### View Overall Metadata Present
-
-To view the names of all metadata metadata variables in the object, use `meta_varnames`.
-
-#### {.tabset .tabset-pills .special-tabs}
-
-##### Seurat
-
-```{r}
-meta_varnames(
-  AML_Seurat
-)
-```
-
-##### SingleCellExperiment
-
-```{r}
-meta_varnames(
-  AML_SCE()
-)
-```
-
-##### anndata
-
-```{r}
-meta_varnames(
-  AML_h5ad()
-)
-```
-
-### Summarize a Metadata Variable
-
-To explore a metadata variable in greater detail, use `unique_values`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames`.
-
-To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
-
-#### {.tabset .tabset-pills}
-
-##### Seurat
-
-```{r, class.source='seurat', class.output='seurat'}
-unique_values(
-  AML_Seurat,
-  var = "condensed_cell_type"
-)
-```
-
-##### SingleCellExperiment
-
-```{r, class.source=".sce", class.output=".sce"}
-unique_values(
-  AML_SCE(),
-  var = "condensed_cell_type"
-)
-```
-
-##### anndata
-
-```{r, class.source=".anndata", class.output=".anndata"}
-unique_values(
-  AML_h5ad(),
-  var = "condensed_cell_type"
-)
-```
 
 ## Data Access
 
@@ -650,6 +584,11 @@ fetch_metadata(
 
 ##### anndata
 
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>In anndata objects, `fetch_metadata` does not offer performance advantages over `fetch_data`.</p>
+</div>
+
 ```{r}
 fetch_metadata(
   AML_h5ad(),
@@ -659,16 +598,55 @@ fetch_metadata(
   head(10)
 ```
 
-<div class="callout callout-info">
-  <h4>Note</h4>
-  <p>In anndata objects, `fetch_metadata` does not offer performance advantages over `fetch_data`.</p>
-</div>
-
 <!-- Empty section header ends tabset and keeps content beneath from appearing
     under "anndata" tab -->
 #### {-}
 
-`fetch_metadata` can also be used to return the full table from the object. This is most useful in a programming context.
+If you are only requesting one variable, you can request results to be returned as a vector rather than as a data.frame. 
+
+For example, if you are attempting to view the unique cell types represented in an object, the output of `fetch_metadata` will need to be a vector. 
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_metadata(
+  AML_Seurat,
+  vars = "condensed_cell_type",
+  return_class = "vector"
+  ) |>
+  # The unique() function requires a vector as input
+  unique()
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_metadata(
+  AML_SCE(),
+  vars = "condensed_cell_type",
+  return_class = "vector"
+  ) |>
+  # The unique() function requires a vector as input
+  unique()
+```
+
+##### anndata
+
+```{r}
+fetch_metadata(
+  AML_h5ad(),
+  vars = "condensed_cell_type",
+  return_class = "vector"
+  ) |>
+  # The unique() function requires a vector as input
+  unique()
+```
+
+#### {-}
+
+In a programming context, it may also be useful to pull the full table. This can be done with `fetch_metadata` using the `full_table` parameter.
 
 #### {.tabset .tabset-pills}
 
@@ -769,6 +747,73 @@ fetch_data(
   vars = c("X_umap_1", "X_umap_2")
   ) |>
   head(10)
+```
+
+## Data Exploration
+
+### View Overall Metadata Present
+
+To view the names of all metadata metadata variables in the object, use `meta_varnames`.
+
+#### {.tabset .tabset-pills .special-tabs}
+
+##### Seurat
+
+```{r}
+meta_varnames(
+  AML_Seurat
+)
+```
+
+##### SingleCellExperiment
+
+```{r}
+meta_varnames(
+  AML_SCE()
+)
+```
+
+##### anndata
+
+```{r}
+meta_varnames(
+  AML_h5ad()
+)
+```
+
+### Summarize a Metadata Variable
+
+To explore a metadata variable in greater detail, use `unique_values`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames`.
+
+To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r, class.source='seurat', class.output='seurat'}
+unique_values(
+  AML_Seurat,
+  var = "condensed_cell_type"
+)
+```
+
+##### SingleCellExperiment
+
+```{r, class.source=".sce", class.output=".sce"}
+unique_values(
+  AML_SCE(),
+  var = "condensed_cell_type"
+)
+```
+
+##### anndata
+
+```{r, class.source=".anndata", class.output=".anndata"}
+unique_values(
+  AML_h5ad(),
+  var = "condensed_cell_type"
+)
 ```
 
 ## Data Visualization
