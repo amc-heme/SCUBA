@@ -195,7 +195,7 @@ details[open] .content{
     /* Shape like a true "tab", like those on manilla folders */
     border-radius: 10px 10px 0px 0px !important;
     /* Background when inactive: color above, but with reduced alpha'*/
-    background-color: #{$color + 'AA'} !important;
+    background-color: #{$color + '99'} !important;
     /* Text color: black when inactive, white when active */
     color: #000000 !important;
     }
@@ -223,7 +223,7 @@ div.tab-content{
 }
 ```
 
-```{js}
+```{js tab pills script, echo=FALSE}
 // Custom JavaScript for tabset/navbar panels
 // Panels have classes for each object type, that need to map to both the <div>
 // containing examples for each object, *and* the <button> tags in the tabset 
@@ -254,7 +254,6 @@ $(document).ready(function(){
 // });
 ```
 
-
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
 
 <!-- TODO: ADD NOTE ABOUT DIFFERENCES IN NAMING CONVENTIONS BETWEEN OBJECTS. ALSO ADD TABLE. -->
@@ -276,7 +275,7 @@ To view the names of all metadata metadata variables in the object, use `meta_va
 
 #### {.tabset .tabset-pills .special-tabs}
 
-##### Seurat Objects {#seurat_1 .seurat}
+##### Seurat Objects {.seurat}
 
 ```{r}
 meta_varnames(
@@ -305,7 +304,6 @@ meta_varnames(
 To explore a metadata variable in greater detail, use `unique_values`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames`.
 
 To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
-
 
 #### {.tabset .tabset-pills}
 
@@ -340,15 +338,15 @@ unique_values(
 
 ## Data Access
 
-The primary data access method in SCUBA is `FetchData`. FetchData is defined for Seurat objects in the `SeuratObject` package, using an S3 generic. SCUBA provides S3 methods that replicate FetchData's behavior in SingleCellExperiment and anndata objects.
+The primary data access method in SCUBA is `fetch_data`. This function replicates the behavior of `fetch_data` in the `SeuratObject` package. This function is an S3 generic that executes methods based on the object type. When a Seurat object is passed to `fetch_data`, the `fetch_data` method from the `SeuratObject` package is ran. When SingleCellExperiment or anndata objects are passed, methods from SCUBA are dispatched that replicate the behavior of `fetch_data` in these objects.
 
-FetchData can be used to fetch either metadata, reduction coordinates, or feature expression data, using a single parameter to specify the data to be fetched. FetchData will automatically identify the type of data matching the input and retrieve the data accordingly. 
+`fetch_data` can be used to fetch either feature expression data, metadata, or reduction coordinates, all of which are fetched using the same parameter, `vars`. For each entry passed to `vars`, `fetch_data` will automatically identify the type of data matching the input and retrieve the data accordingly. 
 
 ### Fetching Expression Data
 
-FetchData can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment objects and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter of `FetchData`. 
+`fetch_data` can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment objects and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter.
 
-Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, FetchData implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
+Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, `fetch_data` implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
 
 ```
 {"key" of the modality} + "_" + {feature name}
@@ -356,7 +354,7 @@ Features may have the same name across different assays/experiments/modalities. 
 
 To determine the key to enter for the desired modality, we provide the `all_keys()` utility function. The output is a named character vector, with names equal to the name of the modality, and values equal to the key to use.
 
-<!-- FetchData expression data examples -->
+<!-- fetch_data expression data examples -->
 #### {.tabset .tabset-pills}
 ##### Seurat Objects 
 
@@ -369,14 +367,11 @@ In this example object, use the "rna" key to pull data from the "RNA" assay.
 To pull gene expression data for FLT3, for example, you would pass "rna_FLT3" to `vars`.
 
 ```{r}
-# For Seurat objects, ensure the Seurat package is loaded before 
-# running FetchData
-suppressMessages(library(Seurat, quietly = TRUE, warn.conflicts = FALSE))
-
-FetchData(
+fetch_data(
   AML_Seurat,
   vars = "rna_FLT3"
   ) |>
+  # First 10 rows are shown for this example
   head(10)
 ```
 
@@ -391,10 +386,11 @@ In this example object, use the "RNA" key to pull data from the "RNA" assay.
 To pull gene expression data for FLT3, for example, you would pass "RNA_FLT3" to `vars`.
 
 ```{r}
-FetchData(
+fetch_data(
   AML_SCE(),
   vars = "RNA_FLT3"
   ) |>
+  # First 10 rows are shown for this example
   head(10)
 ```
 
@@ -409,10 +405,11 @@ By convention, the gene expression modality in anndata objects is named "X". In 
 To pull gene expression data for FLT3, for example, you would pass "X_FLT3" to `vars`.
 
 ```{r}
-FetchData(
+fetch_data(
   AML_h5ad(),
   vars = "X_FLT3"
   ) |>
+  # First 10 rows are shown for this example
   head(10)
 ```
 
@@ -421,7 +418,7 @@ FetchData(
 
 #### {.tabset .tabset-pills}
 
-Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to FetchData. 
+Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to fetch_data. 
 
 ##### Seurat Objects
 
@@ -436,11 +433,11 @@ available_genes <-
 available_genes |> 
   head(10)
 
-# Test if a gene is present in the RNA assay before passage to FetchData
+# Test if a gene is present in the RNA assay before passage to fetch_data
 "MEIS1" %in% available_genes
 
 # Request data for multiple features
-FetchData(
+fetch_data(
   AML_Seurat,
   vars = c("rna_FLT3", "rna_MEIS1")
   ) |>
@@ -460,11 +457,11 @@ available_genes <-
 available_genes |> 
   head(10)
 
-# Test if a gene is present in the RNA assay before passage to FetchData
+# Test if a gene is present in the RNA assay before passage to fetch_data
 "MEIS1" %in% available_genes
 
 # Request data for multiple features
-FetchData(
+fetch_data(
   AML_SCE(),
   vars = c("RNA_FLT3", "RNA_MEIS1")
   ) |>
@@ -483,11 +480,11 @@ available_genes <-
 available_genes |> 
   head(10)
 
-# Test if a gene is present in the RNA assay before passage to FetchData
+# Test if a gene is present in the RNA assay before passage to fetch_data
 "MEIS1" %in% available_genes
 
 # Request data for multiple features
-FetchData(
+fetch_data(
   AML_h5ad(),
   vars = c("X_FLT3", "X_MEIS1")
   ) |>
@@ -499,7 +496,7 @@ FetchData(
 
 ### Expression Data from Alternate Layers 
 
-By default, FetchData will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below.)
+By default, `fetch_data` will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below.)
 
 To pull data from alternate layers, use the `layer` parameter.
 
@@ -514,7 +511,7 @@ To pull data from alternate layers, use the `layer` parameter.
 Below, feature expression data is pulled from raw counts (the `counts` slot).
 
 ```{r}
-FetchData(
+fetch_data(
   AML_Seurat,
   vars = c("rna_FLT3", "rna_MEIS1"),
   slot = "counts"
@@ -524,7 +521,7 @@ FetchData(
 
 <div class="callout callout-info">
   <h4>Note</h4>
-  <p>In Seurat v4 and earlier, the `layer` parameter was named `slot`. If you are using a Seurat v4 or earlier object, you will need to use `slot` instead of `layer`. This difference does not affect SingleCellExperiment or anndata objects.</p>
+  <p>In Seurat v4 and earlier, the `layer` parameter was named `slot`. If you are using Seurat v4 or earlier, you will need to use `slot` instead of `layer`. This difference does not affect SingleCellExperiment or anndata objects: for these objects, only `layer` should be used. </p>
 </div>
 
 ##### SingleCellExperiment Objects
@@ -532,7 +529,7 @@ FetchData(
 Below, feature expression data is pulled from raw counts (the `counts` layer, referred to as the `counts` "assay" in SingleCellExperiment objects).
 
 ```{r}
-FetchData(
+fetch_data(
   AML_SCE(),
   vars = c("RNA_FLT3", "RNA_MEIS1"),
   layer = "counts"
@@ -542,13 +539,13 @@ FetchData(
 
 ##### anndata Objects
 
-If the layer parameter is undefined for anndata objects, `FetchData` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
+If the layer parameter is undefined for anndata objects, `fetch_data` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
 
 In the example object below, normalized counts are stored in X, and raw counts are stored in an alternate layer named "counts". 
 
 ```{r}
 # Raw counts in "counts"
-FetchData(
+fetch_data(
   AML_h5ad(),
   vars = c("X_FLT3", "X_MEIS1"),
   layer = "counts"
@@ -556,30 +553,23 @@ FetchData(
   head(10)
 
 # Normalized counts in X
-FetchData(
+fetch_data(
   AML_h5ad(),
   vars = c("X_FLT3", "X_MEIS1")
   ) |>
   head(10)
 ```
 
-<!-- {-} Ends tabset interface -->
-#### {-}
+### Fetching Metadata with `fetch_data`
 
-### Fetching Metadata
-
-To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of FetchData. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and the input syntax does not vary based on whether the variable is categorical or numeric.
+To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of `fetch_data`. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and the input syntax does not vary based on whether the variable is categorical or numeric.
 
 #### {.tabset .tabset-pills}
 
 ##### Seurat Objects
 
 ```{r}
-# For Seurat objects, ensure the Seurat package is loaded before 
-# running FetchData
-library(Seurat, quietly = TRUE)
-
-FetchData(
+fetch_data(
   AML_Seurat,
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
   ) |>
@@ -590,7 +580,7 @@ FetchData(
 ##### SingleCellExperiment Objects
 
 ```{r}
-FetchData(
+fetch_data(
   AML_SCE(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
   ) |>
@@ -601,7 +591,7 @@ FetchData(
 ##### anndata Objects
 
 ```{r}
-FetchData(
+fetch_data(
   AML_h5ad(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
   ) |>
@@ -609,7 +599,71 @@ FetchData(
   head(10)
 ```
 
-#### {-}
+### Fetching Reduction Coordinates with `fetch_data`
+
+In a similar manner to expression data, reduction coordinates to fetch are pased to `vars` using a "key" and underscore system. In this case, you would enter the key of the reduction to use, and an integer specifying the dimension of the reduction to pull from.
+
+```
+{"key" of the reduction} + "_" + {dimension}
+```
+
+As with assays/modalities, run `all_keys` to see the key corresponding to the reduction you would like to pull data from. Examples for each object type are provided below.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat Objects
+
+From running `all_keys()`, the key of the UMAP reduction in this object is "UMAP_". 
+
+```{r}
+all_keys(AML_Seurat)
+```
+
+To fetch the first and second dims, pass "UMAP_1" and "UMAP_2" to `vars`.
+
+```{r}
+fetch_data(
+  AML_Seurat,
+  vars = c("UMAP_1", "UMAP_2")
+  ) |>
+  head(10)
+```
+
+##### SingleCellExperiment Objects
+
+From running `all_keys()`, the key of the UMAP reduction in this object is "UMAP_". 
+
+```{r}
+all_keys(AML_SCE())
+```
+
+To fetch the first and second dims, pass "UMAP_1" and "UMAP_2" to `vars`.
+
+```{r}
+fetch_data(
+  AML_SCE(),
+  vars = c("UMAP_1", "UMAP_2")
+  ) |>
+  head(10)
+```
+
+##### anndata Objects
+
+From running `all_keys()`, the key of the UMAP reduction in this object is "X_umap_". 
+
+```{r}
+all_keys(AML_h5ad())
+```
+
+To fetch the first and second dims, pass "X_umap_1" and "X_umap_2" to `vars`.
+
+```{r}
+fetch_data(
+  AML_h5ad(),
+  vars = c("X_umap_1", "X_umap_2")
+  ) |>
+  head(10)
+```
 
 ## Data Visualization
 
