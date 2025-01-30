@@ -2,8 +2,8 @@
 #'
 #' Returns object metadata for a specified set of cells.
 #'
-#' @param object a single-cell object. Currently, Seurat and
-#' SingleCellExperiment objects are supported.
+#' @param object a single-cell object. Currently, Seurat,
+#' SingleCellExperiment, and anndata objects are supported.
 #' @param vars metadata variables to pull from object. This must be defined,
 #' unless "full_table" is set to \code{TRUE}.
 #' @param cells cells to include in the returned metadata. If unspecified,
@@ -13,7 +13,6 @@
 #' @param return_class class of data returned. Set to "dataframe" by default to
 #' return a data.frame, and may also be set to "vector" to yield a vector of
 #' values. This is ignored if "full_table" is set to \code{TRUE}.
-#' @param ... Currently unused.
 #'
 #' @rdname fetch_metadata
 #'
@@ -24,8 +23,7 @@ fetch_metadata <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe",
-    ...
+    return_class = "dataframe"
   ){
     UseMethod("fetch_metadata")
   }

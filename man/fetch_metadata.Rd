@@ -12,8 +12,7 @@ fetch_metadata(
   vars = NULL,
   cells = NULL,
   full_table = FALSE,
-  return_class = "dataframe",
-  ...
+  return_class = "dataframe"
 )
 
 \method{fetch_metadata}{Seurat}(
@@ -41,8 +40,8 @@ fetch_metadata(
 )
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
+\item{object}{a single-cell object. Currently, Seurat,
+SingleCellExperiment, and anndata objects are supported.}
 
 \item{vars}{metadata variables to pull from object. This must be defined,
 unless "full_table" is set to \code{TRUE}.}
@@ -56,8 +55,6 @@ default)}
 \item{return_class}{class of data returned. Set to "dataframe" by default to
 return a data.frame, and may also be set to "vector" to yield a vector of
 values. This is ignored if "full_table" is set to \code{TRUE}.}
-
-\item{...}{Currently unused.}
 }
 \description{
 Returns object metadata for a specified set of cells.

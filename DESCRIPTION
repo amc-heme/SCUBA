@@ -16,7 +16,7 @@ Imports:
     dplyr,
     ggplot2,
     rlang,
-    Seurat,
+    Seurat (>= 5.0.0),
     shiny,
     SingleCellExperiment,
     stringr,
