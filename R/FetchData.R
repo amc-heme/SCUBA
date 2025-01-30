@@ -469,10 +469,10 @@ FetchData.AnnDataR6 <-
         package = "SCUBA"
         )
 
-    reticulate::source_python(python_path)
+    py_objs <- reticulate::py_run_file(python_path)
 
     # Runs python fetch_anndata function and returns the resulting data.frame
-    py$fetch_anndata(
+    py_objs$fetch_anndata(
       obj = object,
       fetch_vars = vars,
       cells = cells,

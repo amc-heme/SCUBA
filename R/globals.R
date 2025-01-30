@@ -1,3 +1,0 @@
-globalVariables(c(
-  "py"
-))
