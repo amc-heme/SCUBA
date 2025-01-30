@@ -29,7 +29,8 @@ FetchData.SingleCellExperiment <-
     object,
     vars,
     layer = NULL,
-    cells = NULL
+    cells = NULL,
+    ...
     ){
     # 1. Set default values
     # Layer (assay): fill with default if null (via default_layer method)
@@ -433,7 +434,7 @@ FetchData.SingleCellExperiment <-
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
-#'
+#' 
 #' @return A data.frame object containing the requested expression
 #' data or metadata.
 #'
@@ -446,7 +447,8 @@ FetchData.AnnDataR6 <-
     object,
     vars,
     layer = NULL,
-    cells = NULL
+    cells = NULL,
+    ...
   ){
     library(reticulate)
 

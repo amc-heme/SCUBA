@@ -26,7 +26,8 @@ default_layer <-
 #' @export
 default_layer.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(
@@ -44,7 +45,8 @@ default_layer.default <-
 #' @export
 default_layer.Seurat <-
   function(
-    object
+    object,
+    ...
   ){
     # Seurat objects: "data"
     "data"
@@ -57,7 +59,8 @@ default_layer.Seurat <-
 #' @export
 default_layer.SingleCellExperiment <-
   function(
-    object
+    object,
+    ...
   ){
     # SingleCellExperiment: default layer is "logcounts"
     "logcounts"
@@ -71,7 +74,8 @@ default_layer.SingleCellExperiment <-
 #' @export
 default_layer.AnnDataR6 <-
   function(
-    object
+    object,
+    ...
   ){
     NULL
   }

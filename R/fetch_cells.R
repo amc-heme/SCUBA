@@ -37,7 +37,8 @@ fetch_cells.default <-
   function(
     object,
     meta_var,
-    meta_levels
+    meta_levels,
+    ...
   ){
     warning(
       paste0(
@@ -55,7 +56,8 @@ fetch_cells.Seurat <-
   function(
     object,
     meta_var,
-    meta_levels
+    meta_levels,
+    ...
   ){
     # Test if meta_var is a categorical variable. Numeric variables are not
     # supported
@@ -82,7 +84,8 @@ fetch_cells.SingleCellExperiment <-
   function(
     object,
     meta_var,
-    meta_levels
+    meta_levels,
+    ...
   ){
     # Test if meta_var is a categorical variable. Numeric variables are not
     # supported
@@ -109,7 +112,8 @@ fetch_cells.AnnDataR6 <-
   function(
     object,
     meta_var,
-    meta_levels
+    meta_levels,
+    ...
   ){
     # Test if meta_var is a categorical variable. Numeric variables are not
     # supported
