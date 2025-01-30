@@ -602,6 +602,9 @@ fetch_metadata(
     under "anndata" tab -->
 #### {-}
 
+<!-- Return class demo -->
+<!-- Not considered to be useful. This example is covered by unique_values. -->
+<!--
 If you are only requesting one variable, you can request results to be returned as a vector rather than as a data.frame. 
 
 For example, if you are attempting to view the unique cell types represented in an object, the output of `fetch_metadata` will need to be a vector. 
@@ -645,8 +648,9 @@ fetch_metadata(
 ```
 
 #### {-}
+-->
 
-In a programming context, it may also be useful to pull the full table. This can be done with `fetch_metadata` using the `full_table` parameter.
+In a programming context, it may be useful to pull the full table. This can be done with `fetch_metadata` using the `full_table` parameter.
 
 #### {.tabset .tabset-pills}
 
@@ -751,9 +755,11 @@ fetch_data(
 
 ## Data Exploration
 
+SCUBA provides several utility functions that facilitate exploration of objects before analysis.
+
 ### View Overall Metadata Present
 
-To view the names of all metadata metadata variables in the object, use `meta_varnames`.
+It is often useful to view the names of all metadata variables in the object, either as a first pass when exploring an object, or to recall the name of a metadata variable before passage to `fetch_data` or `fetch_metadata`. This is done via `meta_varnames`.
 
 #### {.tabset .tabset-pills .special-tabs}
 
