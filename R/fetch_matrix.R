@@ -67,7 +67,6 @@ fetch_matrix.AnnDataR6 <-
   function(
     object,
     matrix_location,
-    densify = FALSE,
     ...
   ){
     if (length(matrix_location) == 1){
