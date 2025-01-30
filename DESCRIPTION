@@ -13,13 +13,10 @@ Depends:
     R (>= 3.50)
 Imports: 
     cowplot,
-    dplyr,
     ggplot2,
     rlang,
     Seurat,
-    shiny,
     SingleCellExperiment,
-    stringr,
     HDF5Array,
     patchwork,
     RColorBrewer,
