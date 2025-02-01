@@ -281,6 +281,7 @@ $(document).ready(function(){
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
 
 <!-- TODO: ADD NOTE ABOUT DIFFERENCES IN NAMING CONVENTIONS BETWEEN OBJECTS. ALSO ADD TABLE. -->
+<!-- TODO: DON'T FORGET TO ADD THE FETCH_REDUCTION STUFF -->
 
 ```{r}
 # Load package
@@ -824,4 +825,264 @@ unique_values(
 
 ## Data Visualization
 
+The data access functions mentioned in the previous section can be applied downstream to create new plotting functions for single-cell data. Functions created with SCUBA generics will be flexible for object classes by default. 
 
+In the example below, a function will be created to plot density plots for a feature. The function will accept a feature and a metadata variable and will fetch data for the entered feature or variable via SCUBA access functions. Plotting code downstream will create the density plots. 
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>The example below will follow principles of incremental development. Each code block will show a "snapshot" of the development process, where a progressively complex output will be created. Intermediates may be ugly and/or uninterperetable, but they will be corrected in subsequent steps.</p>
+</div>
+
+
+```{r, results=FALSE}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+```
+
+```{r, include = FALSE, eval=FALSE}
+#feature_display <- "GAPDH"
+
+#dplyr::rename(feature_display = feature)
+```
+
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+```
+
+After fetching the data, we will make a basic density plot. In this stage, it will be for the full object and not split by a metadata variable.
+
+Make sure you have loaded ggplot2 before proceeding.
+
+```{r, results=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+```
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]])
+    ) +
+    geom_density()
+
+plot
+```
+
+Next, we will add a fill attribute based on the metadata variable entered. 
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density()
+
+plot
+```
+
+For this plot to be interperetable, the curves will need to be "split" out into separate plots. This is done with `facet_wrap`.
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density() +
+    ggplot2::facet_wrap(
+        vars(.data[[metadata]]),
+        # Set a two-column layout
+        ncol = 2
+    )
+
+plot
+```
+
+Next, plot visuals are improved. `theme_cowplot` from the `cowplot` package is applied. This removes grids from the plot region, and adds axes on the left and bottom of the plot.
+
+The following additional changes will be added with a custom theme:
+
+- Labels for each facet are horizontally centered.
+- The legend is removed from the plot.
+- The gray box behind facet labels is made transparent using `strip.background = element_rect(fill = "#FFFFFF00")`. The last two digits in the fill color "#FFFFFF00" make the background transparent by setting the [alpha value of the hex code color](https://www.digitalocean.com/community/tutorials/css-hex-code-colors-alpha-values#adding-an-alpha-value-to-css-hex-codes) to zero. 
+- The text is made bold and shrank via `strip.text`.
+
+```{r}
+if (!require("cowplot", quietly = TRUE)){
+  install.packages("cowplot")
+}
+```
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density() +
+    ggplot2::facet_wrap(
+      vars(.data[[metadata]]),
+      ncol = 2
+      ) +
+    cowplot::theme_cowplot() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      legend.position = "none",
+      strip.background = element_rect(fill = "#FFFFFF00"),
+      strip.text = element_text(face = "bold", size = rel(0.8))
+      )
+
+plot
+```
+
+At this point, the plot is in a finished form and is ready to be packaged in a function.
+
+
+<!-- COPY THE *ABOVE* AND PLACE IN A FUNCTION -->
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density() #+
+    # ggplot2::facet_wrap(
+    #     vars(.data[[metadata]]),
+    #     ncol = 2
+    # ) +
+    # Add this when it's time
+    # ggtitle(title) +
+    # cowplot::theme_cowplot() +
+    # theme(
+    #     plot.title = element_text(hjust = 0.5),
+    #     legend.position = "none", 
+    #     strip.background = element_rect(fill = "#FFFFFF00"),
+    #     strip.text = element_text(face = "bold", size = rel(0.8))
+    #     )
+
+plot
+```
+
+### {.tabset .tabset-pills}
+
+#### Seurat
+
+```{r, class.source=".seurat", class.output=".seurat"}
+data <- 
+  fetch_data(
+    # Seurat object
+    AML_Seurat,
+    vars = c("rna_GAPDH",
+             "condensed_cell_type"
+             )
+    ) |>
+  dplyr::rename("GAPDH" = "rna_GAPDH")
+```
+
+#### SingleCellExperiment
+
+```{r, class.source=".sce", class.output=".sce"}
+data <-
+  fetch_data(
+    # Seurat object
+    AML_SCE(),
+    vars = c("RNA_GAPDH",
+             "condensed_cell_type"
+             )
+    ) |>
+  dplyr::rename("GAPDH" = "RNA_GAPDH")
+```
+
+#### anndata
+
+```{r, class.source=".anndata", class.output=".anndata"}
+data <-
+  fetch_data(
+    AML_h5ad(),
+    vars = c("X_GAPDH",
+             "condensed_cell_type"
+             )
+    ) |>
+  dplyr::rename("GAPDH" = "X_GAPDH")
+```
