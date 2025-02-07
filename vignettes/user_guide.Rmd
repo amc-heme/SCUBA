@@ -278,10 +278,29 @@ $(document).ready(function(){
 // });
 ```
 
+## Introduction
+
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
 
-<!-- TODO: ADD NOTE ABOUT DIFFERENCES IN NAMING CONVENTIONS BETWEEN OBJECTS. ALSO ADD TABLE. -->
-<!-- TODO: DON'T FORGET TO ADD THE FETCH_REDUCTION STUFF -->
+### Naming Conventions
+
+Single-cell object classes use different terms to refer to the the same or similar concepts. For simplicity, this tutorial will use one term for each concept. The concepts mentioned in the tutorial are given below, and for each concept, the terms used for each object class are mentioned, along with the term that will be used for this tutorial.
+
+- **Sequencing modalities**: the data structure used to store each type of single-cell data (i.e. scRNA-seq, surface protein measurements, ATAC-seq, etc.) is referred to as an "assay" in Seurat, an "experiment" in SingleCellExperiment, and a "modality" in anndata. This tutorial will use *"modality"*.
+- **Data structure for transformed data**: in Seurat objects, the structure used for storing raw counts, normalized counts, and other transformations is known as a "slot". In SingleCellExperiment, this is referred to as an "assay", and in anndata, a "layer". This tutorial will use *"layer"*.
+
+
+<!-- TODO: DON'T FORGET TO ADD THE FETCH_REDUCTION STUFF 
+  Also describe reduction_dimnames
+-->
+<!-- TODO: ADD fetch_cells STUFF -->
+<!-- TODO
+  In plotting vignette, discuss the following utility functions if applicable, otherwise link to reference docs
+  default_layer
+  default_reduction
+  default_slot
+  get_all_cells
+-->
 
 ```{r}
 # Load package
@@ -825,15 +844,21 @@ unique_values(
 
 ## Data Visualization
 
-The data access functions mentioned in the previous section can be applied downstream to create new plotting functions for single-cell data. Functions created with SCUBA generics will be flexible for object classes by default. 
+The data access functions mentioned in the previous section can be applied downstream to create new plotting functions for single-cell data. Functions created with SCUBA generics will be flexible across object classes by default. 
 
-In the example below, a function will be created to plot density plots for a feature. The function will accept a feature and a metadata variable and will fetch data for the entered feature or variable via SCUBA access functions. Plotting code downstream will create the density plots. 
+The general workflow of single-cell data visualization functions is as follows:
 
-<div class="callout callout-info">
-  <h4>Note</h4>
-  <p>The example below will follow principles of incremental development. Each code block will show a "snapshot" of the development process, where a progressively complex output will be created. Intermediates may be ugly and/or uninterperetable, but they will be corrected in subsequent steps.</p>
-</div>
+- Data access 
+- If applicable, statistics (average expression, percent expression, number of cells in group, etc.)
+- Visualization code
 
+This section will demonstrate how to use SCUBA functions to simplify data access. In the example below, a function will be created to plot density plots for a feature. The function will accept a feature and a metadata variable and will fetch data for the entered feature or variable via SCUBA access functions. Plotting code downstream will create the density plots. 
+
+The example below will follow principles of incremental development. Each code block will show a "snapshot" of the development process, where a progressively complex output will be created. Some intermediates are ugly and/or difficult to interpret, but they will be corrected in subsequent steps.
+
+First off, we define the parameters to use for the function. To facilitate development, the parameters are initialized at the top of the script as variables. The function will be initially written as a script that uses these variables, and the code beneath these variable declarations will be moved into a function at the end of the process.
+
+The variables initialized include the object to use, a feature to enter for the plot, and a metadata variable. These are set to the test object provided with the SCUBA package, and a feature and metadata variable present in that object. It does not matter which value is used here as long as it exists. When developing your own functions, these values could reflect a test case for the function you are developing.
 
 ```{r, results=FALSE}
 object <- AML_Seurat
@@ -846,7 +871,6 @@ metadata <- "condensed_cell_type"
 
 #dplyr::rename(feature_display = feature)
 ```
-
 
 ```{r}
 object <- AML_Seurat
@@ -864,13 +888,19 @@ data <-
     )
 ```
 
-After fetching the data, we will make a basic density plot. In this stage, it will be for the full object and not split by a metadata variable.
+After fetching the data, we will make a basic density plot using `geom_density()` from the ggplot2 package. In this stage, it will be for the full object and not split by a metadata variable.
 
 Make sure you have loaded ggplot2 before proceeding.
 
 ```{r, results=FALSE, message=FALSE, warning=FALSE}
+if (!require("ggplot2", quietly = TRUE)){
+  install.packages("ggplot2")
+}
+
 library(ggplot2)
 ```
+
+The use of `.data[[]]` in the `aes()` specification allows us to supply the feature as a character vector to ggplot. Using `.data[[]]` allows the script to accept any feature without needing to make changes to the code, or having to rename the column corresponding to the feature in the output of `fetch_data`.
 
 ```{r}
 object <- AML_Seurat
@@ -896,7 +926,7 @@ plot <- ggplot(
 plot
 ```
 
-Next, we will add a fill attribute based on the metadata variable entered. 
+Next, we will add a fill attribute based on the metadata variable entered. The metadata variable is supplied to the fill attribute, again using `.data[[]]`.
 
 ```{r}
 object <- AML_Seurat
@@ -966,6 +996,8 @@ The following additional changes will be added with a custom theme:
 if (!require("cowplot", quietly = TRUE)){
   install.packages("cowplot")
 }
+
+library(cowplot)
 ```
 
 ```{r}
@@ -1005,84 +1037,85 @@ plot
 
 At this point, the plot is in a finished form and is ready to be packaged in a function.
 
+At this stage, simply transfer the variables defined at the beginnng to the function as parameters, and move the subsequent code into the function.
 
-<!-- COPY THE *ABOVE* AND PLACE IN A FUNCTION -->
 ```{r}
-object <- AML_Seurat
-feature <- "rna_GAPDH"
-metadata <- "condensed_cell_type"
+# Transfer variables to parameters
+# object <- AML_Seurat
+# feature <- "rna_GAPDH"
+# metadata <- "condensed_cell_type"
 
-data <- 
-  fetch_data(
+density_plot <-
+  function(
     object,
-    # variables to fetch, the feature and metadata variable
-    vars = 
-      c(feature,
-        metadata
+    feature,
+    metadata
+    ){
+    data <- 
+      fetch_data(
+        object,
+        # variables to fetch, the feature and metadata variable
+        vars = 
+          c(feature,
+            metadata
+            )
         )
-    )
-
-plot <- ggplot(
-    data = data,
-    aes(x = .data[[feature]], fill = .data[[metadata]])
-    ) +
-    geom_density() #+
-    # ggplot2::facet_wrap(
-    #     vars(.data[[metadata]]),
-    #     ncol = 2
-    # ) +
-    # Add this when it's time
-    # ggtitle(title) +
-    # cowplot::theme_cowplot() +
-    # theme(
-    #     plot.title = element_text(hjust = 0.5),
-    #     legend.position = "none", 
-    #     strip.background = element_rect(fill = "#FFFFFF00"),
-    #     strip.text = element_text(face = "bold", size = rel(0.8))
-    #     )
-
-plot
+    
+    plot <- ggplot(
+        data = data,
+        aes(x = .data[[feature]], fill = .data[[metadata]])
+        ) +
+        geom_density() +
+        ggplot2::facet_wrap(
+          vars(.data[[metadata]]),
+          ncol = 2
+          ) +
+        cowplot::theme_cowplot() +
+        theme(
+          plot.title = element_text(hjust = 0.5),
+          legend.position = "none",
+          strip.background = element_rect(fill = "#FFFFFF00"),
+          strip.text = element_text(face = "bold", size = rel(0.8))
+          )
+    
+    plot
+    }
 ```
+
+Now we call the function on each supported object class. The plots have almost identical visuals, except for differences in assay names when entering features.
 
 ### {.tabset .tabset-pills}
 
 #### Seurat
 
 ```{r, class.source=".seurat", class.output=".seurat"}
-data <- 
-  fetch_data(
-    # Seurat object
-    AML_Seurat,
-    vars = c("rna_GAPDH",
-             "condensed_cell_type"
-             )
-    ) |>
-  dplyr::rename("GAPDH" = "rna_GAPDH")
+density_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH",
+  metadata = "condensed_cell_type"
+  )
 ```
 
 #### SingleCellExperiment
 
 ```{r, class.source=".sce", class.output=".sce"}
-data <-
-  fetch_data(
-    # Seurat object
-    AML_SCE(),
-    vars = c("RNA_GAPDH",
-             "condensed_cell_type"
-             )
-    ) |>
-  dplyr::rename("GAPDH" = "RNA_GAPDH")
+density_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH",
+  metadata = "condensed_cell_type"
+  )
 ```
 
 #### anndata
 
 ```{r, class.source=".anndata", class.output=".anndata"}
-data <-
-  fetch_data(
-    AML_h5ad(),
-    vars = c("X_GAPDH",
-             "condensed_cell_type"
-             )
-    ) |>
-  dplyr::rename("GAPDH" = "X_GAPDH")
+density_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH",
+  metadata = "condensed_cell_type"
+  )
 ```
+
+### {-}
+
+The process described here can be applied to the creation of any other single-cell visualization that uses expression data, metadata, or reduction coordinates. SCUBA facilitates data access in visualization functions, allowing users to access data through a call to an access function instead of doing object-specific data wrangling. Any R visualization library can be used downstream of access functions, for example [ggiraph](https://davidgohel.github.io/ggiraph/) or [plotly](https://plotly.com/r/) for interactive plots. Any plot created using SCUBA's data access functions will work with any of the object classes supported by SCUBA. SCUBA will be expanded in the future to include functions for summary statistics, facilitating the creation of single-cell plots. 
