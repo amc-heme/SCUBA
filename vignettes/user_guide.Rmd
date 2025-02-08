@@ -2,6 +2,7 @@
 title: "User Guide"
 output: 
   html_document:
+    df_print: paged
     theme:
       bslib: true
       version: 5
@@ -19,6 +20,10 @@ knitr::opts_chunk$set(echo = TRUE)
   --rs_blue: #217CA1;
 }
 
+/* Increase margin before h4 headers */
+h4 {
+  margin-top: 20px;
+}
 
 /* Centers text and block elements */
 .center{
@@ -290,16 +295,17 @@ Single-cell object classes use different terms to refer to the the same or simil
 - **Data structure for transformed data**: in Seurat objects, the structure used for storing raw counts, normalized counts, and other transformations is known as a "slot". In SingleCellExperiment, this is referred to as an "assay", and in anndata, a "layer". This tutorial will use *"layer"*.
 
 
-<!-- TODO: DON'T FORGET TO ADD THE FETCH_REDUCTION STUFF 
-  Also describe reduction_dimnames
--->
+<!-- TODone: DON'T FORGET TO ADD THE FETCH_REDUCTION STUFF -->
 <!-- TODO: ADD fetch_cells STUFF -->
 <!-- TODO
   In plotting vignette, discuss the following utility functions if applicable, otherwise link to reference docs
+  Consider demonstrating each in separate plotting functions 
+  (reduction_dimnames won't be used in the ridge plot example)
   default_layer
   default_reduction
   default_slot
   get_all_cells
+  reduction_dimnames
 -->
 
 ```{r}
@@ -469,7 +475,7 @@ fetch_data(
 
 ### Expression Data from Alternate Layers 
 
-By default, `fetch_data` will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below.)
+By default, `fetch_data` will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below).
 
 To pull data from alternate layers, use the `layer` parameter.
 
@@ -576,39 +582,41 @@ fetch_data(
     under "anndata" tab -->
 #### {-}
 
+#### `fetch_metadata` Generic 
+
 If you are retrieving just metadata from very large single-cell objects, we offer a `fetch_metadata` method that is faster than using `fetch_data`. As with `fetch_data`, desired metadata variables are passed to `vars`.
-
-#### {.tabset .tabset-pills}
-
-##### Seurat
-
-```{r}
-fetch_metadata(
-  AML_Seurat,
-  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
-  ) |>
-  # head is used in this example since metadata will be returned for all cells
-  head(10)
-```
-
-##### SingleCellExperiment
-
-```{r}
-fetch_metadata(
-  AML_SCE(),
-  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
-  ) |>
-  # head is used in this example since metadata will be returned for all cells
-  head(10)
-```
-
-##### anndata
 
 <div class="callout callout-info">
   <h4>Note</h4>
   <p>In anndata objects, `fetch_metadata` does not offer performance advantages over `fetch_data`.</p>
 </div>
 
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_metadata(
+  AML_Seurat,
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_metadata(
+  AML_SCE(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
 ```{r}
 fetch_metadata(
   AML_h5ad(),
@@ -618,57 +626,9 @@ fetch_metadata(
   head(10)
 ```
 
-<!-- Empty section header ends tabset and keeps content beneath from appearing
-    under "anndata" tab -->
+<!-- Empty section header ends tabset and provides a slight margin between 
+    the tabset and the next section header -->
 #### {-}
-
-<!-- Return class demo -->
-<!-- Not considered to be useful. This example is covered by unique_values. -->
-<!--
-If you are only requesting one variable, you can request results to be returned as a vector rather than as a data.frame. 
-
-For example, if you are attempting to view the unique cell types represented in an object, the output of `fetch_metadata` will need to be a vector. 
-
-#### {.tabset .tabset-pills}
-
-##### Seurat
-
-```{r}
-fetch_metadata(
-  AML_Seurat,
-  vars = "condensed_cell_type",
-  return_class = "vector"
-  ) |>
-  # The unique() function requires a vector as input
-  unique()
-```
-
-##### SingleCellExperiment
-
-```{r}
-fetch_metadata(
-  AML_SCE(),
-  vars = "condensed_cell_type",
-  return_class = "vector"
-  ) |>
-  # The unique() function requires a vector as input
-  unique()
-```
-
-##### anndata
-
-```{r}
-fetch_metadata(
-  AML_h5ad(),
-  vars = "condensed_cell_type",
-  return_class = "vector"
-  ) |>
-  # The unique() function requires a vector as input
-  unique()
-```
-
-#### {-}
--->
 
 In a programming context, it may be useful to pull the full table. This can be done with `fetch_metadata` using the `full_table` parameter.
 
@@ -677,34 +637,37 @@ In a programming context, it may be useful to pull the full table. This can be d
 ##### Seurat
 
 ```{r}
-fetch_metadata(
-  AML_Seurat,
-  full_table = TRUE
-  ) |>
-  # head is used in this example since metadata will be returned for all cells
-  head(10)
+table <- 
+  fetch_metadata(
+    AML_Seurat,
+    full_table = TRUE
+    )
+
+table[1:10, 1:5]
 ```
 
 ##### SingleCellExperiment
 
 ```{r}
-fetch_metadata(
-  AML_SCE(),
-  full_table = TRUE
-  ) |>
-  # head is used in this example since metadata will be returned for all cells
-  head(10)
+table <-
+  fetch_metadata(
+    AML_SCE(),
+    full_table = TRUE
+    )
+
+table[1:10, 1:5]
 ```
 
 ##### anndata
 
 ```{r}
-fetch_metadata(
-  AML_h5ad(),
-  full_table = TRUE
-  ) |>
-  # head is used in this example since metadata will be returned for all cells
-  head(10)
+table <-
+  fetch_metadata(
+    AML_h5ad(),
+    full_table = TRUE
+    )
+
+table[1:10, 1:5]
 ```
 
 ### Fetching Reduction Coordinates
@@ -772,6 +735,59 @@ fetch_data(
   ) |>
   head(10)
 ```
+#### {-}
+
+<br>
+
+#### `fetch_reduction` Generic
+
+As with metadata, we provide a separate generic, `fetch_reduction`, that is faster than using `fetch_data` when retrieving just reduction coordinates from very large single-cell objects. Performance gains are observed in Seurat and SingleCellExperiment objects, but not in anndata objects (performance is the same as `fetch_data` for this object class).
+
+The syntax for pulling reduction coordinates varies slightly from `fetch_data`. Instead of entering the reduction name and the dimensions together an underscore, this information is supplied to separate parameters.
+
+The key of reduction to pull data from is passed to `reduction`, and the dimensions from which to pull coordinates are passed in numeric format to `dims`. Any number of dimensions can be passed, but in most cases, two dimensions are pulled. If `dims` is not specified, the first and second dimensions of the specified reduction are returned.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_reduction(
+  AML_Seurat,
+  reduction = "umap",
+  dims = c(1, 2)
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_reduction(
+  AML_SCE(),
+  reduction = "UMAP",
+  dims = c(1, 2)
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
+```{r}
+fetch_reduction(
+  AML_h5ad(),
+  reduction = "X_umap",
+  dims = c(1, 2)
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+<!-- Empty section header ends tabset and keeps content beneath from appearing
+    under "anndata" tab -->
+#### {-}
 
 ## Data Exploration
 
