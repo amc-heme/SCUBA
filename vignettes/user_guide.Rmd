@@ -303,10 +303,11 @@ Single-cell object classes use different terms to refer to the the same or simil
   (reduction_dimnames won't be used in the ridge plot example)
   default_layer
   default_reduction
-  default_slot
   get_all_cells
   reduction_dimnames
 -->
+
+Please ensure you have loaded the SCUBA package before continuing. See [here](https://amc-heme.github.io/SCUBA/index.html#installation) for instructions to install SCUBA.
 
 ```{r}
 # Load package
@@ -320,15 +321,15 @@ library(SCUBA)
 
 ## Data Access
 
-The primary data access method in SCUBA is `fetch_data`. This function replicates the behavior of `fetch_data` in the `SeuratObject` package. This function is an S3 generic that executes methods based on the object type. When a Seurat object is passed to `fetch_data`, the `fetch_data` method from the `SeuratObject` package is ran. When SingleCellExperiment or anndata objects are passed, methods from SCUBA are dispatched that replicate the behavior of `fetch_data` in these objects.
+The primary data access method in SCUBA is `fetch_data()`. This function replicates the behavior of `FetchData()` in the `SeuratObject` package. This function is an S3 generic that executes methods based on the object type. When a Seurat object is passed to `fetch_data()`, the `FetchData` method from the `SeuratObject` package is ran. When SingleCellExperiment or anndata objects are passed, methods from SCUBA are dispatched that replicate the behavior of `FetchData` in these objects.
 
-`fetch_data` can be used to fetch either feature expression data, metadata, or reduction coordinates, all of which are fetched using the same parameter, `vars`. For each entry passed to `vars`, `fetch_data` will automatically identify the type of data matching the input and retrieve the data accordingly. 
+`fetch_data()` can be used to fetch either feature expression data, metadata, or reduction coordinates, all of which are fetched using the same parameter, `vars`. For each entry passed to `vars`, `fetch_data()` will automatically identify the type of data matching the input and retrieve the data accordingly. 
 
 ### Fetching Expression Data
 
-`fetch_data` can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter.
+`fetch_data()` can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter.
 
-Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, `fetch_data` implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
+Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, `fetch_data()` implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
 
 ```
 {"key" of the modality} + "_" + {feature name}
@@ -397,7 +398,7 @@ fetch_data(
 
 #### {.tabset .tabset-pills}
 
-Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to fetch_data. 
+Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay()` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to fetch_data. 
 
 ##### Seurat
 
@@ -475,7 +476,7 @@ fetch_data(
 
 ### Expression Data from Alternate Layers 
 
-By default, `fetch_data` will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below).
+By default, `fetch_data()` will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below).
 
 To pull data from alternate layers, use the `layer` parameter.
 
@@ -518,7 +519,7 @@ fetch_data(
 
 ##### anndata
 
-If the layer parameter is undefined for anndata objects, `fetch_data` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
+If the layer parameter is undefined for anndata objects, `fetch_data()` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
 
 In the example object below, normalized counts are stored in X, and raw counts are stored in an alternate layer named "counts". 
 
@@ -541,13 +542,18 @@ fetch_data(
 
 ### Fetching Metadata
 
-To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of `fetch_data`. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and there are no differences in input between categorical and numeric metadata variables.
+To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of `fetch_data()`. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and there are no differences in input between categorical and numeric metadata variables.
+
+To view available metadata variables in an object, SCUBA provides the `meta_varnames()` utility function.
 
 #### {.tabset .tabset-pills}
 
 ##### Seurat
 
 ```{r}
+# View available metadata
+meta_varnames(AML_Seurat)
+
 fetch_data(
   AML_Seurat,
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -559,6 +565,9 @@ fetch_data(
 ##### SingleCellExperiment
 
 ```{r}
+# View available metadata
+meta_varnames(AML_SCE())
+
 fetch_data(
   AML_SCE(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -570,6 +579,9 @@ fetch_data(
 ##### anndata
 
 ```{r}
+# View available metadata
+meta_varnames(AML_h5ad())
+
 fetch_data(
   AML_h5ad(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -584,11 +596,11 @@ fetch_data(
 
 #### `fetch_metadata` Generic 
 
-If you are retrieving just metadata from very large single-cell objects, we offer a `fetch_metadata` method that is faster than using `fetch_data`. As with `fetch_data`, desired metadata variables are passed to `vars`.
+If you are retrieving just metadata from very large single-cell objects, we offer a `fetch_metadata()` method that is faster than using `fetch_data()`. As with `fetch_data()`, desired metadata variables are passed to `vars`.
 
 <div class="callout callout-info">
   <h4>Note</h4>
-  <p>In anndata objects, `fetch_metadata` does not offer performance advantages over `fetch_data`.</p>
+  <p>In anndata objects, `fetch_metadata()` does not offer performance advantages over `fetch_data()`.</p>
 </div>
 
 #### {.tabset .tabset-pills}
@@ -630,7 +642,7 @@ fetch_metadata(
     the tabset and the next section header -->
 #### {-}
 
-In a programming context, it may be useful to pull the full table. This can be done with `fetch_metadata` using the `full_table` parameter.
+In a programming context, it may be useful to pull the full table. This can be done with `fetch_metadata()` using the `full_table` parameter.
 
 #### {.tabset .tabset-pills}
 
@@ -678,7 +690,7 @@ In a similar manner to expression data, reduction coordinates to fetch are passe
 {"key" of the reduction} + "_" + {dimension}
 ```
 
-As with assays/modalities, run `all_keys` to see the key corresponding to the reduction you would like to pull data from. Examples for each object type are provided below.
+As with assays/modalities, run `all_keys()` to see the key corresponding to the reduction you would like to pull data from. Examples for each object type are provided below.
 
 #### {.tabset .tabset-pills}
 
@@ -741,9 +753,9 @@ fetch_data(
 
 #### `fetch_reduction` Generic
 
-As with metadata, we provide a separate generic, `fetch_reduction`, that is faster than using `fetch_data` when retrieving just reduction coordinates from very large single-cell objects. Performance gains are observed in Seurat and SingleCellExperiment objects, but not in anndata objects (performance is the same as `fetch_data` for this object class).
+As with metadata, we provide a separate generic, `fetch_reduction()`, that is faster than using `fetch_data()` when retrieving just reduction coordinates from very large single-cell objects. Performance gains are observed in Seurat and SingleCellExperiment objects, but not in anndata objects (performance is the same as `fetch_data()` for this object class).
 
-The syntax for pulling reduction coordinates varies slightly from `fetch_data`. Instead of entering the reduction name and the dimensions together an underscore, this information is supplied to separate parameters.
+The syntax for pulling reduction coordinates varies slightly from `fetch_data()`. Instead of entering the reduction name and the dimensions together an underscore, this information is supplied to separate parameters.
 
 The key of reduction to pull data from is passed to `reduction`, and the dimensions from which to pull coordinates are passed in numeric format to `dims`. Any number of dimensions can be passed, but in most cases, two dimensions are pulled. If `dims` is not specified, the first and second dimensions of the specified reduction are returned.
 
@@ -795,7 +807,7 @@ SCUBA provides several utility functions that facilitate exploration of objects 
 
 ### View Overall Metadata Present
 
-It is often useful to view the names of all metadata variables in the object, either as a first pass when exploring an object, or to recall the name of a metadata variable before passage to `fetch_data` or `fetch_metadata`. This is done via `meta_varnames`.
+It is often useful to view the names of all metadata variables in the object, either as a first pass when exploring an object, or to recall the name of a metadata variable before passage to `fetch_data()` or `fetch_metadata()`. This is done via `meta_varnames()`.
 
 #### {.tabset .tabset-pills .special-tabs}
 
@@ -825,9 +837,9 @@ meta_varnames(
 
 ### Summarize a Metadata Variable
 
-To explore a metadata variable in greater detail, use `unique_values`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames`.
+To explore a metadata variable in greater detail, use `unique_values()`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames()`.
 
-To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values` function. 
+To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values()` function. 
 
 #### {.tabset .tabset-pills}
 
@@ -916,7 +928,7 @@ if (!require("ggplot2", quietly = TRUE)){
 library(ggplot2)
 ```
 
-The use of `.data[[]]` in the `aes()` specification allows us to supply the feature as a character vector to ggplot. Using `.data[[]]` allows the script to accept any feature without needing to make changes to the code, or having to rename the column corresponding to the feature in the output of `fetch_data`.
+The use of `.data[[]]` in the `aes()` specification allows us to supply the feature as a character vector to ggplot. Using `.data[[]]` allows the script to accept any feature without needing to make changes to the code, or having to rename the column corresponding to the feature in the output of `fetch_data()`.
 
 ```{r}
 object <- AML_Seurat
@@ -968,7 +980,7 @@ plot <- ggplot(
 plot
 ```
 
-For this plot to be interperetable, the curves will need to be "split" out into separate plots. This is done with `facet_wrap`.
+For this plot to be interperetable, the curves will need to be "split" out into separate plots. This is done with `facet_wrap()`.
 
 ```{r}
 object <- AML_Seurat
@@ -999,7 +1011,7 @@ plot <- ggplot(
 plot
 ```
 
-Next, plot visuals are improved. `theme_cowplot` from the `cowplot` package is applied. This removes grids from the plot region, and adds axes on the left and bottom of the plot.
+Next, plot visuals are improved. `theme_cowplot()` from the `cowplot` package is applied. This removes grids from the plot region, and adds axes on the left and bottom of the plot.
 
 The following additional changes will be added with a custom theme:
 
@@ -1053,7 +1065,7 @@ plot
 
 At this point, the plot is in a finished form and is ready to be packaged in a function.
 
-At this stage, simply transfer the variables defined at the beginnng to the function as parameters, and move the subsequent code into the function.
+At this stage, simply transfer the variables defined at the beginning to the function as parameters, and move the subsequent code into the function.
 
 ```{r}
 # Transfer variables to parameters
@@ -1100,9 +1112,9 @@ density_plot <-
 
 Now we call the function on each supported object class. The plots have almost identical visuals, except for differences in assay names when entering features.
 
-### {.tabset .tabset-pills}
+#### {.tabset .tabset-pills}
 
-#### Seurat
+##### Seurat
 
 ```{r, class.source=".seurat", class.output=".seurat"}
 density_plot(
@@ -1112,7 +1124,7 @@ density_plot(
   )
 ```
 
-#### SingleCellExperiment
+##### SingleCellExperiment
 
 ```{r, class.source=".sce", class.output=".sce"}
 density_plot(
@@ -1122,7 +1134,7 @@ density_plot(
   )
 ```
 
-#### anndata
+##### anndata
 
 ```{r, class.source=".anndata", class.output=".anndata"}
 density_plot(
@@ -1132,6 +1144,189 @@ density_plot(
   )
 ```
 
-### {-}
+#### {-}
 
-The process described here can be applied to the creation of any other single-cell visualization that uses expression data, metadata, or reduction coordinates. SCUBA facilitates data access in visualization functions, allowing users to access data through a call to an access function instead of doing object-specific data wrangling. Any R visualization library can be used downstream of access functions, for example [ggiraph](https://davidgohel.github.io/ggiraph/) or [plotly](https://plotly.com/r/) for interactive plots. Any plot created using SCUBA's data access functions will work with any of the object classes supported by SCUBA. SCUBA will be expanded in the future to include functions for summary statistics, facilitating the creation of single-cell plots. 
+The process described here can be applied to the creation of any other single-cell visualization that uses expression data, metadata, or reduction coordinates. SCUBA facilitates data access in visualization functions, allowing users to access data through a call to an access function instead of doing object-specific data wrangling.
+
+### Utility Methods for Visualization Functions
+
+SCUBA provides several utility methods for plotting functions that define default properties, allowing users to optionally specify reductions and layers to user for plotting without requiring users to enter these parameters.
+
+Below is an example feature plot function that uses the following utility functions:
+
+- `default_reduction()`: Returns the key of a default reduction to use.
+- `default_layer()`: Returns the conventional name of the normalized layer in the object.
+- `get_all_cells()`: Returns the IDs of all cells in the object.
+- `reduction_dimnames()`: Forms the names of reduction dimensions to pull, for passage to `vars` in `fetch_data`.
+
+```{r}
+feature_plot <- 
+  function(
+    object,
+    feature,
+    dims = c(1, 2),
+    reduction = NULL,
+    layer = NULL,
+    cells = NULL
+  ){
+  # Determine a default reduction if the user does not enter one
+  if (is.null(reduction)){
+    reduction <- default_reduction(object)
+    } 
+  
+  # Define a default layer if undefined
+  if (is.null(layer)){
+    layer <- default_layer(object)
+    }
+  
+  # Cells: if undefined, set to all cells in object
+  if (is.null(cells)){
+    cells <- get_all_cells(object)
+    }
+  
+  # Form syntax for pulling reduction coordinates using the reduction 
+  # name and the dimensions entered in the function
+  reduction_vars <-
+    reduction_dimnames(
+      object = object,
+      reduction = reduction,
+      dims = dims
+      )
+  
+  data <-
+    fetch_data(
+      object = object,
+      vars = c(reduction_vars, feature),
+      layer = layer,
+      cells = cells
+      )
+  
+  plot <-
+    ggplot(
+      data, 
+      aes(
+        x = .data[[reduction_vars[1]]], 
+        y = .data[[reduction_vars[2]]],
+        color = .data[[feature]]
+        )
+      ) +
+    geom_point() +
+    cowplot::theme_cowplot() +
+    scale_color_gradientn(
+      # Color cells using the viridis palette
+      colors = viridisLite::plasma(12, direction = -1)
+      ) +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      strip.background = element_rect(fill = "#FFFFFF00"),
+      strip.text = element_text(face = "bold", size = rel(0.8))
+      )
+  
+  plot
+  }
+```
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+Running function without specifying default reduction, layer: utility functions will supply defaults.
+
+```{r, class.source=".seurat", class.output=".seurat"}
+feature_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH"
+  )
+```
+
+
+<!--
+Running the function with an alternate reduction:
+
+```{r, class.source=".seurat", class.output=".seurat", eval=FALSE}
+feature_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH",
+  reduction = "pca"
+  )
+```
+-->
+
+Running the function with the raw counts layer:
+
+```{r, class.source=".seurat", class.output=".seurat"}
+feature_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH",
+  layer = "counts"
+  )
+```
+
+
+##### SingleCellExperiment
+
+Running function without specifying default reduction, layer: utility functions will supply defaults.
+
+```{r, class.source=".sce", class.output=".sce"}
+feature_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH"
+  )
+```
+
+<!--Running the function with an alternate reduction:
+
+```{r, class.source=".sce", class.output=".sce", eval=FALSE}
+feature_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH",
+  reduction = "PCA"
+  )
+```
+
+-->
+
+Running the function using the raw counts layer:
+
+```{r, class.source=".sce", class.output=".sce"}
+feature_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH",
+  layer = "counts"
+  )
+```
+
+##### anndata
+
+Running function without specifying default reduction, layer: utility functions will supply defaults.
+
+```{r, class.source=".anndata", class.output=".anndata"}
+feature_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH"
+  )
+```
+
+<!--
+Running the function with an alternate reduction:
+
+```{r, class.source=".anndata", class.output=".anndata", eval=FALSE}
+feature_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH",
+  reduction = "X_pca"
+  )
+```
+-->
+
+Running the function with the raw counts layer:
+
+```{r, class.source=".anndata", class.output=".anndata"}
+feature_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH",
+  layer = "counts"
+  )
+```
+
+#### {-}
