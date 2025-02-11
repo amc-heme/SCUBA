@@ -40,3 +40,4 @@ data or metadata.
 \description{
 The anndata equivalent of the SeuratObject FetchData method.
 }
+\keyword{internal}

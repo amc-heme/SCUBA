@@ -22,6 +22,8 @@
 #'
 #' @export
 #'
+#' @keywords internal
+#'
 #' @method FetchData SingleCellExperiment
 #'
 FetchData.SingleCellExperiment <-
@@ -436,6 +438,8 @@ FetchData.SingleCellExperiment <-
 #'
 #' @return A data.frame object containing the requested expression
 #' data or metadata.
+#'
+#' @keywords internal
 #'
 #' @export
 #'

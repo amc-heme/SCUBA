@@ -40,7 +40,7 @@ the object (i.e. according to colNames(object)). If \code{NULL}, data will
 be returned for all cells in the object.}
 
 \item{slot}{This parameter is added for backwards compatability with Seruat
-v4 and earlier. This was deprecated in Seurat version 5.0.0. \emph{If you have Seruat v5.0.0 or later, this should not be used. This should also not be used for SingleCellExperiment objects or anndata objects and will not work at all for these classes. Use} \code{layer} *\emph{instead.}}
+v4 and earlier. This was deprecated in Seurat version 5.0.0. \emph{If you have Seruat v5.0.0 or later, this should not be used. This parameter should also not be used for SingleCellExperiment objects or anndata objects and will not work at all for these object classes. Use} \code{layer} \emph{instead.}}
 }
 \value{
 A data.frame with the requested \code{vars} as columns and the cells as
