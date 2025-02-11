@@ -294,19 +294,6 @@ Single-cell object classes use different terms to refer to the the same or simil
 - **Sequencing modalities**: the data structure used to store each type of single-cell data (i.e. scRNA-seq, surface protein measurements, ATAC-seq, etc.) is referred to as an "assay" in Seurat, an "experiment" in SingleCellExperiment, and a "modality" in anndata. This tutorial will use *"modality"*.
 - **Data structure for transformed data**: in Seurat objects, the structure used for storing raw counts, normalized counts, and other transformations is known as a "slot". In SingleCellExperiment, this is referred to as an "assay", and in anndata, a "layer". This tutorial will use *"layer"*.
 
-
-<!-- TODone: DON'T FORGET TO ADD THE FETCH_REDUCTION STUFF -->
-<!-- TODO: ADD fetch_cells STUFF -->
-<!-- TODO
-  In plotting vignette, discuss the following utility functions if applicable, otherwise link to reference docs
-  Consider demonstrating each in separate plotting functions 
-  (reduction_dimnames won't be used in the ridge plot example)
-  default_layer
-  default_reduction
-  get_all_cells
-  reduction_dimnames
--->
-
 Please ensure you have loaded the SCUBA package before continuing. See [here](https://amc-heme.github.io/SCUBA/index.html#installation) for instructions to install SCUBA.
 
 ```{r}
@@ -797,9 +784,167 @@ fetch_reduction(
   head(10)
 ```
 
-<!-- Empty section header ends tabset and keeps content beneath from appearing
-    under "anndata" tab -->
+### Fetch Data from a Subset of Cells
+
+In some circumstances, you may wish to access data from a subset of cells, rather than the full object. `fetch_data()`, `fetch_metadata()`, and `fetch_reduction()` provide a `cells` parameter to do this. 
+
+The `cells` parameter accepts a character vector with the cell IDs for which to return data. We provide a utility function, `fetch_cells()`, to generate this.
+
+`fetch_cells()` accepts a categorical metadata variable and a vector of values/levels to filter by. Cells with values matching the values entered will be returned.
+
+To view available values for a metadata variable, you can use the `unique_values()` function.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+Identifying available values for the variable "Batch":
+
+```{r}
+unique_values(AML_Seurat, var = "Batch")
+```
+
+Returning cells are returned where "Batch" is equal to "PBMC_200AB":
+
+```{r}
+cell_subset <- 
+  fetch_cells(
+    object = AML_Seurat, 
+    meta_var = "Batch", 
+    meta_levels = "PBMC_200AB"
+    )
+
+# Preview cell IDs returned
+cell_subset[1:6]
+# Number of cells
+length(cell_subset)
+```
+
+Retrieving expression data for the subset:
+
+```{r}
+data <-
+  fetch_data(
+    AML_Seurat,
+    vars = "rna_FLT3",
+    cells = cell_subset
+    )
+
+str(data)
+
+# Compare with full data
+full_data <-
+  fetch_data(
+    AML_Seurat,
+    vars = "rna_FLT3"
+    )
+
+str(full_data)
+```
+
+##### SingleCellExperiment
+
+Identifying available values for the variable "Batch":
+
+```{r}
+unique_values(AML_SCE(), var = "Batch")
+```
+
+Returning cells are returned where "Batch" is equal to "PBMC_200AB":
+
+```{r}
+cell_subset <- 
+  fetch_cells(
+    object = AML_SCE(), 
+    meta_var = "Batch", 
+    meta_levels = "PBMC_200AB"
+    )
+
+# Preview cell IDs returned
+cell_subset[1:6]
+# Number of cells
+length(cell_subset)
+```
+
+Retrieving expression data for the subset:
+
+```{r}
+data <-
+  fetch_data(
+    AML_SCE(),
+    vars = "RNA_FLT3",
+    cells = cell_subset
+    )
+
+str(data)
+
+# Compare with full data
+full_data <-
+  fetch_data(
+    AML_SCE(),
+    vars = "RNA_FLT3"
+    )
+
+str(full_data)
+```
+
+
+##### anndata
+
+Identifying available values for the variable "Batch":
+
+```{r}
+unique_values(AML_h5ad(), var = "Batch")
+```
+
+Returning cells are returned where "Batch" is equal to "PBMC_200AB":
+
+```{r}
+cell_subset <- 
+  fetch_cells(
+    object = AML_h5ad(), 
+    meta_var = "Batch", 
+    meta_levels = "PBMC_200AB"
+    )
+
+# Preview cell IDs returned
+cell_subset[1:6]
+# Number of cells
+length(cell_subset)
+```
+
+Retrieving expression data for the subset:
+
+```{r}
+data <-
+  fetch_data(
+    AML_h5ad(),
+    vars = "X_FLT3",
+    cells = cell_subset
+    )
+
+str(data)
+
+# Compare with full data
+full_data <-
+  fetch_data(
+    AML_h5ad(),
+    vars = "X_FLT3"
+    )
+
+str(full_data)
+```
+
+
+
+<!-- Empty header to end tabset panel and keep content below from appearing in
+    anndata section -->
 #### {-}
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>`fetch_cells()` currently only returns a subset based on values/levels of a single categorical variable. The ability to create more complex filters will be added in the future.</p>
+</div>
 
 ## Data Exploration
 
