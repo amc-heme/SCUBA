@@ -16,6 +16,9 @@ reduction_dimnames(object, reduction, dims)
 \method{reduction_dimnames}{AnnDataR6}(object, reduction, dims)
 }
 \arguments{
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
+
 \item{reduction}{the name of the reduction.}
 
 \item{dims}{a numeric vector with the dimensions for which

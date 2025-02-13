@@ -1,3 +1,28 @@
 url: https://amc-heme.github.io/SCUBA/
 template:
   bootstrap: 5
+  light-switch: true
+reference:
+  - title: Data exploration
+    contents:
+    - meta_varnames
+    - unique_values
+  - title: Data access
+    contents:
+    - fetch_data
+    - fetch_metadata
+    - fetch_reduction
+  - title: Utility functions
+    contents:
+    - reduction_dimnames
+    - fetch_cells
+    - all_keys
+    - features_in_assay  
+    - starts_with("default")
+    - get_all_cells
+    - n_unique
+  - title: Datasets
+    contents:
+    - AML_Seurat
+    - AML_SCE
+    - AML_h5ad

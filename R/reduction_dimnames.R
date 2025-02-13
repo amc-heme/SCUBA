@@ -6,7 +6,7 @@
 #' [`fetch_data()`] to facilitate the specification of reduction coordinates to 
 #' return from this function.
 #'
-#' @inherit_params object_param
+#' @inheritParams object_param
 #' @param reduction the name of the reduction.
 #' @param dims a numeric vector with the dimensions for which
 #' names should be returned. 
