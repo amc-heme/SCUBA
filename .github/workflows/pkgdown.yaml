@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      ## Standard workflow, unchanged from pkgdown template ##
       - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
@@ -35,7 +36,47 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+      ## End standard workflow ##
 
+      # Some articles are written using SASS
+      # The sass package is installed to properly 
+      # render these articles.
+      - name: Install SASS package
+        run: install.packages("sass")
+        shell: Rscript {0}
+        
+      # Install bslib to render vignettes
+      - name: Install bslib
+        run: install.packages("bslib")
+        shell: Rscript {0}
+        
+      # Set up Python environment to run anndata examples on website
+      - uses: actions/setup-python@v4
+        if: matrix.config.python != 'debug'
+        with:
+          python-version: ${{ matrix.config.python }}
+
+      - name: setup r-reticulate venv
+        shell: Rscript {0}
+        run: |
+
+          library(reticulate)
+
+          path_to_venv <- virtualenv_create(
+            envname = "r-reticulate",
+            python = Sys.which("python"), # placed on PATH by the setup-python action
+            packages = c(
+              "docutils", "pandas", "scipy", "matplotlib", "ipython",
+              "tabulate", "plotly", "psutil", "kaleido", "wrapt",
+              "anndata"
+            )
+          )
+
+          writeLines(
+            paste0("RETICULATE_PYTHON=", virtualenv_python(path_to_venv)),
+            Sys.getenv("GITHUB_ENV"))
+
+      ## Steps below are standard workflow, unchanged from template
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
