@@ -1,13 +1,13 @@
 #' Get default reduction from object
 #'
-#' Returns the default slot for the object passed.
+#' Returns the default slot for the object passed. This function was deprecated 
+#' in version 0.10.0. Please use [`default_layer()`] instead. 
 #' 
 #' `r lifecycle::badge("deprecated")`
-#' 
-#' This function was deprecated in version 0.10.0 and renamed to 
-#' `default_layer()`. The function will be removed in 1.0.0.
 #'
 #' @param object a single cell object supported by SCUBA. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.
+#'
+#' @keywords internal
 #'
 #' @export
 default_slot <-

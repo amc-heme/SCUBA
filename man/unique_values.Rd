@@ -2,13 +2,13 @@
 % Please edit documentation in R/unique_values.R
 \name{unique_values}
 \alias{unique_values}
-\title{Unique metadata values}
+\title{Summarize values in a metadata variable}
 \usage{
 unique_values(object, var)
 }
 \arguments{
-\item{object}{any object type supported by
-\code{\link[fetch_metadata]{fetch_metadata}}.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 
 \item{var}{the metadata variable for which to return unique values.}
 }
@@ -17,6 +17,11 @@ a character vector giving the unique values in the specified
 metadata variable.
 }
 \description{
-Returns the unique values for a given metadata variable in a single cell object.
-The function supports all object types that can be passed \code{\link[fetch_metadata]{fetch_metadata}}.
+Returns the unique values for the metadata variable provided. \code{unique_values}
+is a utility function for summarizing metadata in an object.
+}
+\examples{
+unique_values(AML_Seurat, var = "Batch")
+
+unique_values(AML_Seurat, var = "condensed_cell_type")
 }

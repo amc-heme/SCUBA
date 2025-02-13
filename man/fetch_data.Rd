@@ -5,7 +5,7 @@
 \alias{fetch_data.Seurat}
 \alias{fetch_data.SingleCellExperiment}
 \alias{fetch_data.AnnDataR6}
-\title{Fetch Data}
+\title{Fetch feature expression data, reduction coordinates, or metadata from single-cell objects}
 \usage{
 fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
 
@@ -51,6 +51,9 @@ This function extends the behavior of SeuratObject's FetchData to other
 single-cell objects, allowing for expression data, metdadata, or reduction
 coordinates to be pulled using consistent syntax.
 }
+\details{
+See our GitHub.io website for additional information and examples.
+}
 \section{Methods (by class)}{
 \itemize{
 \item \code{fetch_data(Seurat)}: Seurat objects. This will run FetchData from the
@@ -61,3 +64,14 @@ SeuratObject package.
 \item \code{fetch_data(AnnDataR6)}: anndata Objects
 
 }}
+\examples{
+# Feature expression data
+fetch_data(AML_Seurat, vars = "rna_FLT3") |> str()
+
+# Reduction coordinates
+fetch_data(AML_Seurat, vars = c("UMAP_1", "UMAP_2")) |> str()
+fetch_data(AML_Seurat, vars = c("PC_1", "PC_2", "PC_3")) |> str()
+
+# Metadata
+fetch_data(AML_Seurat, vars = c("condensed_cell_type", "Batch", "nCount_RNA")) |> str()
+}

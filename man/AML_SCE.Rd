@@ -4,13 +4,13 @@
 \alias{AML_SCE}
 \title{Reference dataset used for testing and demonstration (SingleCellExperiment)}
 \source{
-\url{https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2}
+The dataset was obtained from the \href{https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2}{Figshare}. For more information on the operations performed on the original object, see the \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{SCUBA manuscript repository}.
 }
 \usage{
 AML_SCE()
 }
 \description{
-A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in \href{https://doi.org/10.1038/s41590-021-01059-0}{Triana et al. 2021}. The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object, downloaded from \href{https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2}{figshare}, are provided in \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{this script} in the SCUBA manuscript repository.
+A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in \href{https://doi.org/10.1038/s41590-021-01059-0}{Triana et al. 2021}. The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object are provided in \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{this script} in the SCUBA manuscript repository.
 }
 \details{
 Contrary to convention for loading data, \code{AML_SCE()} is called as a function, with parentheses. This is because the

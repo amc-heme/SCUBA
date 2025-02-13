@@ -5,9 +5,9 @@
 \alias{reduction_dimnames.Seurat}
 \alias{reduction_dimnames.SingleCellExperiment}
 \alias{reduction_dimnames.AnnDataR6}
-\title{Get names of reduction keys}
+\title{From names of reduction keys for fetch_data}
 \usage{
-reduction_dimnames(object, reduction, dims, ...)
+reduction_dimnames(object, reduction, dims)
 
 \method{reduction_dimnames}{Seurat}(object, reduction, dims)
 
@@ -16,21 +16,17 @@ reduction_dimnames(object, reduction, dims, ...)
 \method{reduction_dimnames}{AnnDataR6}(object, reduction, dims)
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
+\item{reduction}{the name of the reduction.}
 
-\item{reduction}{the reduction from which names should be formed}
-
-\item{dims}{a two-element integer vector with the dimensions for which
-names should be returned}
-
-\item{...}{Currently unused.}
+\item{dims}{a numeric vector with the dimensions for which
+names should be returned.}
 }
 \description{
-Given the name of a reduction and a set of dims, this function will return
-the names of each dim as it appears in the reduction matrix. The output of
-this function is passed to FetchData to pull information for reductions, and
-it is also used to label reductions on DimPlots and feature plots.
+Given the name of a reduction and a set of dimensions, this function will
+return the names of each dimension as it appears in the reduction matrix.
+The output of this function can be passed to the \code{vars} parameter of
+\code{\link[=fetch_data]{fetch_data()}} to facilitate the specification of reduction coordinates to
+return from this function.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -41,3 +37,35 @@ it is also used to label reductions on DimPlots and feature plots.
 \item \code{reduction_dimnames(AnnDataR6)}: AnnDataR6 objects
 
 }}
+\examples{
+# From names for first and second UMAP dimensions and 
+# pass to fetch_data
+dimnames <- reduction_dimnames(
+  AML_Seurat,
+  reduction = "umap",
+  dims = c(1, 2)
+  )
+  
+dimnames
+
+fetch_data(
+  AML_Seurat,
+  vars = dimnames
+  ) |> str()
+  
+  
+# Form names for first five PCA dimensions and 
+# pass to fetch_data
+dimnames <- reduction_dimnames(
+  AML_Seurat,
+  reduction = "pca",
+  dims = c(1:5)
+  )
+  
+dimnames
+
+fetch_data(
+  AML_Seurat,
+  vars = dimnames
+  ) |> str()
+}

@@ -5,7 +5,7 @@
 \alias{fetch_metadata.Seurat}
 \alias{fetch_metadata.SingleCellExperiment}
 \alias{fetch_metadata.AnnDataR6}
-\title{Fetch metadata}
+\title{Fetch metadata from single-cell objects}
 \usage{
 fetch_metadata(
   object,
@@ -40,17 +40,18 @@ fetch_metadata(
 )
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat,
-SingleCellExperiment, and anndata objects are supported.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 
 \item{vars}{metadata variables to pull from object. This must be defined,
 unless "full_table" is set to \code{TRUE}.}
 
-\item{cells}{cells to include in the returned metadata. If unspecified,
-metadata will be returned for all cells in the object.}
+\item{cells}{cell IDs for which to pull metadata. If \code{NULL},
+coordinates will be returned from all cells in the object. Cell IDs can be
+generated with \code{\link[=fetch_cells]{fetch_cells()}}.}
 
-\item{full_table}{if \code{TRUE}, return the entire metadata table (\code{FALSE} by
-default)}
+\item{full_table}{if \code{TRUE}, return the entire metadata table. This is \code{FALSE} by
+default.}
 
 \item{return_class}{class of data returned. Set to "dataframe" by default to
 return a data.frame, and may also be set to "vector" to yield a vector of
@@ -58,6 +59,9 @@ values. This is ignored if "full_table" is set to \code{TRUE}.}
 }
 \description{
 Returns object metadata for a specified set of cells.
+}
+\details{
+See our GitHub.io website for additional information and examples.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -68,3 +72,24 @@ Returns object metadata for a specified set of cells.
 \item \code{fetch_metadata(AnnDataR6)}: AnnDataR6 objects
 
 }}
+\examples{
+# Return several metadata variables as a data.frame
+fetch_metadata(
+  AML_Seurat, 
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |> str()
+  
+# Return data for a single metadata variable as a vector
+fetch_metadata(
+  AML_Seurat, 
+  vars = "condensed_cell_type",
+  return_class = "vector"
+  ) |> str()
+
+# Return all metadata 
+fetch_metadata(
+  AML_Seurat,
+  full_table = TRUE
+  ) |> str()
+
+}

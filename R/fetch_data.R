@@ -1,8 +1,10 @@
-#' Fetch Data
+#' Fetch feature expression data, reduction coordinates, or metadata from single-cell objects
 #' 
 #' This function extends the behavior of SeuratObject's FetchData to other 
 #' single-cell objects, allowing for expression data, metdadata, or reduction 
 #' coordinates to be pulled using consistent syntax.
+#' 
+#' See our GitHub.io website for additional information and examples.
 #'
 #' @param object A single-cell object. Currently, Seurat, SingleCellExperiment, 
 #' and anndata objects are supported. If a Seruat object is passed to this 
@@ -32,6 +34,15 @@
 #' @export
 #'
 #' @examples
+#' # Feature expression data
+#' fetch_data(AML_Seurat, vars = "rna_FLT3") |> str()
+#' 
+#' # Reduction coordinates
+#' fetch_data(AML_Seurat, vars = c("UMAP_1", "UMAP_2")) |> str()
+#' fetch_data(AML_Seurat, vars = c("PC_1", "PC_2", "PC_3")) |> str()
+#' 
+#' # Metadata
+#' fetch_data(AML_Seurat, vars = c("condensed_cell_type", "Batch", "nCount_RNA")) |> str()
 fetch_data <-
   function(
     object,

@@ -1,18 +1,29 @@
 #' Get default reduction from object
 #'
-#' Returns a reduction from the object to use as the default.
-#'
-#' @param object a single-cell object. Currently, Seurat and
-#' SingleCellExperiment objects are supported.
-#' @param ... Currently unused.
+#' Returns the default reduction for the single-cell object passed. `default_reduction` will check for reductions in the order below. If a reduction exists, it will be returned. If not, the function will check for the next reduction on the list. If none of the reductions in the list exist, the function will return an error.
+#' 1. UMAP
+#' 2. t-SNE
+#' 3. PCA
+#' 
+#' @inherit default_layer details 
+#' @inheritParams object_param
 #'
 #' @rdname default_reduction
 #'
 #' @export
+#' 
+#' @examples
+#' # Seurat objects
+#' default_reduction(AML_Seurat)
+#' 
+#' # SingleCellExperiment objects
+#' default_reduction(AML_SCE())
+#' 
+#' # anndata objects
+#' default_reduction(AML_h5ad())
 default_reduction <-
   function(
-    object,
-    ...
+    object
   ){
     UseMethod("default_reduction")
   }
@@ -36,6 +47,9 @@ default_reduction.default <-
   }
 
 #' @describeIn default_reduction Seurat objects
+#' 
+#' In Seurat objects, `default_reduction` is a wrapper for [SeuratObject::DefaultDimReduc()].
+#' 
 #' @export
 default_reduction.Seurat <-
   function(
@@ -46,6 +60,13 @@ default_reduction.Seurat <-
   }
 
 #' @describeIn default_reduction SingleCellExperiment objects
+#' 
+#' The search order for SingleCellExperiment objects is below. `fetch_reduction` 
+#' will search in the order described for a reduction named exactly as described.
+#' 1. UMAP
+#' 2. TSNE
+#' 3. PCA
+#' 
 #' @export
 default_reduction.SingleCellExperiment <-
   function(
@@ -70,6 +91,13 @@ default_reduction.SingleCellExperiment <-
   }
 
 #' @describeIn default_reduction AnnDataR6 objects
+#' 
+#' The search order for anndata objects is below. `fetch_reduction` will search 
+#' in the order described for a reduction named exactly as described.
+#' 1. X_umap
+#' 2. X_tsne
+#' 3. X_pca
+#' 
 #' @export
 default_reduction.AnnDataR6 <-
   function(

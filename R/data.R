@@ -1,8 +1,9 @@
 #' Reference dataset used for testing and demonstration (Seurat)
 #'
-#' A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in [Triana et al. 2021](https://doi.org/10.1038/s41590-021-01059-0). The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object, downloaded from [figshare](https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2), are provided in [this script](https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd) in the SCUBA manuscript repository.
+#' A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in [Triana et al. 2021](https://doi.org/10.1038/s41590-021-01059-0). The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object are provided in [this script](https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd) in the SCUBA manuscript repository.
 #'
-#' @source <https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2>
+#' @source The dataset was obtained from the [Figshare](https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2). For more information on the operations performed on the original object, see the [SCUBA manuscript repository](https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd). 
+#' 
 #' @examples
 #' # Object summary
 #' AML_Seurat

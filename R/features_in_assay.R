@@ -1,14 +1,21 @@
-#' Get names of all features in an assay/experiment
+#' Get names of all features in an assay/experiment/modality
 #'
-#' Returns the names of all features in an assay/modality.
-#'
-#' @param object a single-cell object. 
-#' @param assay the name of an assay/modality for which to view features
+#' Returns the names of all features in a modality. This utility function can be used in several applications:
+#' - In Shiny apps, return available features for passage to a selection menu
+#' - Before using [`fetch_data()`], generate a list of features in the object for searching, or test if a feature is present before requesting data
+#' 
+#' @inheritParams object_param
+#' @param assay the name of an assay/modality for which to view features.
 #'
 #' @rdname features_in_assay
 #' 
 #' @export
 #' 
+#' @examples
+#' features_in_assay(AML_Seurat, assay = "RNA") |> str()
+#' 
+#' # Check if a feature is present in an assay
+#' "MEIS1" %in% features_in_assay(AML_Seurat, assay = "RNA")
 features_in_assay <-
   function(
     object,

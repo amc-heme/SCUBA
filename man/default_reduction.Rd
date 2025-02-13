@@ -7,7 +7,7 @@
 \alias{default_reduction.AnnDataR6}
 \title{Get default reduction from object}
 \usage{
-default_reduction(object, ...)
+default_reduction(object)
 
 \method{default_reduction}{Seurat}(object)
 
@@ -16,20 +16,54 @@ default_reduction(object, ...)
 \method{default_reduction}{AnnDataR6}(object)
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
-
-\item{...}{Currently unused.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 }
 \description{
-Returns a reduction from the object to use as the default.
+Returns the default reduction for the single-cell object passed. \code{default_reduction} will check for reductions in the order below. If a reduction exists, it will be returned. If not, the function will check for the next reduction on the list. If none of the reductions in the list exist, the function will return an error.
+\enumerate{
+\item UMAP
+\item t-SNE
+\item PCA
+}
+}
+\details{
+This is a utility function that is most useful for defining defaults in plotting functions, to reduce the number of required parameters end users need to supply. \url{see our website} for an example of usage in a function.
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{default_reduction(Seurat)}: Seurat objects
 
+In Seurat objects, \code{default_reduction} is a wrapper for \code{\link[SeuratObject:DefaultDimReduc]{SeuratObject::DefaultDimReduc()}}.
+
 \item \code{default_reduction(SingleCellExperiment)}: SingleCellExperiment objects
+
+The search order for SingleCellExperiment objects is below. \code{fetch_reduction}
+will search in the order described for a reduction named exactly as described.
+\enumerate{
+\item UMAP
+\item TSNE
+\item PCA
+}
 
 \item \code{default_reduction(AnnDataR6)}: AnnDataR6 objects
 
+The search order for anndata objects is below. \code{fetch_reduction} will search
+in the order described for a reduction named exactly as described.
+\enumerate{
+\item X_umap
+\item X_tsne
+\item X_pca
+}
+
 }}
+\examples{
+# Seurat objects
+default_reduction(AML_Seurat)
+
+# SingleCellExperiment objects
+default_reduction(AML_SCE())
+
+# anndata objects
+default_reduction(AML_h5ad())
+}

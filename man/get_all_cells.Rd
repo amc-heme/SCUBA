@@ -5,9 +5,9 @@
 \alias{get_all_cells.Seurat}
 \alias{get_all_cells.SingleCellExperiment}
 \alias{get_all_cells.AnnDataR6}
-\title{Get all cells from object}
+\title{Plotting utility function to return all cell IDs}
 \usage{
-get_all_cells(object, ...)
+get_all_cells(object)
 
 \method{get_all_cells}{Seurat}(object)
 
@@ -16,12 +16,14 @@ get_all_cells(object, ...)
 \method{get_all_cells}{AnnDataR6}(object)
 }
 \arguments{
-\item{object}{a single-cell object.}
-
-\item{...}{Currently unused.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 }
 \description{
-Returns a character vector with all cell names in the object.
+Returns a character vector with all cell names in the object. This is a utility function used to set defaults for plotting functions created by SCUBA
+}
+\details{
+For additional information, see our GitHub.io website ("User Guide" article, "Data Visualization" section)
 }
 \section{Methods (by class)}{
 \itemize{
@@ -32,3 +34,6 @@ Returns a character vector with all cell names in the object.
 \item \code{get_all_cells(AnnDataR6)}: SingleCellExperiment objects
 
 }}
+\examples{
+get_all_cells(AML_Seurat) |> str()
+}

@@ -5,7 +5,7 @@
 \alias{features_in_assay.Seurat}
 \alias{features_in_assay.SingleCellExperiment}
 \alias{features_in_assay.AnnDataR6}
-\title{Get names of all features in an assay/experiment}
+\title{Get names of all features in an assay/experiment/modality}
 \usage{
 features_in_assay(object, assay)
 
@@ -16,12 +16,17 @@ features_in_assay(object, assay)
 \method{features_in_assay}{AnnDataR6}(object, assay)
 }
 \arguments{
-\item{object}{a single-cell object.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 
-\item{assay}{the name of an assay/modality for which to view features}
+\item{assay}{the name of an assay/modality for which to view features.}
 }
 \description{
-Returns the names of all features in an assay/modality.
+Returns the names of all features in a modality. This utility function can be used in several applications:
+\itemize{
+\item In Shiny apps, return available features for passage to a selection menu
+\item Before using \code{\link[=fetch_data]{fetch_data()}}, generate a list of features in the object for searching, or test if a feature is present before requesting data
+}
 }
 \section{Methods (by class)}{
 \itemize{
@@ -32,3 +37,9 @@ Returns the names of all features in an assay/modality.
 \item \code{features_in_assay(AnnDataR6)}: Anndata objects
 
 }}
+\examples{
+features_in_assay(AML_Seurat, assay = "RNA") |> str()
+
+# Check if a feature is present in an assay
+"MEIS1" \%in\% features_in_assay(AML_Seurat, assay = "RNA")
+}
