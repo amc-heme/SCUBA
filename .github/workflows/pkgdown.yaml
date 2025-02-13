@@ -36,14 +36,15 @@ jobs:
       # Install all R dependencies
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: |
-          any::pkgdown
           # local::. runs devtools::install_local to install all dependencies
           # in the DESCRIPTION file of SCUBA
-          local::.
-          # Additional packages 
+          # Additional packages: 
+          # pkgdown (part of standard workflow)
           # SASS CSS is used in user guide vignette
-          any::sass
+          extra-packages: |
+            local::.
+            any::pkgdown
+            any::sass
           needs: website
         
       # Set up Python environment to run anndata examples on website
