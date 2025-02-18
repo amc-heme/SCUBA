@@ -21,6 +21,9 @@
 #' @param plot_title If defined, the value entered will be displayed as the plot
 #' title, if `show_title` is TRUE.
 #'
+#' @keywords internal
+#'
+#' @export
 shiny_pie <-
   function(
     object,
