@@ -16,6 +16,5 @@ Number of unique classes (integer).
 }
 \description{
 Returns the number of unique values in a single cell object, for the specified
-metadata variable. Any object type supported by
-\code{\link[unique_values]{unique_values}} may be used.
+metadata variable. Any object type supported by \link{unique_values} may be used.
 }

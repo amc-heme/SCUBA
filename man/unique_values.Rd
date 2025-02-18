@@ -7,8 +7,7 @@
 unique_values(object, var)
 }
 \arguments{
-\item{object}{any object type supported by
-\code{\link[fetch_metadata]{fetch_metadata}}.}
+\item{object}{any object type supported by \code{\link[=fetch_metadata]{fetch_metadata()}}.}
 
 \item{var}{the metadata variable for which to return unique values.}
 }
@@ -18,5 +17,5 @@ metadata variable.
 }
 \description{
 Returns the unique values for a given metadata variable in a single cell object.
-The function supports all object types that can be passed \code{\link[fetch_metadata]{fetch_metadata}}.
+The function supports all object types that can be passed \code{\link[=fetch_metadata]{fetch_metadata()}}.
 }

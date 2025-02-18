@@ -23,7 +23,8 @@ get_all_cells <-
 #' @export
 get_all_cells.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(
@@ -38,7 +39,8 @@ get_all_cells.default <-
 #' @export
 get_all_cells.Seurat <-
   function(
-    object
+    object,
+    ...
   ){
     # Seurat objects: cell names are column names of object
     colnames(object)
@@ -48,7 +50,8 @@ get_all_cells.Seurat <-
 #' @export
 get_all_cells.SingleCellExperiment <-
   function(
-    object
+    object,
+    ...
   ){
     # SingleCellExperiment objects: cell names are column names of object
     colnames(object)
@@ -58,7 +61,8 @@ get_all_cells.SingleCellExperiment <-
 #' @export
 get_all_cells.AnnDataR6 <-
   function(
-    object
+    object,
+    ...
   ){
     # Use obs_names method from anndata
     object$obs_names

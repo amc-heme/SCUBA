@@ -1,10 +1,9 @@
 #' Unique metadata values
 #'
 #' Returns the unique values for a given metadata variable in a single cell object.
-#' The function supports all object types that can be passed \code{\link[fetch_metadata]{fetch_metadata}}.
+#' The function supports all object types that can be passed [fetch_metadata()].
 #'
-#' @param object any object type supported by
-#' \code{\link[fetch_metadata]{fetch_metadata}}.
+#' @param object any object type supported by [fetch_metadata()].
 #' @param var the metadata variable for which to return unique values.
 #' @return a character vector giving the unique values in the specified
 #' metadata variable.

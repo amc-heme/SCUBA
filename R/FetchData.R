@@ -13,7 +13,8 @@
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
-#'
+#' @param ... parameter provided for consistency with S3 generic/methods
+
 #' @return A data.frame object containing the requested expression
 #' data or metadata.
 #'
@@ -29,7 +30,8 @@ FetchData.SingleCellExperiment <-
     object,
     vars,
     layer = NULL,
-    cells = NULL
+    cells = NULL,
+    ...
     ){
     # 1. Set default values
     # Layer (assay): fill with default if null (via default_layer method)
@@ -433,7 +435,8 @@ FetchData.SingleCellExperiment <-
 #' @param cells A character vector of cells to include, as they are named in
 #' the object (i.e. according to colNames(object)). If \code{NULL}, data will
 #' be returned for all cells in the object.
-#'
+#' @param ... parameter provided for consistency with S3 generic/methods
+#' 
 #' @return A data.frame object containing the requested expression
 #' data or metadata.
 #'
@@ -446,9 +449,16 @@ FetchData.AnnDataR6 <-
     object,
     vars,
     layer = NULL,
-    cells = NULL
+    cells = NULL,
+    ...
   ){
-    library(reticulate)
+    
+    if (!requireNamespace("reticulate", quietly = TRUE)) {
+      stop(
+        "Package \"reticulate\" must be installed to use this function.",
+        call. = FALSE
+      )
+    }
 
     # Source fetch_anndata python script
     python_path =
@@ -459,10 +469,10 @@ FetchData.AnnDataR6 <-
         package = "SCUBA"
         )
 
-    reticulate::source_python(python_path)
+    py_objs <- reticulate::py_run_file(python_path)
 
     # Runs python fetch_anndata function and returns the resulting data.frame
-    py$fetch_anndata(
+    py_objs$fetch_anndata(
       obj = object,
       fetch_vars = vars,
       cells = cells,

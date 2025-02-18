@@ -34,7 +34,8 @@ reduction_dimnames.default <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     warning(
       paste0(
@@ -51,7 +52,8 @@ reduction_dimnames.Seurat <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
@@ -67,7 +69,8 @@ reduction_dimnames.SingleCellExperiment <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
@@ -85,7 +88,8 @@ reduction_dimnames.AnnDataR6 <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
