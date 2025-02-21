@@ -51,6 +51,7 @@ update_object_metadata.Seurat <-
   }
 
 #' @describeIn update_object_metadata SingleCellExperiment objects
+#' @importFrom SummarizedExperiment colData<-
 #' @export
 #' @noRd
 update_object_metadata.SingleCellExperiment <-

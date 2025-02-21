@@ -45,7 +45,8 @@ fetch_reduction.default <-
     object,
     reduction,
     cells = NULL,
-    dims = c(1, 2)
+    dims = c(1, 2),
+    ...
   ){
     warning(
       paste0(
@@ -63,7 +64,8 @@ fetch_reduction.Seurat <-
     object,
     reduction,
     cells = NULL,
-    dims = c(1, 2)
+    dims = c(1, 2),
+    ...
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
@@ -102,7 +104,8 @@ fetch_reduction.SingleCellExperiment <-
     object,
     reduction,
     cells = NULL,
-    dims = c(1, 2)
+    dims = c(1, 2),
+    ...
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")
@@ -142,7 +145,8 @@ fetch_reduction.AnnDataR6 <-
     object,
     reduction,
     cells = NULL,
-    dims = c(1, 2)
+    dims = c(1, 2),
+    ...
   ){
     if (length(x = dims) != 2) {
       stop("'dims' must be a two-length vector")

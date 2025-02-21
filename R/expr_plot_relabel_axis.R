@@ -44,7 +44,8 @@ relabel_axis <-
 relabel_axis.default <-
   function(
     object,
-    feature
+    feature,
+    ...
   ){
     warning(
       paste0(
@@ -60,7 +61,8 @@ relabel_axis.default <-
 relabel_axis.Seurat <-
   function(
     object,
-    feature
+    feature,
+    ...
   ){
     # 1. Determine key from feature entered
     key <-
@@ -125,7 +127,8 @@ relabel_axis.Seurat <-
 relabel_axis.SingleCellExperiment <-
   function(
     object,
-    feature
+    feature,
+    ...
   ){
     # 1. Determine key from feature entered
     key <-
@@ -182,7 +185,8 @@ relabel_axis.SingleCellExperiment <-
 relabel_axis.AnnDataR6 <-
   function(
     object,
-    feature
+    feature,
+    ...
   ){
     # Due to the flexibility of Anndata objects, it's impossible to determine
     # if a key corresponds to an assay or a reduction, unless it corresponds to

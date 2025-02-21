@@ -4,6 +4,7 @@
 #' is a utility function for summarizing metadata in an object.
 #'
 #' @inheritParams object_param
+#' 
 #' @param var the metadata variable for which to return unique values.
 #' 
 #' @returns a character vector giving the unique values in the specified

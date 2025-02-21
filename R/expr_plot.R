@@ -136,7 +136,7 @@ expr_plot <-
     } else {
       # Fetch metadata for group_by category, then subset for cells that
       # are in idents
-      cells <- names(groups[group %in% idents])
+      cells <- names(group[group %in% idents])
 
       # Code from original Seurat::ExIPlot
       # cells <- names(Idents(object)[Idents(object) %in% idents])

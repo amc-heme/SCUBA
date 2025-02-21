@@ -9,8 +9,8 @@
 #' SingleCellExperiment objects, cells are colored by the first metadata column in
 #' colData(). The metadata variable used for coloring cells can be changed with the group_by parameter).
 #'
-#' The code for this function was from the {\link[Seurat Package]{https://github.com/satijalab/seurat/blob/master/R/visualization.R}} and adapted for use with
-#' {\link[SingleCellExperiment]{https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html}} objects.
+#' The code for this function was from the [Seurat Package](https://github.com/satijalab/seurat/blob/master/R/visualization.R) and adapted for use with
+#' [SingleCellExperiment](https://www.bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) objects.
 #'
 #' @param object a Seurat object or a SingleCellExperiment object
 #' @param dims Dimensions to plot, must be a two-length numeric vector specifying x- and y-dimensions i.e. c(1,2) to plot the first and second dimensions from the

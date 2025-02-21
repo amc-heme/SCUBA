@@ -35,7 +35,8 @@ default_reduction <-
 #' @export
 default_reduction.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(
@@ -53,7 +54,8 @@ default_reduction.default <-
 #' @export
 default_reduction.Seurat <-
   function(
-    object
+    object,
+    ...
   ){
     # Seurat objects: use existing SeuratObject method
     DefaultDimReduc(object)
@@ -70,7 +72,8 @@ default_reduction.Seurat <-
 #' @export
 default_reduction.SingleCellExperiment <-
   function(
-    object
+    object,
+    ...
   ){
     reductions <- reducedDimNames(object)
 
@@ -101,7 +104,8 @@ default_reduction.SingleCellExperiment <-
 #' @export
 default_reduction.AnnDataR6 <-
   function(
-    object
+    object,
+    ...
   ){
     # All reductions should be stored in obsm. Obsm matrix names are fetched
     # using obsm_keys().

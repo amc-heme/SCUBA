@@ -9,11 +9,11 @@
 \usage{
 all_keys(object)
 
-\method{all_keys}{Seurat}(object)
+\method{all_keys}{Seurat}(object, ...)
 
-\method{all_keys}{SingleCellExperiment}(object)
+\method{all_keys}{SingleCellExperiment}(object, ...)
 
-\method{all_keys}{AnnDataR6}(object)
+\method{all_keys}{AnnDataR6}(object, ...)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.}

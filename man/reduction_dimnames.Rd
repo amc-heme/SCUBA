@@ -9,11 +9,11 @@
 \usage{
 reduction_dimnames(object, reduction, dims)
 
-\method{reduction_dimnames}{Seurat}(object, reduction, dims)
+\method{reduction_dimnames}{Seurat}(object, reduction, dims, ...)
 
-\method{reduction_dimnames}{SingleCellExperiment}(object, reduction, dims)
+\method{reduction_dimnames}{SingleCellExperiment}(object, reduction, dims, ...)
 
-\method{reduction_dimnames}{AnnDataR6}(object, reduction, dims)
+\method{reduction_dimnames}{AnnDataR6}(object, reduction, dims, ...)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,

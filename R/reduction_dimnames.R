@@ -64,7 +64,8 @@ reduction_dimnames.default <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     warning(
       paste0(
@@ -81,7 +82,8 @@ reduction_dimnames.Seurat <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     # Seurat objects: fetch the key for each reduction, and append the dim
     paste0(Key(object[[reduction]]), dims)
@@ -93,7 +95,8 @@ reduction_dimnames.SingleCellExperiment <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     # SingleCellExperiment objects: reduction passed does not to be converted.
     # Simply append each dim after an underscore (<reduction>_<dim>)
@@ -107,7 +110,8 @@ reduction_dimnames.AnnDataR6 <-
   function(
     object,
     reduction,
-    dims
+    dims,
+    ...
   ){
     #AnnData: same as for SingleCellExperiment objects
     paste0(reduction, "_", dims)

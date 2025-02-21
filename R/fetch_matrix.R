@@ -28,7 +28,8 @@ fetch_matrix <-
 fetch_matrix.default <-
   function(
     object,
-    matrix_location
+    matrix_location,
+    ...
   ){
     warning(
       paste0(
@@ -68,7 +69,7 @@ fetch_matrix.AnnDataR6 <-
   function(
     object,
     matrix_location,
-    densify = FALSE
+    ...
   ){
     if (length(matrix_location) == 1){
       return(object[[matrix_location]])

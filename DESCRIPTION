@@ -10,16 +10,13 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 Imports: 
     cowplot,
-    dplyr,
     ggplot2,
     rlang,
     Seurat,
-    shiny,
     SingleCellExperiment,
-    stringr,
     HDF5Array,
     patchwork,
     RColorBrewer,
@@ -27,7 +24,8 @@ Imports:
     scattermore,
     SeuratObject,
     SummarizedExperiment,
-    lifecycle
+    lifecycle,
+    methods
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),

@@ -62,7 +62,8 @@ fetch_metadata.default <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe"
+    return_class = "dataframe",
+    ...
   ){
     warning(
       paste0(
@@ -81,7 +82,8 @@ fetch_metadata.Seurat <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe"
+    return_class = "dataframe",
+    ...
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
@@ -164,7 +166,8 @@ fetch_metadata.SingleCellExperiment <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe"
+    return_class = "dataframe",
+    ...
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
@@ -250,7 +253,8 @@ fetch_metadata.AnnDataR6 <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe"
+    return_class = "dataframe",
+    ...
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
