@@ -5,9 +5,9 @@
 \alias{fetch_reduction.Seurat}
 \alias{fetch_reduction.SingleCellExperiment}
 \alias{fetch_reduction.AnnDataR6}
-\title{Get names of reduction keys}
+\title{Fetch reduction coordinates from single-cell objects}
 \usage{
-fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2), ...)
+fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2))
 
 \method{fetch_reduction}{Seurat}(object, reduction, cells = NULL, dims = c(1, 2), ...)
 
@@ -16,21 +16,25 @@ fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2), ...)
 \method{fetch_reduction}{AnnDataR6}(object, reduction, cells = NULL, dims = c(1, 2), ...)
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 
-\item{reduction}{the reduction to pull coordinates from}
+\item{reduction}{the name of the reduction to pull coordinates from.}
 
-\item{cells}{cells for which to pull reduction data}
+\item{cells}{cell IDs for which to pull reduction data. If \code{NULL},
+coordinates will be returned from all cells in the object. Cell IDs can be
+generated with \code{\link[=fetch_cells]{fetch_cells()}}.}
 
-\item{dims}{a two-element integer vector with the dimensions for which
-data should be returned}
-
-\item{...}{Currently unused.}
+\item{dims}{a numeric vector indicating the dimensions to pull. Currently,
+only two dimensions are supported, but \code{\link[=fetch_data]{fetch_data()}} supports more than
+two dimensions. For instructions on pulling more than two dimensions at
+once, see the examples of \code{\link[=fetch_data]{fetch_data()}}.}
 }
 \description{
-Given the name of a reduction and a set of dims, this function will return
-the corresponding reduction data.
+Returns the reduction coordinates matching the name and dimensions supplied.
+}
+\details{
+See our GitHub.io website for additional information and examples.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -41,3 +45,11 @@ the corresponding reduction data.
 \item \code{fetch_reduction(AnnDataR6)}: AnnDataR6 objects
 
 }}
+\examples{
+# Return the first and second dimensions from the UMAP reduction
+fetch_reduction(
+  AML_Seurat,
+  reduction = "umap",
+  dims = c(1, 2)
+  ) |> str()
+}

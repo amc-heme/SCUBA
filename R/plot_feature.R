@@ -68,7 +68,9 @@
 #' @aliases FeatureHeatmap
 #' @seealso \code{\link{DimPlot}} \code{\link{HoverLocator}}
 #' \code{\link{CellSelector}}
-#'
+#' 
+#' @keywords internal
+#' 
 #' @examples
 #' plot_feature(AML_Seurat, features = "PC_1")
 #'

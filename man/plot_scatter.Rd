@@ -78,3 +78,4 @@ Creates a scatter plot of two features (typically feature expression), across a
 set of single cells. Cells are colored by their identity class. Pearson
 correlation between the two features is displayed above the plot.
 }
+\keyword{internal}

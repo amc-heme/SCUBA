@@ -1,40 +1,37 @@
-#' AML Reference Dataset
+#' Reference dataset used for testing and demonstration (Seurat)
 #'
-#' @description
-#' An AML single cell reference dataset produced by \href{https://doi.org/10.1038/s41590-021-01059-0}{Triana et al. 2021}. This is a small subset of the original  data that is intended for use with tests in this package.
+#' A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in [Triana et al. 2021](https://doi.org/10.1038/s41590-021-01059-0). The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object are provided in [this script](https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd) in the SCUBA manuscript repository.
 #'
-#' @description
-#' The dataset includes a pheresis and a bone marrow sample from a single young healthy donor. A panel of 462 genes is included in the dataset, along with 197 surface protein markers. A UMAP projection based on gene expression was computed from the original Seurat object downloaded from Figshare (see source below). The cell types provided by Triana et al. were condensed into 10 generalized cell types, and the object was randomly downsampled to include 25 cells from each cell type.
-#'
-#' @format
-#' A Seurat object with 659 features and 250 cells in 2 assays. Included assays:
-#' \describe{
-#'   \item{RNA}{mRNA expression data for 462 genes used as markers for hematopoietic stem and progenitor (HSPC) cell types at varying stages of differentiation.}
-#'   \item{AB}{Surface protein expression data for 197 surface protein markers associated with HSPCs.}
-#' }
-#'
-#' @source <https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065>
+#' @source The dataset was obtained from the [Figshare](https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2). For more information on the operations performed on the original object, see the [SCUBA manuscript repository](https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd). 
+#' 
+#' @examples
+#' # Object summary
+#' AML_Seurat
+#' 
+#' # Summary of metadata variables in object
+#' meta_varnames(AML_Seurat)
 "AML_Seurat"
 
-#' AML Reference Dataset (SingleCellExperiment Format)
+#' Reference dataset used for testing and demonstration (SingleCellExperiment)
 #'
 #' @inherit AML_Seurat description source
 #'
-#' @usage AML_SCE()
-#'
 #' @details
-#' The function described here is used to load the SingleCellExperiment object using the \code{HDF5Array} package. Unlike `AML_Seurat`, this dataset should be called as a function.
-#'
-#' @format
-#' A SingleCellExperiment object with 659 features and 250 cells in 2 SummarizedExperiment objects. Included experiments:
-#' \describe{
-#'   \item{RNA (main experiment)}{mRNA expression data for 462 genes used as markers for hamatopoietic stem and progenitor (HSPC) cell types at varying stages of differentiation.}
-#'   \item{AB}{Surface protein expression data for 197 surface protein markers associated with HSPCs.}
-#' }
+#' Contrary to convention for loading data, `AML_SCE()` is called as a function, with parentheses. This is because the
+#' dataset is loaded with `HDF5Array::loadHDF5SummarizedExperiment()` instead of the typical process of loading data from R packages. The dataset was saved using the `HDF5Array` package to test support of SingleCellExperiment objects supporting HDF5 storage saved using this package.
 #'
 #' @import HDF5Array
 #'
 #' @export
+#' 
+#' @usage AML_SCE()
+#' 
+#' @examples
+#' # Object summary
+#' AML_SCE()
+#' 
+#' # Summary of metadata variables in object
+#' meta_varnames(AML_SCE())
 AML_SCE <- function(){
   HDF5Array::loadHDF5SummarizedExperiment(
     dir = system.file("extdata", "AML_sce", package = "SCUBA")
@@ -42,22 +39,32 @@ AML_SCE <- function(){
 }
 
 
-#' AnnData object for testing
+#' Reference dataset used for testing and demonstration (anndata)
 #'
-#' @usage AML_h5ad()
+#' @inherit AML_Seurat description source
 #'
 #' @details
-#' The function described here is used to load the AnnData R6 object, it should be called as a function.
-#'
-#' @format
-#' An AnnDataR6 object with 659 features and 250 cells. Included experiments:
-#' \describe{
-#'   \item{RNA (main experiment)}{mRNA expression data for 462 genes used as markers for hamatopoietic stem and progenitor (HSPC) cell types at varying stages of differentiation.}
-#'   \item{AB}{Surface protein expression data for 197 surface protein markers associated with HSPCs.}
-#' }
+#' `AML_h5ad()` is called as a function, with parentheses. This is because the dataset is in Python, and can't be loaded using the typical process of loading data included with R packages.
 #'
 #' @export
 #'
+#' @usage AML_h5ad()
+#'
+#' @examples
+#' # These examples require a functional Python installation with prerequisite
+#' # packages installed to work
+#' # Please see our website for more details
+#' # https://amc-heme.github.io/SCUBA/index.html#installation
+#' # 
+#' # The examples may take a while (about 10 seconds) to run the first 
+#' # time they are executed in a session due to the time required to 
+#' # initialize a Python environment. 
+#' # R Studio does not display a spinner while these run, so the "run_examples"
+#' # link may not appear to do anything until the examples are finished. 
+#' AML_h5ad()
+#' 
+#' # Summary of metadata variables in object
+#' meta_varnames(AML_h5ad())
 AML_h5ad <- function(){
   anndata::read_h5ad(
     system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA")

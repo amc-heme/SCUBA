@@ -1,0 +1,1477 @@
+---
+title: "User Guide"
+output: 
+  html_document:
+    df_print: paged
+    theme:
+      bslib: true
+      version: 5
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{scss document_css, echo = FALSE}
+/* CSS variables */
+:root {
+  --rs_blue: #217CA1;
+}
+
+/* Increase margin before h4 headers */
+h4 {
+  margin-top: 20px;
+}
+
+/* Centers text and block elements */
+.center{
+  text-align: center;
+  /* Display must be set to block for centering to work */
+  display: block;
+  }
+
+.white-text{
+  color: white;
+}
+
+/* Bootstrap card elements */
+.card-header{
+  background-color: #CFB87C;
+  /* Adds a mrgin-top of 0 to the existing bootstrap class to remove white space
+   that appears when using the card component in an Rmd */
+  margin-top: 0px;
+}
+
+.card-body{
+  background-color: #E1E1E1; 
+  /* The border radius property is not properly inherited from the parent .card
+    element. The reason is unkown, but explicitly defining it here fixes 
+    the issue */
+  border-radius: 0px 0px var(--bs-card-border-radius) var(--bs-card-border-radius);
+}
+
+/* CSS for callouts
+   From https://codepen.io/superjaberwocky/pen/rLKxOa */
+   /* Requires SASS to be enabled, with sass package and "scss" code chunk*/
+.callout {
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #eee;
+  /* If the border-radius is greater than border-left-width,  
+     the left border will curve inward onto the element's body,
+     creating a cresent-like shape*/
+  border-left-width: 8px;
+  border-radius: 8px;
+  h4, h5 {
+    margin-top: 0;
+    margin-bottom: 5px;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  code {
+    border-radius: 3px;
+  }
+  & + .bs-callout {
+    margin-top: -5px;
+  }
+}
+
+/* Define properties for default, primary, info, etc. classes*/
+@each $name,$color in 
+  (default,#777),
+  (primary,#428bca),
+  (success,#5cb85c),
+  (danger,#d9534f),
+  (warning,#f0ad4e),
+  (info,#5bc0de), 
+  (bdc,#29527a){
+  .callout-#{$name} {
+    border-left-color: $color;
+    /* Background: color above, with an alpha hex value of '35'*/
+    background-color: #{$color + '35'};
+    h4, h5 {
+      color: $color;
+    }
+  }
+}
+
+/* Applied to output of code chunks. Causes a scrollbar to appear 
+   when the output extends beyond the max-height. */
+/* Adapted from https://bookdown.org/yihui/rmarkdown-cookbook/html-scroll.html */
+/* Classes are defined for several max heights */
+@each $height in 
+  80,
+  100,
+  300{
+  .scroll-#{$height} {
+    max-height: #{$height + "px"};
+    overflow-y: auto;
+    background-color: inherit;
+  }
+}
+
+/*
+.scroll-80 {
+  max-height: 80px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+
+.scroll-100 {
+  max-height: 100px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+
+.scroll-300 {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: inherit;
+}*/
+
+/* Accordion Menu CSS */
+details {
+  /* Add spacing beneath each accordion menu */
+  margin-bottom: 10px;
+}
+
+.header{
+    /* Background: RS steel blue */ 
+    background-color: #217CA1; /*var(rs-blue, #0088A1);*/
+    color: #FFFFFF;
+    /* Rounds corners of header */
+    border-radius: 5px;
+    /* To make the layout less crowded, the padding property 
+       adds spacing between the text and the edge of the header.
+       The two-element attribute specification below adds 5 px to the top and 
+       bottom edges, and 15 px to the left and right edges.
+       */
+    padding: 5px 15px;
+    /* Makes text 1.17 times larger than normal text in R markdown (<h3> size)*/
+    font-size: 1.17em;
+}
+
+/* Header text is enclosed in a span element, with spacing before the element */
+.header span {
+  margin-left: 8px;
+}
+
+.content{
+    background-color: #E1E1E1;
+    /* Adds 15 px of padding on all four edges of content */
+    padding: 15px;
+}
+
+/* The classes below apply only when the accordion menu is open */
+/* The goal of the CSS declarations below is to round all corners of the whole 
+   accordion menu, which consists of both the header and the content when the 
+   menu is open. This requires the edge between the header and content to have
+   square corners so these two elements appear contiguous with each other. */
+details[open] .header{
+    /* Use the border radius to round the top corners, and leave the bottom 
+       corners square */
+    border-radius: 10px 10px 0px 0px;
+}
+
+details[open] .content{
+    /* Rounds the bottom-left and bottom-right corners of the content element, 
+       while leaving the top corners square.*/
+    border-radius: 0px 0px 10px 10px;
+}
+
+/* Tabset panel for examples */
+/* Tabset "pills" appear for each object type. Users click the tab and see code 
+  and information for each object */
+/* For each */
+@each $obj_name,$color in 
+  (seurat,#0072B2),
+  (singlecellexperiment,#009E73),
+  (anndata,#D55E00),
+  // will need to add a text color to go with the background colors here 
+  // All wite or all black will not work with all colors here
+  (mudata,#FED105){
+  // Style for buttons forming tabset "pills"
+  button.#{$obj_name} {
+    border: solid 1px;
+    border-color: #000000;
+    /* Shape like a true "tab", like those on manilla folders */
+    border-radius: 10px 10px 0px 0px !important;
+    /* Background when inactive: color above, but with reduced alpha'*/
+    background-color: #{$color + '99'} !important;
+    /* Text color: black when inactive, white when active */
+    color: #000000 !important;
+    }
+    
+  button.#{$obj_name}:hover{
+    color: #FFFFFF !important;
+  }
+   
+  button.#{$obj_name}.active{
+    /* Text color: gray when inactive, white when active */
+    color: #FFFFFF !important;
+    /* Use full alpha for active tabs */
+    background-color: $color !important;
+    /* Print a boarder the same color as the tab below active tabs, which will 
+      override the black boarder around the top of the content (appearing as 
+      no boarder, with the tab directly feeding into the content) */
+    border-bottom-color: $color;
+  }
+  
+  /* Code blocks in each tab */
+  div[id*=#{$obj_name}] pre {
+    /* background color: object color above, with very low alpha */
+    background-color: #{$color + '11'};
+  }
+} 
+
+/* Change boarder around content to black */
+div.tab-content{
+  border-color: #000000 !important; 
+  border-radius: 0px 10px 10px 10px;
+}
+
+/* Fixes whitespace issue in tabset panel */
+/* Pkgdown websites use Bootstrap for tabset panels */
+/* Bootstrap uses visibility: hidden for inactive tabs, which hides the 
+   element, but doesn't set its height to 0. When tabsets are created with 
+   content that is unequal in height (much more content in one panel than 
+   others), the panel's height doesn't re-size to match content, and the result 
+   is large amounts of white space when viewing the tabs with shorter content. */
+/* The display attribute is more appropriate and should be used instead.*/
+/* Inactive tabs: hide */
+.tab-content .tab-pane{
+  display: none !important;
+}
+
+/* Active tabs: show */
+.tab-content .active {
+  display: block !important;
+}
+```
+
+```{js tab pills script, echo=FALSE}
+// Custom JavaScript for tabset/navbar panels
+// Panels have classes for each object type, that need to map to both the <div>
+// containing examples for each object, *and* the <button> tags in the tabset 
+// pills that are used to change tabs.
+// The default markdown syntax for tabset pills only applies classes to the 
+// <div>. Here, it is also applied to the <button> tags.
+$(document).ready(function(){
+  // Find the tabset using the .tabset class and locate the decendent <button> 
+  // tags. This only works on the pkgdown site (Rmd docs use <a> instead, and 
+  // and do not appear to properly interperet JavaScript, at least in the R 
+  // Studio browser)
+  // .nav-pills.special-tabs: only apply classes to navbar menus with 
+  // special-tabs class (there are other navbars on the pkgdown website)
+  document.querySelectorAll(".nav-pills button").forEach(tab => {
+      // console.log(tab)
+       if (tab.textContent.trim() === "Seurat") {
+           tab.classList.add("seurat");
+       } else if (tab.textContent.trim() === "SingleCellExperiment"){
+           tab.classList.add("singlecellexperiment");
+       } else if (tab.textContent.trim() === "anndata") {
+           tab.classList.add("anndata");
+       }
+   });
+});
+
+// document.addEventListener("DOMContentLoaded", function() {
+//    
+// });
+```
+
+## Introduction
+
+SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
+
+### Naming Conventions
+
+Single-cell object classes use different terms to refer to the the same or similar concepts. For simplicity, this tutorial will use one term for each concept. The concepts mentioned in the tutorial are given below, and for each concept, the terms used for each object class are mentioned, along with the term that will be used for this tutorial.
+
+- **Sequencing modalities**: the data structure used to store each type of single-cell data (i.e. scRNA-seq, surface protein measurements, ATAC-seq, etc.) is referred to as an "assay" in Seurat, an "experiment" in SingleCellExperiment, and a "modality" in anndata. This tutorial will use *"modality"*.
+- **Data structure for transformed data**: in Seurat objects, the structure used for storing raw counts, normalized counts, and other transformations is known as a "slot". In SingleCellExperiment, this is referred to as an "assay", and in anndata, a "layer". This tutorial will use *"layer"*.
+
+Please ensure you have loaded the SCUBA package before continuing. See [here](https://amc-heme.github.io/SCUBA/index.html#installation) for instructions to install SCUBA.
+
+```{r}
+# Load package
+library(SCUBA)
+```
+
+<!-- Starting with header 2 because header 1 tags in pkgdown keep the tabset pills 
+     present in this document from rendering properly in pkgdown -->
+<!-- https://github.com/r-lib/pkgdown/issues/2720 -->
+<!--     ¯\_(ツ)_/¯     -->
+
+## Data Access
+
+The primary data access method in SCUBA is `fetch_data()`. This function replicates the behavior of `FetchData()` in the `SeuratObject` package. This function is an S3 generic that executes methods based on the object type. When a Seurat object is passed to `fetch_data()`, the `FetchData` method from the `SeuratObject` package is ran. When SingleCellExperiment or anndata objects are passed, methods from SCUBA are dispatched that replicate the behavior of `FetchData` in these objects.
+
+`fetch_data()` can be used to fetch either feature expression data, metadata, or reduction coordinates, all of which are fetched using the same parameter, `vars`. For each entry passed to `vars`, `fetch_data()` will automatically identify the type of data matching the input and retrieve the data accordingly. 
+
+### Fetching Expression Data
+
+`fetch_data()` can retrieve feature expression data from any assay in the object (or "experiment" in SingleCellExperiment and "modality" in anndata objects). To retrieve feature expression data, you can pass any number of features to the `vars` parameter.
+
+Features may have the same name across different assays/experiments/modalities. For example, there may be data for both CD4 gene and surface protein expression, or there may be both gene expression and chromatin accessibility data for the same gene. To ensure feature data from the correct modality is returned, `fetch_data()` implements a syntax where a "key" is specified before the feature name, with an underscore separating the key and the feature name.
+
+```
+{"key" of the modality} + "_" + {feature name}
+```
+
+To determine the key to enter for the desired modality, we provide the `all_keys()` utility function. The output is a named character vector, with names equal to the name of the modality, and values equal to the key to use.
+
+<!-- fetch_data expression data examples -->
+#### {.tabset .tabset-pills}
+##### Seurat 
+
+```{r}
+all_keys(AML_Seurat)
+```
+
+In this example object, use the "rna" key to pull data from the "RNA" assay. 
+
+To pull gene expression data for FLT3, for example, you would pass "rna_FLT3" to `vars`.
+
+```{r}
+fetch_data(
+  AML_Seurat,
+  vars = "rna_FLT3"
+  ) |>
+  # First 10 rows are shown for this example
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+all_keys(AML_SCE())
+```
+
+In this example object, use the "RNA" key to pull data from the "RNA" assay. 
+
+To pull gene expression data for FLT3, for example, you would pass "RNA_FLT3" to `vars`.
+
+```{r}
+fetch_data(
+  AML_SCE(),
+  vars = "RNA_FLT3"
+  ) |>
+  # First 10 rows are shown for this example
+  head(10)
+```
+
+##### anndata
+
+```{r}
+all_keys(AML_h5ad())
+```
+
+By convention, the gene expression modality in anndata objects is named "X". In this example object, use the "X" key to pull data from the "RNA" assay.
+
+To pull gene expression data for FLT3, for example, you would pass "X_FLT3" to `vars`.
+
+```{r}
+fetch_data(
+  AML_h5ad(),
+  vars = "X_FLT3"
+  ) |>
+  # First 10 rows are shown for this example
+  head(10)
+```
+
+#### {.tabset .tabset-pills}
+
+Any number of features can be passed to vars as a character vector. To view available features for a modality, SCUBA provides the `features_in_assay()` generic. Use the `assay` parameter to specify the modality, using the name instead of the key. This utility generic can be used to query available features in a modality, and check if a feature is represented in the data for the assay before passage to fetch_data. 
+
+##### Seurat
+
+```{r}
+available_genes <-
+  features_in_assay(
+    AML_Seurat,
+    # For this object, "RNA" is the gene expression assay
+    assay = "RNA"
+  )
+
+available_genes |> 
+  head(10)
+
+# Test if a gene is present in the RNA assay before passage to fetch_data
+"MEIS1" %in% available_genes
+
+# Request data for multiple features
+fetch_data(
+  AML_Seurat,
+  vars = c("rna_FLT3", "rna_MEIS1")
+  ) |>
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+available_genes <-
+  features_in_assay(
+    AML_SCE(),
+    # In this object, RNA is the name of the gene expression experiment
+    assay = "RNA"
+  )
+
+available_genes |> 
+  head(10)
+
+# Test if a gene is present in the RNA assay before passage to fetch_data
+"MEIS1" %in% available_genes
+
+# Request data for multiple features
+fetch_data(
+  AML_SCE(),
+  vars = c("RNA_FLT3", "RNA_MEIS1")
+  ) |>
+  head(10)
+```
+
+##### anndata
+
+```{r}
+available_genes <-
+  features_in_assay(
+    AML_h5ad(),
+    assay = "X"
+  )
+
+available_genes |> 
+  head(10)
+
+# Test if a gene is present in the RNA assay before passage to fetch_data
+"MEIS1" %in% available_genes
+
+# Request data for multiple features
+fetch_data(
+  AML_h5ad(),
+  vars = c("X_FLT3", "X_MEIS1")
+  ) |>
+  head(10)
+```
+
+<!-- {-} Ends tabset interface -->
+#### {-}
+
+### Expression Data from Alternate Layers 
+
+By default, `fetch_data()` will pull data from the normalized counts layer. In Seurat objects, this is the "Data" layer and in SingleCellExperiment objects, this is "logcounts". In anndata objects, it is customary to store normalized count data in the X matrix. (If normalized counts data in your object is stored elsewhere, see the "anndata" tab below).
+
+To pull data from alternate layers, use the `layer` parameter.
+
+<!-- Tabset interface uses an <h5> header since this is subordinate to the 
+    <h4> section above -->
+#### {.tabset .tabset-pills}
+
+<!-- Tabset buttons are rendered properly as long as they are one header level
+    subordinate of the .tabset element -->
+##### Seurat
+
+Below, feature expression data is pulled from raw counts (the `counts` slot).
+
+```{r}
+fetch_data(
+  AML_Seurat,
+  vars = c("rna_FLT3", "rna_MEIS1"),
+  slot = "counts"
+  ) |>
+  head(10)
+```
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>In Seurat v4 and earlier, the `layer` parameter was named `slot`. If you are using Seurat v4 or earlier, you will need to use `slot` instead of `layer`. This difference does not affect SingleCellExperiment or anndata objects: for these objects, only `layer` should be used. </p>
+</div>
+
+##### SingleCellExperiment
+
+Below, feature expression data is pulled from raw counts (the `counts` layer, referred to as the `counts` "assay" in SingleCellExperiment).
+
+```{r}
+fetch_data(
+  AML_SCE(),
+  vars = c("RNA_FLT3", "RNA_MEIS1"),
+  layer = "counts"
+  ) |>
+  head(10)
+```
+
+##### anndata
+
+If the layer parameter is undefined for anndata objects, `fetch_data()` will use whichever matrix is present in X. If normalized counts data is stored in an alternate layer in the `layers` slot, the name of that layer must be passed to `layers` to retrieve the normalized counts matrix.
+
+In the example object below, normalized counts are stored in X, and raw counts are stored in an alternate layer named "counts". 
+
+```{r}
+# Raw counts in "counts"
+fetch_data(
+  AML_h5ad(),
+  vars = c("X_FLT3", "X_MEIS1"),
+  layer = "counts"
+  ) |>
+  head(10)
+
+# Normalized counts in X
+fetch_data(
+  AML_h5ad(),
+  vars = c("X_FLT3", "X_MEIS1")
+  ) |>
+  head(10)
+```
+
+### Fetching Metadata
+
+To retrieve metadata, pass the name of the metadata variable to fetch to the `vars` parameter of `fetch_data()`. You can pass any number of metadata variables to `vars` as a character vector. Any metadata variable in the object can be retrieved, and there are no differences in input between categorical and numeric metadata variables.
+
+To view available metadata variables in an object, SCUBA provides the `meta_varnames()` utility function.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+# View available metadata
+meta_varnames(AML_Seurat)
+
+fetch_data(
+  AML_Seurat,
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+# View available metadata
+meta_varnames(AML_SCE())
+
+fetch_data(
+  AML_SCE(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
+```{r}
+# View available metadata
+meta_varnames(AML_h5ad())
+
+fetch_data(
+  AML_h5ad(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+<!-- Empty section header ends tabset and keeps paragraph beneath from appearing
+    under "anndata" tab -->
+#### {-}
+
+#### `fetch_metadata` Generic 
+
+If you are retrieving just metadata from very large single-cell objects, we offer a `fetch_metadata()` method that is faster than using `fetch_data()`. As with `fetch_data()`, desired metadata variables are passed to `vars`.
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>In anndata objects, `fetch_metadata()` does not offer performance advantages over `fetch_data()`.</p>
+</div>
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_metadata(
+  AML_Seurat,
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_metadata(
+  AML_SCE(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
+```{r}
+fetch_metadata(
+  AML_h5ad(),
+  vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+<!-- Empty section header ends tabset and provides a slight margin between 
+    the tabset and the next section header -->
+#### {-}
+
+In a programming context, it may be useful to pull the full table. This can be done with `fetch_metadata()` using the `full_table` parameter.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+table <- 
+  fetch_metadata(
+    AML_Seurat,
+    full_table = TRUE
+    )
+
+table[1:10, 1:5]
+```
+
+##### SingleCellExperiment
+
+```{r}
+table <-
+  fetch_metadata(
+    AML_SCE(),
+    full_table = TRUE
+    )
+
+table[1:10, 1:5]
+```
+
+##### anndata
+
+```{r}
+table <-
+  fetch_metadata(
+    AML_h5ad(),
+    full_table = TRUE
+    )
+
+table[1:10, 1:5]
+```
+
+### Fetching Reduction Coordinates
+
+In a similar manner to expression data, reduction coordinates to fetch are passed to `vars` using a "key" and underscore system. In this case, you would enter the key of the reduction to use, and an integer specifying the dimension of the reduction to pull from.
+
+```
+{"key" of the reduction} + "_" + {dimension}
+```
+
+As with assays/modalities, run `all_keys()` to see the key corresponding to the reduction you would like to pull data from. Examples for each object type are provided below.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+From running `all_keys()`, the key of the UMAP reduction in this object is "UMAP_". 
+
+```{r}
+all_keys(AML_Seurat)
+```
+
+To fetch the first and second dims, pass "UMAP_1" and "UMAP_2" to `vars`.
+
+```{r}
+fetch_data(
+  AML_Seurat,
+  vars = c("UMAP_1", "UMAP_2")
+  ) |>
+  head(10)
+```
+
+##### SingleCellExperiment
+
+From running `all_keys()`, the key of the UMAP reduction in this object is "UMAP_". 
+
+```{r}
+all_keys(AML_SCE())
+```
+
+To fetch the first and second dims, pass "UMAP_1" and "UMAP_2" to `vars`.
+
+```{r}
+fetch_data(
+  AML_SCE(),
+  vars = c("UMAP_1", "UMAP_2")
+  ) |>
+  head(10)
+```
+
+##### anndata
+
+From running `all_keys()`, the key of the UMAP reduction in this object is "X_umap_".
+
+```{r}
+all_keys(AML_h5ad())
+```
+
+To fetch the first and second dims, pass "X_umap_1" and "X_umap_2" to `vars`.
+
+```{r}
+fetch_data(
+  AML_h5ad(),
+  vars = c("X_umap_1", "X_umap_2")
+  ) |>
+  head(10)
+```
+#### {-}
+
+<br>
+
+#### `fetch_reduction` Generic
+
+As with metadata, we provide a separate generic, `fetch_reduction()`, that is faster than using `fetch_data()` when retrieving just reduction coordinates from very large single-cell objects. Performance gains are observed in Seurat and SingleCellExperiment objects, but not in anndata objects (performance is the same as `fetch_data()` for this object class).
+
+The syntax for pulling reduction coordinates varies slightly from `fetch_data()`. Instead of entering the reduction name and the dimensions together an underscore, this information is supplied to separate parameters.
+
+The key of reduction to pull data from is passed to `reduction`, and the dimensions from which to pull coordinates are passed in numeric format to `dims`. Any number of dimensions can be passed, but in most cases, two dimensions are pulled. If `dims` is not specified, the first and second dimensions of the specified reduction are returned.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r}
+fetch_reduction(
+  AML_Seurat,
+  reduction = "umap",
+  dims = c(1, 2)
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### SingleCellExperiment
+
+```{r}
+fetch_reduction(
+  AML_SCE(),
+  reduction = "UMAP",
+  dims = c(1, 2)
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+##### anndata
+
+```{r}
+fetch_reduction(
+  AML_h5ad(),
+  reduction = "X_umap",
+  dims = c(1, 2)
+  ) |>
+  # head is used in this example since metadata will be returned for all cells
+  head(10)
+```
+
+### Fetch Data from a Subset of Cells
+
+In some circumstances, you may wish to access data from a subset of cells, rather than the full object. `fetch_data()`, `fetch_metadata()`, and `fetch_reduction()` provide a `cells` parameter to do this. 
+
+The `cells` parameter accepts a character vector with the cell IDs for which to return data. We provide a utility function, `fetch_cells()`, to generate this.
+
+`fetch_cells()` accepts a categorical metadata variable and a vector of values/levels to filter by. Cells with values matching the values entered will be returned.
+
+To view available values for a metadata variable, you can use the `unique_values()` function.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+Identifying available values for the variable "Batch":
+
+```{r}
+unique_values(AML_Seurat, var = "Batch")
+```
+
+Returning cells are returned where "Batch" is equal to "PBMC_200AB":
+
+```{r}
+cell_subset <- 
+  fetch_cells(
+    object = AML_Seurat, 
+    meta_var = "Batch", 
+    meta_levels = "PBMC_200AB"
+    )
+
+# Preview cell IDs returned
+cell_subset[1:6]
+# Number of cells
+length(cell_subset)
+```
+
+Retrieving expression data for the subset:
+
+```{r}
+data <-
+  fetch_data(
+    AML_Seurat,
+    vars = "rna_FLT3",
+    cells = cell_subset
+    )
+
+str(data)
+
+# Compare with full data
+full_data <-
+  fetch_data(
+    AML_Seurat,
+    vars = "rna_FLT3"
+    )
+
+str(full_data)
+```
+
+##### SingleCellExperiment
+
+Identifying available values for the variable "Batch":
+
+```{r}
+unique_values(AML_SCE(), var = "Batch")
+```
+
+Returning cells are returned where "Batch" is equal to "PBMC_200AB":
+
+```{r}
+cell_subset <- 
+  fetch_cells(
+    object = AML_SCE(), 
+    meta_var = "Batch", 
+    meta_levels = "PBMC_200AB"
+    )
+
+# Preview cell IDs returned
+cell_subset[1:6]
+# Number of cells
+length(cell_subset)
+```
+
+Retrieving expression data for the subset:
+
+```{r}
+data <-
+  fetch_data(
+    AML_SCE(),
+    vars = "RNA_FLT3",
+    cells = cell_subset
+    )
+
+str(data)
+
+# Compare with full data
+full_data <-
+  fetch_data(
+    AML_SCE(),
+    vars = "RNA_FLT3"
+    )
+
+str(full_data)
+```
+
+
+##### anndata
+
+Identifying available values for the variable "Batch":
+
+```{r}
+unique_values(AML_h5ad(), var = "Batch")
+```
+
+Returning cells are returned where "Batch" is equal to "PBMC_200AB":
+
+```{r}
+cell_subset <- 
+  fetch_cells(
+    object = AML_h5ad(), 
+    meta_var = "Batch", 
+    meta_levels = "PBMC_200AB"
+    )
+
+# Preview cell IDs returned
+cell_subset[1:6]
+# Number of cells
+length(cell_subset)
+```
+
+Retrieving expression data for the subset:
+
+```{r}
+data <-
+  fetch_data(
+    AML_h5ad(),
+    vars = "X_FLT3",
+    cells = cell_subset
+    )
+
+str(data)
+
+# Compare with full data
+full_data <-
+  fetch_data(
+    AML_h5ad(),
+    vars = "X_FLT3"
+    )
+
+str(full_data)
+```
+
+
+
+<!-- Empty header to end tabset panel and keep content below from appearing in
+    anndata section -->
+#### {-}
+
+<div class="callout callout-info">
+  <h4>Note</h4>
+  <p>`fetch_cells()` currently only returns a subset based on values/levels of a single categorical variable. The ability to create more complex filters will be added in the future.</p>
+</div>
+
+## Data Exploration
+
+SCUBA provides several utility functions that facilitate exploration of objects before analysis.
+
+### View Overall Metadata Present
+
+It is often useful to view the names of all metadata variables in the object, either as a first pass when exploring an object, or to recall the name of a metadata variable before passage to `fetch_data()` or `fetch_metadata()`. This is done via `meta_varnames()`.
+
+#### {.tabset .tabset-pills .special-tabs}
+
+##### Seurat
+
+```{r}
+meta_varnames(
+  AML_Seurat
+)
+```
+
+##### SingleCellExperiment
+
+```{r}
+meta_varnames(
+  AML_SCE()
+)
+```
+
+##### anndata
+
+```{r}
+meta_varnames(
+  AML_h5ad()
+)
+```
+
+### Summarize a Metadata Variable
+
+To explore a metadata variable in greater detail, use `unique_values()`. This will print all values within the metadata variable. This is done below with the "condensed_cell_type" variable identified from `meta_varnames()`.
+
+To view the unique values for a variable, pass the name of the variable to the `var` parameter of the `unique_values()` function. 
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r, class.source='seurat', class.output='seurat'}
+unique_values(
+  AML_Seurat,
+  var = "condensed_cell_type"
+)
+```
+
+##### SingleCellExperiment
+
+```{r, class.source=".sce", class.output=".sce"}
+unique_values(
+  AML_SCE(),
+  var = "condensed_cell_type"
+)
+```
+
+##### anndata
+
+```{r, class.source=".anndata", class.output=".anndata"}
+unique_values(
+  AML_h5ad(),
+  var = "condensed_cell_type"
+)
+```
+
+## Data Visualization
+
+The data access functions mentioned in the previous section can be applied downstream to create new plotting functions for single-cell data. Functions created with SCUBA generics will be flexible across object classes by default. 
+
+The general workflow of single-cell data visualization functions is as follows:
+
+- Data access 
+- If applicable, statistics (average expression, percent expression, number of cells in group, etc.)
+- Visualization code
+
+This section will demonstrate how to use SCUBA functions to simplify data access. In the example below, a function will be created to plot density plots for a feature. The function will accept a feature and a metadata variable and will fetch data for the entered feature or variable via SCUBA access functions. Plotting code downstream will create the density plots. 
+
+The example below will follow principles of incremental development. Each code block will show a "snapshot" of the development process, where a progressively complex output will be created. Some intermediates are ugly and/or difficult to interpret, but they will be corrected in subsequent steps.
+
+First off, we define the parameters to use for the function. To facilitate development, the parameters are initialized at the top of the script as variables. The function will be initially written as a script that uses these variables, and the code beneath these variable declarations will be moved into a function at the end of the process.
+
+The variables initialized include the object to use, a feature to enter for the plot, and a metadata variable. These are set to the test object provided with the SCUBA package, and a feature and metadata variable present in that object. It does not matter which value is used here as long as it exists. When developing your own functions, these values could reflect a test case for the function you are developing.
+
+```{r, results=FALSE}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+```
+
+```{r, include = FALSE, eval=FALSE}
+#feature_display <- "GAPDH"
+
+#dplyr::rename(feature_display = feature)
+```
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+```
+
+After fetching the data, we will make a basic density plot using `geom_density()` from the ggplot2 package. In this stage, it will be for the full object and not split by a metadata variable.
+
+Make sure you have loaded ggplot2 before proceeding.
+
+```{r, results=FALSE, message=FALSE, warning=FALSE}
+if (!require("ggplot2", quietly = TRUE)){
+  install.packages("ggplot2")
+}
+
+library(ggplot2)
+```
+
+The use of `.data[[]]` in the `aes()` specification allows us to supply the feature as a character vector to ggplot. Using `.data[[]]` allows the script to accept any feature without needing to make changes to the code, or having to rename the column corresponding to the feature in the output of `fetch_data()`.
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]])
+    ) +
+    geom_density()
+
+plot
+```
+
+Next, we will add a fill attribute based on the metadata variable entered. The metadata variable is supplied to the fill attribute, again using `.data[[]]`.
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density()
+
+plot
+```
+
+For this plot to be interperetable, the curves will need to be "split" out into separate plots. This is done with `facet_wrap()`.
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density() +
+    ggplot2::facet_wrap(
+        vars(.data[[metadata]]),
+        # Set a two-column layout
+        ncol = 2
+    )
+
+plot
+```
+
+Next, plot visuals are improved. `theme_cowplot()` from the `cowplot` package is applied. This removes grids from the plot region, and adds axes on the left and bottom of the plot.
+
+The following additional changes will be added with a custom theme:
+
+- Labels for each facet are horizontally centered.
+- The legend is removed from the plot.
+- The gray box behind facet labels is made transparent using `strip.background = element_rect(fill = "#FFFFFF00")`. The last two digits in the fill color "#FFFFFF00" make the background transparent by setting the [alpha value of the hex code color](https://www.digitalocean.com/community/tutorials/css-hex-code-colors-alpha-values#adding-an-alpha-value-to-css-hex-codes) to zero. 
+- The text is made bold and shrank via `strip.text`.
+
+```{r}
+if (!require("cowplot", quietly = TRUE)){
+  install.packages("cowplot")
+}
+
+library(cowplot)
+```
+
+```{r}
+object <- AML_Seurat
+feature <- "rna_GAPDH"
+metadata <- "condensed_cell_type"
+
+data <- 
+  fetch_data(
+    object,
+    # variables to fetch, the feature and metadata variable
+    vars = 
+      c(feature,
+        metadata
+        )
+    )
+
+plot <- ggplot(
+    data = data,
+    aes(x = .data[[feature]], fill = .data[[metadata]])
+    ) +
+    geom_density() +
+    ggplot2::facet_wrap(
+      vars(.data[[metadata]]),
+      ncol = 2
+      ) +
+    cowplot::theme_cowplot() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      legend.position = "none",
+      strip.background = element_rect(fill = "#FFFFFF00"),
+      strip.text = element_text(face = "bold", size = rel(0.8))
+      )
+
+plot
+```
+
+At this point, the plot is in a finished form and is ready to be packaged in a function.
+
+At this stage, simply transfer the variables defined at the beginning to the function as parameters, and move the subsequent code into the function.
+
+```{r}
+# Transfer variables to parameters
+# object <- AML_Seurat
+# feature <- "rna_GAPDH"
+# metadata <- "condensed_cell_type"
+
+density_plot <-
+  function(
+    object,
+    feature,
+    metadata
+    ){
+    data <- 
+      fetch_data(
+        object,
+        # variables to fetch, the feature and metadata variable
+        vars = 
+          c(feature,
+            metadata
+            )
+        )
+    
+    plot <- ggplot(
+        data = data,
+        aes(x = .data[[feature]], fill = .data[[metadata]])
+        ) +
+        geom_density() +
+        ggplot2::facet_wrap(
+          vars(.data[[metadata]]),
+          ncol = 2
+          ) +
+        cowplot::theme_cowplot() +
+        theme(
+          plot.title = element_text(hjust = 0.5),
+          legend.position = "none",
+          strip.background = element_rect(fill = "#FFFFFF00"),
+          strip.text = element_text(face = "bold", size = rel(0.8))
+          )
+    
+    plot
+    }
+```
+
+Now we call the function on each supported object class. The plots have almost identical visuals, except for differences in assay names when entering features.
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+```{r, class.source=".seurat", class.output=".seurat"}
+density_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH",
+  metadata = "condensed_cell_type"
+  )
+```
+
+##### SingleCellExperiment
+
+```{r, class.source=".sce", class.output=".sce"}
+density_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH",
+  metadata = "condensed_cell_type"
+  )
+```
+
+##### anndata
+
+```{r, class.source=".anndata", class.output=".anndata"}
+density_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH",
+  metadata = "condensed_cell_type"
+  )
+```
+
+#### {-}
+
+The process described here can be applied to the creation of any other single-cell visualization that uses expression data, metadata, or reduction coordinates. SCUBA facilitates data access in visualization functions, allowing users to access data through a call to an access function instead of doing object-specific data wrangling.
+
+### Utility Methods for Visualization Functions
+
+SCUBA provides several utility methods for plotting functions that define default properties, allowing users to optionally specify reductions and layers to user for plotting without requiring users to enter these parameters.
+
+Below is an example feature plot function that uses the following utility functions:
+
+- `default_reduction()`: Returns the key of a default reduction to use.
+- `default_layer()`: Returns the conventional name of the normalized layer in the object.
+- `get_all_cells()`: Returns the IDs of all cells in the object.
+- `reduction_dimnames()`: Forms the names of reduction dimensions to pull, for passage to `vars` in `fetch_data`.
+
+```{r}
+feature_plot <- 
+  function(
+    object,
+    feature,
+    dims = c(1, 2),
+    reduction = NULL,
+    layer = NULL,
+    cells = NULL
+  ){
+  # Determine a default reduction if the user does not enter one
+  if (is.null(reduction)){
+    reduction <- default_reduction(object)
+    } 
+  
+  # Define a default layer if undefined
+  if (is.null(layer)){
+    layer <- default_layer(object)
+    }
+  
+  # Cells: if undefined, set to all cells in object
+  if (is.null(cells)){
+    cells <- get_all_cells(object)
+    }
+  
+  # Form syntax for pulling reduction coordinates using the reduction 
+  # name and the dimensions entered in the function
+  reduction_vars <-
+    reduction_dimnames(
+      object = object,
+      reduction = reduction,
+      dims = dims
+      )
+  
+  data <-
+    fetch_data(
+      object = object,
+      vars = c(reduction_vars, feature),
+      layer = layer,
+      cells = cells
+      )
+  
+  plot <-
+    ggplot(
+      data, 
+      aes(
+        x = .data[[reduction_vars[1]]], 
+        y = .data[[reduction_vars[2]]],
+        color = .data[[feature]]
+        )
+      ) +
+    geom_point() +
+    cowplot::theme_cowplot() +
+    scale_color_gradientn(
+      # Color cells using the viridis palette
+      colors = viridisLite::plasma(12, direction = -1)
+      ) +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      strip.background = element_rect(fill = "#FFFFFF00"),
+      strip.text = element_text(face = "bold", size = rel(0.8))
+      )
+  
+  plot
+  }
+```
+
+#### {.tabset .tabset-pills}
+
+##### Seurat
+
+Running function without specifying default reduction, layer: utility functions will supply defaults.
+
+```{r, class.source=".seurat", class.output=".seurat"}
+feature_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH"
+  )
+```
+
+
+<!--
+Running the function with an alternate reduction:
+
+```{r, class.source=".seurat", class.output=".seurat", eval=FALSE}
+feature_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH",
+  reduction = "pca"
+  )
+```
+-->
+
+Running the function with the raw counts layer:
+
+```{r, class.source=".seurat", class.output=".seurat"}
+feature_plot(
+  object = AML_Seurat,
+  feature = "rna_GAPDH",
+  layer = "counts"
+  )
+```
+
+
+##### SingleCellExperiment
+
+Running function without specifying default reduction, layer: utility functions will supply defaults.
+
+```{r, class.source=".sce", class.output=".sce"}
+feature_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH"
+  )
+```
+
+<!--Running the function with an alternate reduction:
+
+```{r, class.source=".sce", class.output=".sce", eval=FALSE}
+feature_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH",
+  reduction = "PCA"
+  )
+```
+
+-->
+
+Running the function using the raw counts layer:
+
+```{r, class.source=".sce", class.output=".sce"}
+feature_plot(
+  object = AML_SCE(),
+  feature = "RNA_GAPDH",
+  layer = "counts"
+  )
+```
+
+##### anndata
+
+Running function without specifying default reduction, layer: utility functions will supply defaults.
+
+```{r, class.source=".anndata", class.output=".anndata"}
+feature_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH"
+  )
+```
+
+<!--
+Running the function with an alternate reduction:
+
+```{r, class.source=".anndata", class.output=".anndata", eval=FALSE}
+feature_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH",
+  reduction = "X_pca"
+  )
+```
+-->
+
+Running the function with the raw counts layer:
+
+```{r, class.source=".anndata", class.output=".anndata"}
+feature_plot(
+  object = AML_h5ad(),
+  feature = "X_GAPDH",
+  layer = "counts"
+  )
+```
+
+#### {-}

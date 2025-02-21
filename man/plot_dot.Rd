@@ -85,3 +85,4 @@ plot_dot(
 \seealso{
 \code{RColorBrewer::brewer.pal.info}
 }
+\keyword{internal}

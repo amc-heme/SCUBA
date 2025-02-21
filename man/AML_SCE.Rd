@@ -2,25 +2,24 @@
 % Please edit documentation in R/data.R
 \name{AML_SCE}
 \alias{AML_SCE}
-\title{AML Reference Dataset (SingleCellExperiment Format)}
-\format{
-A SingleCellExperiment object with 659 features and 250 cells in 2 SummarizedExperiment objects. Included experiments:
-\describe{
-\item{RNA (main experiment)}{mRNA expression data for 462 genes used as markers for hamatopoietic stem and progenitor (HSPC) cell types at varying stages of differentiation.}
-\item{AB}{Surface protein expression data for 197 surface protein markers associated with HSPCs.}
-}
-}
+\title{Reference dataset used for testing and demonstration (SingleCellExperiment)}
 \source{
-\url{https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065}
+The dataset was obtained from the \href{https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2}{Figshare}. For more information on the operations performed on the original object, see the \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{SCUBA manuscript repository}.
 }
 \usage{
 AML_SCE()
 }
 \description{
-An AML single cell reference dataset produced by \href{https://doi.org/10.1038/s41590-021-01059-0}{Triana et al. 2021}. This is a small subset of the original  data that is intended for use with tests in this package.
-
-The dataset includes a pheresis and a bone marrow sample from a single young healthy donor. A panel of 462 genes is included in the dataset, along with 197 surface protein markers. A UMAP projection based on gene expression was computed from the original Seurat object downloaded from Figshare (see source below). The cell types provided by Triana et al. were condensed into 10 generalized cell types, and the object was randomly downsampled to include 25 cells from each cell type.
+A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in \href{https://doi.org/10.1038/s41590-021-01059-0}{Triana et al. 2021}. The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object are provided in \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{this script} in the SCUBA manuscript repository.
 }
 \details{
-The function described here is used to load the SingleCellExperiment object using the \code{HDF5Array} package. Unlike \code{AML_Seurat}, this dataset should be called as a function.
+Contrary to convention for loading data, \code{AML_SCE()} is called as a function, with parentheses. This is because the
+dataset is loaded with \code{HDF5Array::loadHDF5SummarizedExperiment()} instead of the typical process of loading data from R packages. The dataset was saved using the \code{HDF5Array} package to test support of SingleCellExperiment objects supporting HDF5 storage saved using this package.
+}
+\examples{
+# Object summary
+AML_SCE()
+
+# Summary of metadata variables in object
+meta_varnames(AML_SCE())
 }

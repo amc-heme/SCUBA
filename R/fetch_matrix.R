@@ -6,6 +6,8 @@
 #' @param matrix_location the
 #' @param ... Currently unused.
 #'
+#' @keywords internal
+#'
 #' @rdname fetch_matrix
 #'
 #' @export

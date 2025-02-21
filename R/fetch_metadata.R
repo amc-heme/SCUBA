@@ -1,31 +1,52 @@
-#' Fetch metadata
+#' Fetch metadata from single-cell objects
 #'
 #' Returns object metadata for a specified set of cells.
 #'
-#' @param object a single-cell object. Currently, Seurat and
-#' SingleCellExperiment objects are supported.
+#' See our GitHub.io website for additional information and examples.
+#'
+#' @inheritParams object_param
 #' @param vars metadata variables to pull from object. This must be defined,
-#' unless "full_table" is set to \code{TRUE}.
-#' @param cells cells to include in the returned metadata. If unspecified,
-#' metadata will be returned for all cells in the object.
-#' @param full_table if \code{TRUE}, return the entire metadata table (\code{FALSE} by
-#' default)
+#' unless "full_table" is set to `TRUE`.
+#' @param cells cell IDs for which to pull metadata. If `NULL`, 
+#' coordinates will be returned from all cells in the object. Cell IDs can be 
+#' generated with [`fetch_cells()`].
+#' @param full_table if `TRUE`, return the entire metadata table. This is `FALSE` by
+#' default.
 #' @param return_class class of data returned. Set to "dataframe" by default to
 #' return a data.frame, and may also be set to "vector" to yield a vector of
-#' values. This is ignored if "full_table" is set to \code{TRUE}.
-#' @param ... Currently unused.
+#' values. This is ignored if "full_table" is set to `TRUE`.
 #'
 #' @rdname fetch_metadata
 #'
 #' @export
+#' 
+#' @examples
+#' # Return several metadata variables as a data.frame
+#' fetch_metadata(
+#'   AML_Seurat, 
+#'   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
+#'   ) |> str()
+#'   
+#' # Return data for a single metadata variable as a vector
+#' fetch_metadata(
+#'   AML_Seurat, 
+#'   vars = "condensed_cell_type",
+#'   return_class = "vector"
+#'   ) |> str()
+#' 
+#' # Return all metadata 
+#' fetch_metadata(
+#'   AML_Seurat,
+#'   full_table = TRUE
+#'   ) |> str()
+#' 
 fetch_metadata <-
   function(
     object,
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe",
-    ...
+    return_class = "dataframe"
   ){
     UseMethod("fetch_metadata")
   }

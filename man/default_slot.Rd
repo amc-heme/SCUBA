@@ -10,11 +10,10 @@ default_slot(object)
 \item{object}{a single cell object supported by SCUBA. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.}
 }
 \description{
-Returns the default slot for the object passed.
+Returns the default slot for the object passed. This function was deprecated
+in version 0.10.0. Please use \code{\link[=default_layer]{default_layer()}} instead.
 }
 \details{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
-
-This function was deprecated in version 0.10.0 and renamed to
-\code{default_layer()}. The function will be removed in 1.0.0.
 }
+\keyword{internal}

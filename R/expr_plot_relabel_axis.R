@@ -23,6 +23,8 @@
 #' @param ... Currently unused.
 #'
 #' @rdname relabel_axis
+#' 
+#' @keywords internal
 #'
 #' @export
 relabel_axis <-

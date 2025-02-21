@@ -1,14 +1,21 @@
-#' Unique metadata values
+#' Summarize values in a metadata variable
 #'
-#' Returns the unique values for a given metadata variable in a single cell object.
-#' The function supports all object types that can be passed [fetch_metadata()].
+#' Returns the unique values for the metadata variable provided. `unique_values`
+#' is a utility function for summarizing metadata in an object.
 #'
-#' @param object any object type supported by [fetch_metadata()].
+#' @inheritParams object_param
+#' 
 #' @param var the metadata variable for which to return unique values.
-#' @return a character vector giving the unique values in the specified
+#' 
+#' @returns a character vector giving the unique values in the specified
 #' metadata variable.
 #'
 #' @export
+#' 
+#' @examples
+#' unique_values(AML_Seurat, var = "Batch")
+#' 
+#' unique_values(AML_Seurat, var = "condensed_cell_type")
 unique_values <-
   function(
     object,

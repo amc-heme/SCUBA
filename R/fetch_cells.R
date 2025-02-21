@@ -1,14 +1,12 @@
-#' Subset cells based on metadata
+#' Return cell IDs for a subset based on metadata
 #'
 #' Returns a character vector with the cell names matching the levels/classes
 #' of a specified metadata variable.
 #'
-#' @param object a single-cell object. Currently, Seurat and
-#' SingleCellExperiment objects are supported.
+#' @inheritParams object_param
 #' @param meta_var a metadata variable used as the basis for subsetting cells.
 #' @param meta_levels the levels of the specified metadata variable in
-#' \code{meta_var} to include in the
-#' @param ... Currently unused.
+#' `meta_var` to include in the
 #'
 #' @rdname fetch_cells
 #'
@@ -17,8 +15,7 @@ fetch_cells <-
   function(
     object,
     meta_var,
-    meta_levels,
-    ...
+    meta_levels
   ){
     # Return an error if meta_levels is equal to NULL
     if (is.null(meta_levels)){

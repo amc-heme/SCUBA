@@ -31,3 +31,4 @@ data or metadata.
 \description{
 The SingleCellExperiment equivalent of the SeuratObject FetchData method.
 }
+\keyword{internal}

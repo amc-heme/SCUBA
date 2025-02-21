@@ -5,9 +5,9 @@
 \alias{default_layer.Seurat}
 \alias{default_layer.SingleCellExperiment}
 \alias{default_layer.AnnDataR6}
-\title{Get default reduction from object}
+\title{Return the default layer}
 \usage{
-default_layer(object, ...)
+default_layer(object)
 
 \method{default_layer}{Seurat}(object, ...)
 
@@ -18,13 +18,14 @@ default_layer(object, ...)
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
 and anndata objects are supported.}
-
-\item{...}{Currently unused.}
 }
 \description{
 Returns the default layer for the object passed. The default layer is chosen
 based on the conventions used in each object to name the normalized counts
 layer.
+}
+\details{
+This is a utility function that is most useful for defining defaults in plotting functions, to reduce the number of required parameters end users need to supply. \url{see our website} for an example of usage in a function.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -42,3 +43,13 @@ For Anndata objects, the default layer is \code{NULL}, which will direct
 FetchData to pull feature epxression data from the X matrix.
 
 }}
+\examples{
+# Seurat objects
+default_layer(AML_Seurat)
+
+# SingleCellExperiment objects
+default_layer(AML_SCE())
+
+# anndata objects
+default_layer(AML_h5ad())
+}
