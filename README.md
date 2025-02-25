@@ -29,6 +29,10 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 ```
 
+## Additional Infomration
+
+Please see our [website](https://amc-heme.github.io/SCUBA/) for a user guide and more information.
+
 ## Citation
 Showers,W.M., Desai,J., Engel,K.L., Smith,C., Jordan,C.T. and Gillen,A.E. (2024) SCUBA implements a storage format-agnostic API for single-cell data access in R. [10.12688/f1000research.154675.1](https://doi.org/10.12688/f1000research.154675.1).
 
