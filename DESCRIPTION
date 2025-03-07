@@ -25,7 +25,8 @@ Imports:
     SeuratObject,
     SummarizedExperiment,
     lifecycle,
-    methods
+    methods,
+    utils
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
