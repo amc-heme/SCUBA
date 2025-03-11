@@ -9,7 +9,7 @@
 #' unless "full_table" is set to `TRUE`.
 #' @param cells cell IDs for which to pull metadata. If `NULL`, 
 #' coordinates will be returned from all cells in the object. Cell IDs can be 
-#' generated with [`fetch_cells()`].
+#' generated with [fetch_cells()].
 #' @param full_table if `TRUE`, return the entire metadata table. This is `FALSE` by
 #' default.
 #' @param return_class class of data returned. Set to "dataframe" by default to
@@ -62,8 +62,7 @@ fetch_metadata.default <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe",
-    ...
+    return_class = "dataframe"
   ){
     warning(
       paste0(
@@ -82,8 +81,7 @@ fetch_metadata.Seurat <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe",
-    ...
+    return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
@@ -166,8 +164,7 @@ fetch_metadata.SingleCellExperiment <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe",
-    ...
+    return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){
@@ -253,8 +250,7 @@ fetch_metadata.AnnDataR6 <-
     vars = NULL,
     cells = NULL,
     full_table = FALSE,
-    return_class = "dataframe",
-    ...
+    return_class = "dataframe"
   ){
     # Check return_class for valid entries
     if (!return_class %in% c("dataframe", "vector")){

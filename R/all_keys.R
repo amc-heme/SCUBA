@@ -49,8 +49,7 @@ all_keys <-
 #' @export
 all_keys.default <-
   function(
-    object,
-    ...
+    object
   ){
     warning(
       paste0(
@@ -66,8 +65,7 @@ all_keys.default <-
 #' @export
 all_keys.Seurat <-
   function(
-    object,
-    ...
+    object
   ){
     # Seurat objects: run SeuratObject.Key method
     Key(object)
@@ -78,8 +76,7 @@ all_keys.Seurat <-
 #' @export
 all_keys.SingleCellExperiment <-
   function(
-    object,
-    ...
+    object
   ){
     # SingleCellExperiment objects: return names of experiments and reductions
     keys <-
@@ -98,8 +95,7 @@ all_keys.SingleCellExperiment <-
 #' @export
 all_keys.AnnDataR6 <-
   function(
-    object,
-    ...
+    object
   ){
     # Since anndata objects don't have defined locations for modalities and
     # reductions, downstream functions calling this method may not work

@@ -9,11 +9,11 @@
 \usage{
 fetch_cells(object, meta_var, meta_levels)
 
-\method{fetch_cells}{Seurat}(object, meta_var, meta_levels, ...)
+\method{fetch_cells}{Seurat}(object, meta_var, meta_levels)
 
-\method{fetch_cells}{SingleCellExperiment}(object, meta_var, meta_levels, ...)
+\method{fetch_cells}{SingleCellExperiment}(object, meta_var, meta_levels)
 
-\method{fetch_cells}{AnnDataR6}(object, meta_var, meta_levels, ...)
+\method{fetch_cells}{AnnDataR6}(object, meta_var, meta_levels)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
