@@ -513,6 +513,16 @@ fetch_data.AnnDataR6 <-
     ){
     library(reticulate)
     
+    if (!requireNamespace("reticulate", quietly = TRUE)) {
+      stop(
+        paste0(
+          'Package "reticulate" must be installed to use this ',
+          'function with anndata objects.'
+          ),
+        call. = FALSE
+      )
+    }
+    
     # Source fetch_anndata python script
     python_path =
       system.file(
