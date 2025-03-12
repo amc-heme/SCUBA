@@ -35,7 +35,8 @@ features_in_assay <-
 #' @export
 features_in_assay.default <-
   function(
-    object
+    object,
+    assay
   ){
     warning(
       paste0(

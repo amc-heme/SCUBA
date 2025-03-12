@@ -9,11 +9,11 @@
 \usage{
 fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
 
-\method{fetch_data}{Seurat}(object, vars = NULL, layer = NULL, cells = NULL, slot = NULL)
+\method{fetch_data}{Seurat}(object, vars = NULL, layer = NULL, cells = NULL, slot = NULL, ...)
 
-\method{fetch_data}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL)
+\method{fetch_data}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL, ...)
 
-\method{fetch_data}{AnnDataR6}(object, vars, layer = NULL, cells = NULL)
+\method{fetch_data}{AnnDataR6}(object, vars, layer = NULL, cells = NULL, ...)
 }
 \arguments{
 \item{object}{A single-cell object. Currently, Seurat, SingleCellExperiment,
@@ -38,6 +38,11 @@ Layers are referred to as "slots" in Seurat objects v4 and earlier, and
 \item{cells}{A character vector of cells to include, as they are named in
 the object (i.e. according to colNames(object)). If \code{NULL}, data will
 be returned for all cells in the object.}
+
+\item{...}{Additional parameters, beyond the ones listed above, to be passed to S3 methods. This includes the following, all of which are documented in the parameter entries below:
+\itemize{
+\item fetch_data.Seurat: \code{slot} parameter
+}}
 
 \item{slot}{This parameter is added for backwards compatability with Seruat
 v4 and earlier. This was deprecated in Seurat version 5.0.0. \emph{If you have Seruat v5.0.0 or later, this should not be used. This parameter should also not be used for SingleCellExperiment objects or anndata objects and will not work at all for these object classes. Use} \code{layer} \emph{instead.}}

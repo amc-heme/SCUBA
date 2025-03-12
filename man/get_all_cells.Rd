@@ -9,11 +9,11 @@
 \usage{
 get_all_cells(object)
 
-\method{get_all_cells}{Seurat}(object, ...)
+\method{get_all_cells}{Seurat}(object)
 
-\method{get_all_cells}{SingleCellExperiment}(object, ...)
+\method{get_all_cells}{SingleCellExperiment}(object)
 
-\method{get_all_cells}{AnnDataR6}(object, ...)
+\method{get_all_cells}{AnnDataR6}(object)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,

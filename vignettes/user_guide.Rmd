@@ -8,6 +8,10 @@ output:
       version: 5
 editor_options: 
   chunk_output_type: console
+vignette: >
+  %\VignetteIndexEntry{User_Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}

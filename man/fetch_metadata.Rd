@@ -20,8 +20,7 @@ fetch_metadata(
   vars = NULL,
   cells = NULL,
   full_table = FALSE,
-  return_class = "dataframe",
-  ...
+  return_class = "dataframe"
 )
 
 \method{fetch_metadata}{SingleCellExperiment}(
@@ -29,8 +28,7 @@ fetch_metadata(
   vars = NULL,
   cells = NULL,
   full_table = FALSE,
-  return_class = "dataframe",
-  ...
+  return_class = "dataframe"
 )
 
 \method{fetch_metadata}{AnnDataR6}(
@@ -38,8 +36,7 @@ fetch_metadata(
   vars = NULL,
   cells = NULL,
   full_table = FALSE,
-  return_class = "dataframe",
-  ...
+  return_class = "dataframe"
 )
 }
 \arguments{
