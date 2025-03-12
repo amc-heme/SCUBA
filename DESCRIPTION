@@ -5,7 +5,7 @@ Authors@R:
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: SCUBA provides a common accession framework for multiple single cell object formats (Seurat, SingleCellExperiment, Anndata), facilitating analysis.
-License: MIT | file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
