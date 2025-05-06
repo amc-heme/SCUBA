@@ -1,7 +1,45 @@
 Package: SCUBA
+Type: Package
 Title: Common data accession for single cell object formats
-Version: 1.1.0
-Author: William Showers, Jairav Desai, Kent Riemondy, Austin Gillen
+Version: 1.1.1
+Authors@R: c(
+    person(
+        "William", 
+        "Showers",
+        role = "aut"
+        ),
+    person(
+        "Jairav",
+        "Desai",
+        role = "aut"
+        ),
+    person(
+        "Kent",
+        "Riemondy",
+        role = "ctb"
+        ),
+    person(
+        "Krysta",
+        "Engel",
+        role = "ctb"
+        ),
+    person(
+        "Clayton", 
+        "Smith", 
+        role = "fnd"
+        ),
+    person(
+        "Craig", 
+        "Jordan", 
+        role = "fnd"
+        ),
+    person(
+        "Austin", 
+        "Gillen", 
+        email = "austin.gillen@cuanschutz.edu",
+        role = c("aut", "cre")
+        )
+    )
 Description: SCUBA provides a common accession framework for multiple single cell object formats (Seurat, SingleCellExperiment, Anndata), facilitating analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8

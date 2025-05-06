@@ -283,28 +283,71 @@ $(document).ready(function(){
 // });
 ```
 
+<!-- Starting with header 2 because header 1 tags in pkgdown keep the tabset pills 
+     present in this document from rendering properly in pkgdown -->
+<!-- https://github.com/r-lib/pkgdown/issues/2720 -->
+<!--     ¯\_(ツ)_/¯     -->
+
 ## Introduction
 
 SCUBA provides several functions for exploration, access, and visualization of data from single-cell objects. Each of these is covered here, for each object type supported by SCUBA. SCUBA currently supports Seurat, SingleCellExperiment, and anndata objects.
 
-### Naming Conventions
+## Naming Conventions
 
 Single-cell object classes use different terms to refer to the the same or similar concepts. For simplicity, this tutorial will use one term for each concept. The concepts mentioned in the tutorial are given below, and for each concept, the terms used for each object class are mentioned, along with the term that will be used for this tutorial.
 
 - **Sequencing modalities**: the data structure used to store each type of single-cell data (i.e. scRNA-seq, surface protein measurements, ATAC-seq, etc.) is referred to as an "assay" in Seurat, an "experiment" in SingleCellExperiment, and a "modality" in anndata. This tutorial will use *"modality"*.
 - **Data structure for transformed data**: in Seurat objects, the structure used for storing raw counts, normalized counts, and other transformations is known as a "slot". In SingleCellExperiment, this is referred to as an "assay", and in anndata, a "layer". This tutorial will use *"layer"*.
 
+## Setup
+
 Please ensure you have loaded the SCUBA package before continuing. See [here](https://amc-heme.github.io/SCUBA/index.html#installation) for instructions to install SCUBA.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 # Load package
 library(SCUBA)
 ```
 
-<!-- Starting with header 2 because header 1 tags in pkgdown keep the tabset pills 
-     present in this document from rendering properly in pkgdown -->
-<!-- https://github.com/r-lib/pkgdown/issues/2720 -->
-<!--     ¯\_(ツ)_/¯     -->
+Next, load your single-cell object. Objects should be loaded according using the conventional means for each object, shown below. 
+
+In this tutorial, we use `AML_Seurat`, `AML_SCE()`, and `AML_h5ad()` to load an example dataset included with SCUBA in Seurat, SingleCellExperiment, and anndata format, respectively.
+
+For anndata objects, we recommend loading via the [`anndata`](https://github.com/dynverse/anndata) R package. This is **not** the same as the anndata Python package that also must be installed in a Python environment. For more information, see [here](https://amc-heme.github.io/SCUBA/index.html#pre-requisites).
+
+#### {.tabset .tabset-pills}
+##### Seurat 
+
+```{r, eval = FALSE}
+readRDS(
+  # Replace with path to Seurat object
+  "path/to/Seurat_object.rds"
+  )
+```
+
+##### SingleCellExperiment
+
+```{r, eval=FALSE}
+# Standard SingleCellExperiment objects
+readRDS(
+  # Replace with the path to your object
+  "path/to/sce_object.rds"
+)
+
+# HDF5-storage enabled SingleCellExperiment objects saved via the HDF5Array package
+HDF5Array::loadHDF5SummarizedExperiment(
+  # Replace with the path to the directory created via
+  # HDF5Array::saveHDF5SummarizedExperiment
+  dir = "path/to/sce_dir/"
+)
+```
+
+##### anndata
+
+```{r, eval=FALSE}
+anndata::read_h5ad(
+  "path_to_anndata_object.h5ad"
+)
+```
 
 ## Data Access
 
