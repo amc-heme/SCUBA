@@ -26,6 +26,10 @@ SCUBA currently supports the following object classes:
 
 Support for mudata objects will be added in the near future.
 
+### Backwards Compatability with Seurat v4
+
+Seurat v4 objects are compatible with SCUBA. `fetch_data()` is a wrapper for `SeuratObject::FetchData()` when used with Seurat objects, so the function supports all versions of Seurat objects that Seurat currently supports. If you are using an object created with Seurat v4, the `slot` parameter should be used instead of `layer` in the event you are accessing data from the `counts` or the `scale.data` layers (if you are accessing data from the `data` layer, this parameter is not needed, as is the case with Seurat).
+
 ### Spatial Single-Cell Modalities
 
 SCUBA offers partial support for spatial single-cell modalities. Spatial data that is expressed as a counts matrix and stored in an assay/experiment/modality is supported by SCUBA, but spatial images are not currently supported. We will add support for spatial omics modalities in a future release.
