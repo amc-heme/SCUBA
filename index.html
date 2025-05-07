@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,30 +62,113 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="scuba">SCUBA<a class="anchor" aria-label="anchor" href="#scuba"></a>
 </h1></div>
-<p>SCUBA (<em>S</em>ingle <em>C</em>ell <em>U</em>nified <em>B</em>ack end <em>A</em>PI) is a unified data accession interface for single-cell object classes. The package streamlines R data analysis for Seurat, SingleCellExperiment, and anndata objects by providing a consistent interface for data access, exploration, and visualization.</p>
 <div class="section level2">
-<h2 id="pre-requisites">Pre-requisites<a class="anchor" aria-label="anchor" href="#pre-requisites"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>SCUBA relies on the <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> package to operate on AnnData objects. Please make sure you follow the instructions on the reticulate page before moving on.</p>
-<p>It is recommended to use conda environments to manage your python version that is being used by reticulate. A conda environment can be used on the current R session by using <code><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">reticulate::use_condaenv()</a></code>. If you want to make it automatically load on startup you can select your conda environment in RStudio &gt; Options &gt; Python.</p>
-<p>You must have the following packages installed and available in your Python environment:</p>
+<p>SCUBA (<em>S</em>ingle <em>C</em>ell <em>U</em>nified <em>B</em>ack end <em>A</em>PI) is a unified data accession interface for single-cell object classes. The package streamlines R data analysis for Seurat, SingleCellExperiment, and anndata objects by providing a consistent interface for data access, exploration, and visualization.</p>
+<p>SCUBA can be used to retrieve the following information:</p>
 <ul>
-<li>Numpy</li>
-<li>Scipy</li>
-<li>Pandas</li>
-<li>AnnData</li>
+<li>Feature expression data (genes, surface proteins, signatures, or any single-cell modality that can be expressed as a counts matrix)</li>
+<li>Cell metadata</li>
+<li>Reduction coordinates</li>
 </ul>
+<p>The main function of SCUBA is <code><a href="reference/fetch_data.html">fetch_data()</a></code>. The workflow for <code><a href="reference/fetch_data.html">fetch_data()</a></code> is based on <a href="https://satijalab.org/seurat/" class="external-link">Seurat’s</a> <code><a href="https://satijalab.github.io/seurat-object/reference/FetchData.html" class="external-link">SeuratObject::FetchData()</a></code>. We added S3 methods to replicate the <code>FetchData</code> workflow in SingleCellExperiment and anndata objects.</p>
+<p><code><a href="reference/fetch_data.html">fetch_data()</a></code> returns data as an R data.frame with cells as rows, and variables requested as columns. The format of the output data.frame is consistent across all three object classes, allowing for the development of downstream visualization scripts that function the same for all accepted object classes.</p>
+<p><img src="reference/figures/fetch_data_overview.svg" style="width: 80%; margin-left: auto; margin-right: auto;" alt="Diagram illustrating single-cell data access via SCUBA. A representation of the structure of each supported object type is shown, illustrating the differences in how expression data, metadata, and reduction coordinates are stored. Arrows connect each supported object class with the output format of SCUBA functions, to indicate that the format remains constant regardless of the organization of the input object."></p>
+<div class="section level3">
+<h3 id="supported-single-cell-objects">Supported Single-Cell Objects<a class="anchor" aria-label="anchor" href="#supported-single-cell-objects"></a>
+</h3>
+<p>SCUBA currently supports the following object classes:</p>
+<ul>
+<li><a href="https://satijalab.org/seurat/" class="external-link">Seurat</a></li>
+<li><a href="https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html" class="external-link">SingleCellExperiment</a></li>
+<li><a href="https://anndata.readthedocs.io/en/stable/" class="external-link">anndata</a></li>
+</ul>
+<p>Support for mudata objects will be added in the near future.</p>
+</div>
+<div class="section level3">
+<h3 id="backwards-compatability-with-seurat-v4">Backwards Compatability with Seurat v4<a class="anchor" aria-label="anchor" href="#backwards-compatability-with-seurat-v4"></a>
+</h3>
+<p>Seurat v4 objects are compatible with SCUBA. <code><a href="reference/fetch_data.html">fetch_data()</a></code> is a wrapper for <code><a href="https://satijalab.github.io/seurat-object/reference/FetchData.html" class="external-link">SeuratObject::FetchData()</a></code> when used with Seurat objects, so the function supports all versions of Seurat objects that Seurat currently supports. If you are using an object created with Seurat v4, the <code>slot</code> parameter should be used instead of <code>layer</code> in the event you are accessing data from the <code>counts</code> or the <code>scale.data</code> layers (if you are accessing data from the <code>data</code> layer, this parameter is not needed, as is the case with Seurat).</p>
+</div>
+<div class="section level3">
+<h3 id="spatial-single-cell-modalities">Spatial Single-Cell Modalities<a class="anchor" aria-label="anchor" href="#spatial-single-cell-modalities"></a>
+</h3>
+<p>SCUBA offers partial support for spatial single-cell modalities. Spatial data that is expressed as a counts matrix and stored in an assay/experiment/modality is supported by SCUBA, but spatial images are not currently supported. We will add support for spatial omics modalities in a future release.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>Run the command below to install SCUBA. BiocManager is used to automatically install Bioconductor dependencies (SCUBA is not a Bioconductor package).</p>
 <p>If you plan to use SCUBA with anndata objects, use <code>dependencies = TRUE</code>. If you only plan to use SCUBA with Seurat and SingleCellExperiment objects, use <code>dependencies = FALSE</code>.</p>
-<pre><code><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Set dependencies to FALSE if you do not plan to use anndata objects</span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"amc-heme/SCUBA"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"amc-heme/SCUBA"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="additional-installation-for-anndata-objects">Additional Installation for anndata Objects<a class="anchor" aria-label="anchor" href="#additional-installation-for-anndata-objects"></a>
+</h2>
+<p>To use SCUBA with anndata objects, you will need a Python installation and the reticulate R package. If you are using anndata objects, follow the steps below. <strong>If you are only using Seurat of SingleCellExperiment objects, you do not need to complete these steps.</strong></p>
+<p>First, install the <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> package in R.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"reticulate"</span><span class="op">)</span></span></code></pre></div>
+<p>Next, you will need to set up a version of Python with the necessary packages installed. There are several ways to do this. We recommend the use of an Anaconda environment, which will allow you to create an environment just for use by SCUBA that does not interfere with any other installations of Python you may have. The instructions below cover setting up an environment via anaconda, but other means of setting up Python environments will work with SCUBA. All that is needed is a Python environment connected to reticulate with the dependencies below installed:</p>
+<ul>
+<li><a href="https://anndata.readthedocs.io/en/stable/" class="external-link">anndata</a></li>
+<li><a href="https://scipy.org/" class="external-link">scipy</a></li>
+<li><a href="https://numpy.org/" class="external-link">numpy</a></li>
+<li><a href="https://pandas.pydata.org/" class="external-link">pandas</a></li>
+</ul>
+<div class="section level3">
+<h3 id="setting-up-a-python-environment-via-anaconda">Setting up a Python Environment via Anaconda<a class="anchor" aria-label="anchor" href="#setting-up-a-python-environment-via-anaconda"></a>
+</h3>
+<p>To set up an Anaconda environment with the requisite packages for SCUBA, follow the steps below:</p>
+<ol style="list-style-type: decimal">
+<li><p>Download an <a href="https://www.anaconda.com/download" class="external-link">Anaconda Distribution</a>. Use whichever installer is most appropriate for your operating system and preferences.</p></li>
+<li><p>For MacOS and linux users: open a terminal window. For Windows users, you can open the Anaconda command prompt application (cmd.exe). Subsequent steps are the same for all operating systems.</p></li>
+<li><p>In the termainal, create a new conda environment for use with SCUBA.</p></li>
+</ol>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">--name</span> SCUBA_anndata </span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li>Next, “Activate” the environment to switch to it in the terminal.</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">conda</span> activate SCUBA_anndata</span></code></pre></div>
+<p>You should now see “(SCUBA_anndata)” to the left side of your cursor in the terminal.</p>
+<ol start="5" style="list-style-type: decimal">
+<li>Next, install the <a href="https://anndata.readthedocs.io/en/stable/" class="external-link">anndata</a> package according to the instructions from their website. Make sure to specify the channel with <code>-c</code> to install the most recent version.</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">conda</span> install anndata <span class="at">-c</span> conda-forge</span></code></pre></div>
+<ol start="6" style="list-style-type: decimal">
+<li>SCUBA requires the following additional packages: <a href="https://scipy.org/" class="external-link">scipy</a>, <a href="https://numpy.org/" class="external-link">numpy</a>, and <a href="https://pandas.pydata.org/" class="external-link">pandas</a>. These should have been installed as dependencies when installing anndata. To verify these packages are present, you can run <code>conda list</code> on the environment:</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata pandas</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata scipy</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata numpy</span></code></pre></div>
+<p>If the package is present, you will see information for the package.</p>
+<pre><code>#
+# Name                    Version                   Build  Channel
+pandas                    2.2.3           py313h668b085_3    conda-forge
+</code></pre>
+<p>If it is not present, the list of information returned will have no rows. In this case, you can install the package via <code>conda install</code>.</p>
+<pre><code><span><span class="co"># Name                    Version                   Build  Channel</span></span></code></pre>
+<ol start="7" style="list-style-type: decimal">
+<li>Connect reticulate to the conda environment. To do this, run the following in an R console:</li>
+</ol>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_condaenv</a></span><span class="op">(</span><span class="st">"SCUBA_anndata"</span><span class="op">)</span></span></code></pre></div>
+<p>Step 7 will need to be repeated each time you restart your R session. If you are using RStudio, you may set a default Python environment to use with reticulate to avoid having to repeat this step each time. To do this in RStudio, complete the following:</p>
+<ul>
+<li>Go to <strong>“Tools”</strong> &gt; <strong>“Global Options”</strong>.</li>
+<li>In the window that appears, select <strong>“Python”</strong>.</li>
+<li>Select the <strong>“Select”</strong> button next to the Python interpreter displayed.</li>
+<li>In the window that appears, select <strong>“Conda Environments”</strong>.</li>
+<li>Select the path of your Conda environment (the path containing “SCUBA_Anndata” in this case).</li>
+</ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="additional-infomration">Additional Infomration<a class="anchor" aria-label="anchor" href="#additional-infomration"></a>
@@ -95,7 +178,7 @@
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<p>Showers,W.M., Desai,J., Engel,K.L., Smith,C., Jordan,C.T. and Gillen,A.E. (2024) SCUBA implements a storage format-agnostic API for single-cell data access in R. <a href="https://doi.org/10.12688/f1000research.154675.1" class="external-link">10.12688/f1000research.154675.1</a>.</p>
+<p>Showers, W.M., Desai, J., Engel, K.L., Smith, C., Jordan, C.T. and Gillen, A.E. (2024) SCUBA implements a storage format-agnostic API for single-cell data access in R. <a href="https://doi.org/10.12688/f1000research.154675.1" class="external-link">10.12688/f1000research.154675.1</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="problems">Problems<a class="anchor" aria-label="anchor" href="#problems"></a>
@@ -125,7 +208,12 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>First Last <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/YOUR-ORCID-ID" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>William Showers <br><small class="roles"> Author </small>   </li>
+<li>Jairav Desai <br><small class="roles"> Author </small>   </li>
+<li>Clayton Smith <br><small class="roles"> Funder </small>   </li>
+<li>Craig Jordan <br><small class="roles"> Funder </small>   </li>
+<li>Austin Gillen <br><small class="roles"> Author, maintainer </small>   </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
@@ -141,11 +229,11 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by First Last.</p>
+  <p>Developed by William Showers, Jairav Desai, Clayton Smith, Craig Jordan, Austin Gillen.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

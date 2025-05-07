@@ -17,7 +17,7 @@ PCA
 
     <a class="navbar-brand me-2" href="../index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,13 +62,13 @@ PCA
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'Seurat'</span></span>
-<span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'SingleCellExperiment'</span></span>
-<span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'AnnDataR6'</span></span>
-<span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">default_reduction</span><span class="op">(</span><span class="va">object</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -88,7 +88,7 @@ and anndata objects are supported.</p></dd>
     <h2 id="methods-by-class-">Methods (by class)<a class="anchor" aria-label="anchor" href="#methods-by-class-"></a></h2>
 
 <ul><li><p><code>default_reduction(Seurat)</code>: Seurat objects</p>
-<p>In Seurat objects, <code>default_reduction</code> is a wrapper for <code><a href="https://mojaveazure.github.io/seurat-object/reference/DefaultDimReduc.html" class="external-link">SeuratObject::DefaultDimReduc()</a></code>.</p></li>
+<p>In Seurat objects, <code>default_reduction</code> is a wrapper for <code><a href="https://satijalab.github.io/seurat-object/reference/DefaultDimReduc.html" class="external-link">SeuratObject::DefaultDimReduc()</a></code>.</p></li>
 <li><p><code>default_reduction(SingleCellExperiment)</code>: SingleCellExperiment objects</p>
 <p>The search order for SingleCellExperiment objects is below. <code>fetch_reduction</code>
 will search in the order described for a reduction named exactly as described.</p><ol><li><p>UMAP</p></li>
@@ -123,11 +123,11 @@ in the order described for a reduction named exactly as described.</p><ol><li><p
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by First Last.</p>
+  <p>Developed by William Showers, Jairav Desai, Clayton Smith, Craig Jordan, Austin Gillen.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer></div>
