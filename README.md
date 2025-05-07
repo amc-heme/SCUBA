@@ -16,7 +16,7 @@ The main function of SCUBA is `fetch_data()`. The workflow for `fetch_data()` is
 
 <img src="man/figures/fetch_data_overview.svg" style = "width: 80%; margin-left: auto; margin-right: auto;" alt="Diagram illustrating single-cell data access via SCUBA. A representation of the structure of each supported object type is shown, illustrating the differences in how expression data, metadata, and reduction coordinates are stored. Arrows connect each supported object class with the output format of SCUBA functions, to indicate that the format remains constant regardless of the organization of the input object.">
 
-### Supported Object Classes
+### Supported Single-Cell Objects
 
 SCUBA currently supports the following object classes:
 
