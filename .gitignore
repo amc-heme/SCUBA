@@ -17,5 +17,10 @@ plot_dot_utility_script.R
 plot_scatter_utility_script.R
 InferCNV_Heatmap.Rmd
 docs
-/doc/
-/Meta/
+
+# Vignette files from building from vignettes
+# (Not source files in vignettes/)
+doc/*
+Meta/vignette.rds
+vignettes/*.html
+vignettes/*.R
