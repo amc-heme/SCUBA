@@ -1,6 +1,34 @@
 # SCUBA
 
+## Overview
+
 SCUBA (*S*ingle *C*ell *U*nified *B*ack end *A*PI) is a unified data accession interface for single-cell object classes. The package streamlines R data analysis for Seurat, SingleCellExperiment, and anndata objects by providing a consistent interface for data access, exploration, and visualization.
+
+SCUBA can be used to retrieve the following information: 
+
+- Feature expression data (genes, surface proteins, signatures, or any single-cell modality that can be expressed as a counts matrix)
+- Cell metadata
+- Reduction coordinates
+
+The main function of SCUBA is `fetch_data()`. The workflow for `fetch_data()` is based on [Seurat's](https://satijalab.org/seurat/) `SeuratObject::FetchData()`. We added S3 methods to replicate the `FetchData` workflow in SingleCellExperiment and anndata objects.
+
+`fetch_data()` returns data as an R data.frame with cells as rows, and variables requested as columns. The format of the output data.frame is consistent across all three object classes, allowing for the development of downstream visualization scripts that function the same for all accepted object classes. 
+
+<img src="man/figures/fetch_data_overview.svg" style = "width: 80%; margin-left: auto; margin-right: auto;" alt="Diagram illustrating single-cell data access via SCUBA. A representation of the structure of each supported object type is shown, illustrating the differences in how expression data, metadata, and reduction coordinates are stored. Arrows connect each supported object class with the output format of SCUBA functions, to indicate that the format remains constant regardless of the organization of the input object.">
+
+### Supported Object Classes
+
+SCUBA currently supports the following object classes:
+
+- [Seurat](https://satijalab.org/seurat/)
+- [SingleCellExperiment](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)
+- [anndata](https://anndata.readthedocs.io/en/stable/)
+
+Support for mudata objects will be added in the near future.
+
+### Spatial Single-Cell Modalities
+
+SCUBA offers partial support for spatial single-cell modalities. Spatial data that is expressed as a counts matrix and stored in an assay/experiment/modality is supported by SCUBA, but spatial images are not currently supported. We will add support for spatial omics modalities in a future release.
 
 ## Installation
 
@@ -104,7 +132,7 @@ Please see our [website](https://amc-heme.github.io/SCUBA/) for a user guide and
 
 ## Citation
 
-Showers,W.M., Desai,J., Engel,K.L., Smith,C., Jordan,C.T. and Gillen,A.E. (2024) SCUBA implements a storage format-agnostic API for single-cell data access in R. [10.12688/f1000research.154675.1](https://doi.org/10.12688/f1000research.154675.1).
+Showers, W.M., Desai, J., Engel, K.L., Smith, C., Jordan, C.T. and Gillen, A.E. (2024) SCUBA implements a storage format-agnostic API for single-cell data access in R. [10.12688/f1000research.154675.1](https://doi.org/10.12688/f1000research.154675.1).
 
 ## Problems
 
