@@ -9,11 +9,11 @@
 \usage{
 fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2))
 
-\method{fetch_reduction}{Seurat}(object, reduction, cells = NULL, dims = c(1, 2), ...)
+\method{fetch_reduction}{Seurat}(object, reduction, cells = NULL, dims = c(1, 2))
 
-\method{fetch_reduction}{SingleCellExperiment}(object, reduction, cells = NULL, dims = c(1, 2), ...)
+\method{fetch_reduction}{SingleCellExperiment}(object, reduction, cells = NULL, dims = c(1, 2))
 
-\method{fetch_reduction}{AnnDataR6}(object, reduction, cells = NULL, dims = c(1, 2), ...)
+\method{fetch_reduction}{AnnDataR6}(object, reduction, cells = NULL, dims = c(1, 2))
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,

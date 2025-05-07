@@ -1,12 +1,13 @@
 Package: SCUBA
 Title: Common data accession for single cell object formats
-Version: 1.1.0
+Version: 1.1.1
 Author: William Showers, Jairav Desai, Kent Riemondy, Austin Gillen
 Description: SCUBA provides a common accession framework for multiple single cell object formats (Seurat, SingleCellExperiment, Anndata), facilitating analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr, rmarkdown
 Depends: 
     R (>= 3.5)
 Imports: 
@@ -28,6 +29,8 @@ LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
     reticulate,
-    anndata
+    anndata,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 URL: https://amc-heme.github.io/SCUBA/
