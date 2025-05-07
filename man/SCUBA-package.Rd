@@ -16,7 +16,21 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Austin Gillen \email{austin.gillen@cuanschutz.edu}
+
+Authors:
+\itemize{
+  \item William Showers
+  \item Jairav Desai
+}
+
+Other contributors:
+\itemize{
+  \item Kent Riemondy [contributor]
+  \item Krysta Engel [contributor]
+  \item Clayton Smith [funder]
+  \item Craig Jordan [funder]
+}
 
 }
 \keyword{internal}
