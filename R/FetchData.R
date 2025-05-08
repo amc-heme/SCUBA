@@ -41,7 +41,7 @@ FetchData.SingleCellExperiment <-
       details = 
         paste0(
           "Please use fetch_data() instead. The FetchData method ",
-          "for SingleCellExperiment objects will be removed in 1.2.0."
+          "for SingleCellExperiment objects will be removed in 1.3.0."
         )
     )
     
@@ -472,7 +472,7 @@ FetchData.AnnDataR6 <-
       details = 
         paste0(
           "Please use fetch_data() instead. The FetchData method ",
-          "for anndata objects will be removed in 1.2.0."
+          "for anndata objects will be removed in 1.3.0."
         )
     )
     
