@@ -35,6 +35,16 @@ FetchData.SingleCellExperiment <-
     cells = NULL,
     ...
     ){
+    lifecycle::deprecate_warn(
+      when = "1.1.2",
+      what = "FetchData.SingleCellExperiment()",
+      details = 
+        paste0(
+          "Please use fetch_data() instead. The FetchData method ",
+          "for SingleCellExperiment objects will be removed in 1.2.0."
+        )
+    )
+    
     # 1. Set default values
     # Layer (assay): fill with default if null (via default_layer method)
     layer <- layer %||% default_layer(object)
@@ -456,6 +466,15 @@ FetchData.AnnDataR6 <-
     cells = NULL,
     ...
   ){
+    lifecycle::deprecate_warn(
+      when = "1.1.2",
+      what = "FetchData.AnnDataR6()",
+      details = 
+        paste0(
+          "Please use fetch_data() instead. The FetchData method ",
+          "for anndata objects will be removed in 1.2.0."
+        )
+    )
     
     if (!requireNamespace("reticulate", quietly = TRUE)) {
       stop(
