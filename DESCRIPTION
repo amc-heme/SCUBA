@@ -1,7 +1,7 @@
 Package: SCUBA
 Type: Package
 Title: Common data accession for single cell object formats
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: c(
     person(
         "William", 
@@ -37,7 +37,7 @@ Authors@R: c(
         "Austin", 
         "Gillen", 
         email = "austin.gillen@cuanschutz.edu",
-        role = c("aut", "cre")
+        role = c("aut", "cre", "fnd")
         )
     )
 Description: SCUBA provides a common accession framework for multiple single cell object formats (Seurat, SingleCellExperiment, Anndata), facilitating analysis.

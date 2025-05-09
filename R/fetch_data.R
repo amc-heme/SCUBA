@@ -91,6 +91,22 @@ fetch_data.Seurat <-
     slot = NULL,
     ...
   ){
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (!is.null(vars)){
+      if (length(vars) >= 1000){
+        warning(
+          paste0(
+            "A very large number of features was requested (", 
+            length(vars), 
+            " features). Performance issues may be observed as a result."
+            ),
+          immediate. = TRUE
+        )
+      }
+    }
+    
     # This is a wrapper for SeuratObject::FetchData
     if (!is.null(slot)){
       # For backwards compatability with Seruat v4 and earlier, use `slot` 
@@ -126,6 +142,20 @@ fetch_data.SingleCellExperiment <-
     cells = NULL,
     ...
   ){
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (length(vars) >= 1000){
+      warning(
+        paste0(
+          "A very large number of features was requested (", 
+          length(vars), 
+          " features). Performance issues may be observed as a result."
+        ),
+        immediate. = TRUE
+      )
+    }
+    
     # 1. Set default values
     # Layer (assay): fill with default if null (via default_layer method)
     layer <- layer %||% default_layer(object)
@@ -292,7 +322,8 @@ fetch_data.SingleCellExperiment <-
         '\nOnly the metadata will be returned. To get feature data from the main experiment, please add the "key" of the main experiment to the feature (eg. ',
         paste0(mainExpName(object), "_", ambiguous_meta_vars[1]),
         ")",
-        call. = FALSE
+        call. = FALSE,
+        immediate. = TRUE
       )
     }
     
@@ -520,6 +551,20 @@ fetch_data.AnnDataR6 <-
           'function with anndata objects.'
           ),
         call. = FALSE
+      )
+    }
+    
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (length(vars) >= 1000){
+      warning(
+        paste0(
+          "A very large number of features was requested (", 
+          length(vars), 
+          " features). Performance issues may be observed as a result."
+        ),
+        immediate. = TRUE
       )
     }
     

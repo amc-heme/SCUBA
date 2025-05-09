@@ -16,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Austin Gillen \email{austin.gillen@cuanschutz.edu}
+\strong{Maintainer}: Austin Gillen \email{austin.gillen@cuanschutz.edu} [funder]
 
 Authors:
 \itemize{
