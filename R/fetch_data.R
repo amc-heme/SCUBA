@@ -100,7 +100,10 @@ fetch_data.Seurat <-
           paste0(
             "A very large number of features was requested (", 
             length(vars), 
-            " features). Performance issues may be observed as a result."
+            " features). fetch_data is not intended to be used with feature ",
+            "queries of this length. Data is returned in a dense format, so ",
+            "the memory usage of the output may be very large. Also, this ",
+            "query may take a while to complete."
             ),
           immediate. = TRUE
         )
@@ -150,8 +153,11 @@ fetch_data.SingleCellExperiment <-
         paste0(
           "A very large number of features was requested (", 
           length(vars), 
-          " features). Performance issues may be observed as a result."
-        ),
+          " features). fetch_data is not intended to be used with feature ",
+          "queries of this length. Data is returned in a dense format, so ",
+          "the memory usage of the output may be very large. Also, this ",
+          "query may take a while to complete."
+          ),
         immediate. = TRUE
       )
     }
@@ -562,8 +568,11 @@ fetch_data.AnnDataR6 <-
         paste0(
           "A very large number of features was requested (", 
           length(vars), 
-          " features). Performance issues may be observed as a result."
-        ),
+          " features). fetch_data is not intended to be used with feature ",
+          "queries of this length. Data is returned in a dense format, so ",
+          "the memory usage of the output may be very large. Also, this ",
+          "query may take a while to complete."
+          ),
         immediate. = TRUE
       )
     }
