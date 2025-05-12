@@ -67,3 +67,13 @@ get_all_cells.AnnDataR6 <-
     object$obs_names
   }
 
+#' @describeIn get_all_cells MuData objects
+#' @export
+get_all_cells.md._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # Use obs_names method from anndata
+    object$obs_names
+  }
+

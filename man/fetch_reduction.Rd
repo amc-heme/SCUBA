@@ -5,6 +5,7 @@
 \alias{fetch_reduction.Seurat}
 \alias{fetch_reduction.SingleCellExperiment}
 \alias{fetch_reduction.AnnDataR6}
+\alias{fetch_reduction.md._core.mudata.MuData}
 \title{Fetch reduction coordinates from single-cell objects}
 \usage{
 fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2))
@@ -14,6 +15,8 @@ fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2))
 \method{fetch_reduction}{SingleCellExperiment}(object, reduction, cells = NULL, dims = c(1, 2))
 
 \method{fetch_reduction}{AnnDataR6}(object, reduction, cells = NULL, dims = c(1, 2))
+
+\method{fetch_reduction}{md._core.mudata.MuData}(object, reduction, cells = NULL, dims = c(1, 2))
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
@@ -43,6 +46,8 @@ See our GitHub.io website for additional information and examples.
 \item \code{fetch_reduction(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{fetch_reduction(AnnDataR6)}: AnnDataR6 objects
+
+\item \code{fetch_reduction(md._core.mudata.MuData)}: AnnDataR6 objects
 
 }}
 \examples{

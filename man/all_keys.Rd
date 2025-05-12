@@ -5,6 +5,7 @@
 \alias{all_keys.Seurat}
 \alias{all_keys.SingleCellExperiment}
 \alias{all_keys.AnnDataR6}
+\alias{all_keys.md._core.mudata.MuData}
 \title{Get keys for all assays/reductions in an object}
 \usage{
 all_keys(object)
@@ -14,6 +15,8 @@ all_keys(object)
 \method{all_keys}{SingleCellExperiment}(object)
 
 \method{all_keys}{AnnDataR6}(object)
+
+\method{all_keys}{md._core.mudata.MuData}(object)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.}
@@ -31,6 +34,8 @@ Returns the "keys" of all reductions and modalities/assays/experiments in an obj
 \item \code{all_keys(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{all_keys(AnnDataR6)}: SingleCellExperiment objects
+
+\item \code{all_keys(md._core.mudata.MuData)}: MuData objects
 
 }}
 \examples{

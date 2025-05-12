@@ -1,6 +1,7 @@
 #' Summarize object metadata
 #'
-#' Returns the names of all metadata variables in an object.
+#' Returns the names of all metadata variables in an object, or a single
+#' modality of a mudata object.
 #'
 #' @inheritParams object_param
 #' 
@@ -20,7 +21,8 @@
 #' 
 meta_varnames <-
   function(
-    object
+    object,
+    ...
   ){
     UseMethod("meta_varnames")
   }
@@ -38,7 +40,7 @@ meta_varnames.default <-
       paste0(
         "meta_varnames does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment and Anndata (AnnDataR6)."
       )
     )
   }
@@ -69,3 +71,36 @@ meta_varnames.AnnDataR6 <-
   ){
     object$obs_keys()
   }
+
+#' @describeIn meta_varnames Mudata objects
+#' @export
+meta_varnames.md._core.mudata.MuData <-
+  function(
+    object,
+    modality = NULL
+  ){
+    library(reticulate)
+    
+    # Source fetch_reduction python script for mudata
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_meta_varnames_mudata.py",
+        package = "SCUBA"
+      )
+    
+    reticulate::source_python(python_path)
+  
+    py$fetch_meta_varnames_mudata(
+      obj = object, 
+      modal = modality
+    )
+  }
+  
+#previous implementation for mudata (delete when additional logic is complete):
+  # function(
+  #   object
+  # ){
+  #   object$obs_keys()
+  # }
