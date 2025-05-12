@@ -1,14 +1,24 @@
-#' Object metadata summary
+#' Summarize object metadata
 #'
 #' Returns the names of all metadata variables in an object, or a single
 #' modality of a mudata object.
 #'
-#' @param object a single-cell object. Currently, Seurat, Anndata,
-#' SingleCellExperiment, and Mudata objects are supported.
-#'
+#' @inheritParams object_param
+#' 
 #' @rdname meta_varnames
 #'
 #' @export
+#' 
+#' @examples
+#' # Seurat objects
+#' meta_varnames(AML_Seurat)
+#' 
+#' # SingleCellExperiment objects
+#' meta_varnames(AML_SCE())
+#' 
+#' # anndata objects
+#' meta_varnames(AML_h5ad())
+#' 
 meta_varnames <-
   function(
     object,

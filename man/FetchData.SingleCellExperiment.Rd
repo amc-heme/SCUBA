@@ -4,7 +4,7 @@
 \alias{FetchData.SingleCellExperiment}
 \title{FetchData Equivalent for SingleCellExperiment Objects}
 \usage{
-\method{FetchData}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL)
+\method{FetchData}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL, ...)
 }
 \arguments{
 \item{object}{A SingleCellExperiment object.}
@@ -21,6 +21,8 @@ your object, use \code{assayNames({your object})}.}
 \item{cells}{A character vector of cells to include, as they are named in
 the object (i.e. according to colNames(object)). If \code{NULL}, data will
 be returned for all cells in the object.}
+
+\item{...}{parameter provided for consistency with S3 generic/methods}
 }
 \value{
 A data.frame object containing the requested expression
@@ -29,3 +31,4 @@ data or metadata.
 \description{
 The SingleCellExperiment equivalent of the SeuratObject FetchData method.
 }
+\keyword{internal}

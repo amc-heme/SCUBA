@@ -9,11 +9,11 @@
 \usage{
 relabel_axis(object, feature, ...)
 
-\method{relabel_axis}{Seurat}(object, feature)
+\method{relabel_axis}{Seurat}(object, feature, ...)
 
-\method{relabel_axis}{SingleCellExperiment}(object, feature)
+\method{relabel_axis}{SingleCellExperiment}(object, feature, ...)
 
-\method{relabel_axis}{AnnDataR6}(object, feature)
+\method{relabel_axis}{AnnDataR6}(object, feature, ...)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat,
@@ -51,3 +51,4 @@ event a different label is more appropriate for the feature being plotted.
 \item \code{relabel_axis(AnnDataR6)}: Anndata objects
 
 }}
+\keyword{internal}

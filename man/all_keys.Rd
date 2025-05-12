@@ -8,7 +8,7 @@
 \alias{all_keys.md._core.mudata.MuData}
 \title{Get keys for all assays/reductions in an object}
 \usage{
-all_keys(object, ...)
+all_keys(object)
 
 \method{all_keys}{Seurat}(object)
 
@@ -19,15 +19,13 @@ all_keys(object, ...)
 \method{all_keys}{md._core.mudata.MuData}(object)
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
-
-\item{...}{Currently unused.}
+\item{object}{a single-cell object. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.}
+}
+\value{
+a named character vector. The names of the vector are names of the modalities and reductions in the object, and the values are the corresponding keys to be passed to fetch_data. For Seurat objects, a key for metadata will also be displayed.
 }
 \description{
-Returns all keys in the object. For SingleCellExperiment objects, currently
-returns only the names of all reductions in the object, as well as all
-experiments.
+Returns the "keys" of all reductions and modalities/assays/experiments in an object, which are used to fetch data via the \code{vars} parameter of \code{fetch_data}. To fetch features from an object, use the key representing the modality the feature was recorded in, plus an underscore and the feature name. To fetch reduction coordinates, use the key of the reduction, plus an underscore, and a number representing the dimension for which to retrieve coordinates.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -40,3 +38,29 @@ experiments.
 \item \code{all_keys(md._core.mudata.MuData)}: MuData objects
 
 }}
+\examples{
+## View keys ##
+# Seurat objects
+all_keys(AML_Seurat)
+
+# SingleCellExperiment objects 
+all_keys(AML_SCE())
+
+# anndata objects 
+all_keys(AML_h5ad())
+
+## Use of keys to construct fetch_data query
+# Fetch a feature from the "protein" 
+# modality using its key from above
+fetch_data(
+  AML_h5ad(), 
+  vars = "protein_CD9-AB"
+  ) |> str()
+
+# Fetch reduction coordinates using 
+# the key for the UMAP reduction
+fetch_data(
+  AML_h5ad(), 
+  vars = c("X_umap_1", "X_umap_2")
+  ) |> str()
+}

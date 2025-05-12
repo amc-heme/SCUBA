@@ -1,67 +1,184 @@
-#' FetchData Equivalent for SingleCellExperiment Objects
+#' Fetch feature expression data, reduction coordinates, or metadata from single-cell objects
+#' 
+#' This function extends the behavior of SeuratObject's FetchData to other 
+#' single-cell objects, allowing for expression data, metdadata, or reduction 
+#' coordinates to be pulled using consistent syntax.
+#' 
+#' See our GitHub.io website for additional information and examples.
 #'
-#' The SingleCellExperiment equivalent of the SeuratObject FetchData method.
-#'
-#' @param object A SingleCellExperiment object.
-#' @param vars A character vector with desired features or metadata variables
-#' to pull from the object. To include features from an experiment other than
-#' the main experiment, use the name of the experiment as a prefix (i.e. AB_CD4
-#' for a feature in the experiment "AB" named "CD4".)
-#' @param layer The assay (equivalent of layer in Seruat objects (slot in v4
-#' and earlier)) to pull data from. To view the list of available assays in
-#' your object, use \code{assayNames({your object})}.
+#' @param object A single-cell object. Currently, Seurat, SingleCellExperiment, 
+#' and anndata objects are supported. If a Seruat object is passed to this 
+#' generic, the FetchData method from the SeruatObject method will be ran. 
+#' For all other objects, methods that replicate the behavior of FetchData in 
+#' that object will be ran.
+#' @param vars A character vector with desired features, metadata variables, or
+#' reduction dimensions to pull from the object. By default, features are 
+#' returned from the default assay (or "experiment" in SingleCellExperiment 
+#' objects, or "modality" in anndata objects). To pull feature expression data, 
+#' the assay to pull data from should be defined using the "key" of the assay 
+#' before the feature name. To determine the key that corresponds to the assay 
+#' to pull data from, run `all_keys`. For more information, see 
+#' [our user guide]().
+#' @param layer For feature expression data, the layer to pull data from. 
+#' Layers are referred to as "slots" in Seurat objects v4 and earlier, and 
+#' "assays" in SingleCellExperiment objects.
 #' @param cells A character vector of cells to include, as they are named in
-#' the object (i.e. according to colNames(object)). If \code{NULL}, data will
+#' the object (i.e. according to colNames(object)). If `NULL`, data will
 #' be returned for all cells in the object.
-#' @param ... parameter provided for consistency with S3 generic/methods
+#' @param ... Additional parameters, beyond the ones listed above, to be passed to S3 methods. This includes the following, all of which are documented in the parameter entries below:
+#'  - fetch_data.Seurat: `slot` parameter
+#' @param slot This parameter is added for backwards compatability with Seruat 
+#' v4 and earlier. This was deprecated in Seurat version 5.0.0. *If you have Seruat v5.0.0 or later, this should not be used. This parameter should also not be used for SingleCellExperiment objects or anndata objects and will not work at all for these object classes. Use* `layer` *instead.*
+#' 
+#'
+#' @returns A data.frame with the requested `vars` as columns and the cells as 
+#' rows.
+#'
+#' @export
+#'
+#' @examples
+#' # Feature expression data
+#' fetch_data(AML_Seurat, vars = "rna_FLT3") |> str()
+#' 
+#' # Reduction coordinates
+#' fetch_data(AML_Seurat, vars = c("UMAP_1", "UMAP_2")) |> str()
+#' fetch_data(AML_Seurat, vars = c("PC_1", "PC_2", "PC_3")) |> str()
+#' 
+#' # Metadata
+#' fetch_data(AML_Seurat, vars = c("condensed_cell_type", "Batch", "nCount_RNA")) |> str()
+fetch_data <-
+  function(
+    object,
+    vars = NULL,
+    layer = NULL,
+    cells = NULL,
+    ...
+  ){
+    UseMethod("fetch_data")
+  }
 
-#' @return A data.frame object containing the requested expression
-#' data or metadata.
+#' Function to display an error message when an unsupported object
+#' type is detected
+#'
+#' @noRd
+#' @export
+fetch_data.default <-
+  function(
+    object,
+    vars = NULL,
+    layer = NULL,
+    cells = NULL,
+    ...
+  ){
+    warning(
+      paste0(
+        "fetch_metadata does not know how to handle object of class ",
+        paste(class(object), collapse = ", "),
+        ". Currently supported classes: Seurat and SingleCellExperiment."
+      )
+    )
+  }
+
+#' @describeIn fetch_data Seurat objects. This will run FetchData from the 
+#' SeuratObject package.
+#' @export
+fetch_data.Seurat <-
+  function(
+    object,
+    vars = NULL,
+    layer = NULL,
+    cells = NULL,
+    slot = NULL,
+    ...
+  ){
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (!is.null(vars)){
+      if (length(vars) >= 1000){
+        warning(
+          paste0(
+            "A very large number of features was requested (", 
+            length(vars), 
+            " features). fetch_data is not intended to be used with feature ",
+            "queries of this length. Data is returned in a dense format, so ",
+            "the memory usage of the output may be very large. Also, this ",
+            "query may take a while to complete."
+            ),
+          immediate. = TRUE
+        )
+      }
+    }
+    
+    # This is a wrapper for SeuratObject::FetchData
+    if (!is.null(slot)){
+      # For backwards compatability with Seruat v4 and earlier, use `slot` 
+      # parameter instead of layer.
+      SeuratObject::FetchData(
+        object = object,
+        vars = vars,
+        slot = slot,
+        cells = cells
+        )
+    } else {
+      # Seurat v5 and later
+      SeuratObject::FetchData(
+        object = object,
+        vars = vars,
+        layer = layer,
+        cells = cells
+        )
+    }
+  }
+
+#' @describeIn fetch_data SingleCellExperiment objects
 #'
 #' @importFrom SingleCellExperiment mainExpName altExps altExpNames
 #' @importFrom SummarizedExperiment assays assayNames
 #'
 #' @export
-#'
-#' @keywords internal
-#'
-#' @method FetchData SingleCellExperiment
-#'
-FetchData.SingleCellExperiment <-
+fetch_data.SingleCellExperiment <-
   function(
     object,
     vars,
     layer = NULL,
     cells = NULL,
     ...
-    ){
-    lifecycle::deprecate_warn(
-      when = "1.1.2",
-      what = "FetchData.SingleCellExperiment()",
-      details = 
+  ){
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (length(vars) >= 1000){
+      warning(
         paste0(
-          "Please use fetch_data() instead. The FetchData method ",
-          "for SingleCellExperiment objects will be removed in 1.3.0."
-        )
-    )
+          "A very large number of features was requested (", 
+          length(vars), 
+          " features). fetch_data is not intended to be used with feature ",
+          "queries of this length. Data is returned in a dense format, so ",
+          "the memory usage of the output may be very large. Also, this ",
+          "query may take a while to complete."
+          ),
+        immediate. = TRUE
+      )
+    }
     
     # 1. Set default values
     # Layer (assay): fill with default if null (via default_layer method)
     layer <- layer %||% default_layer(object)
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% get_all_cells(object)
-
+    
     # 2. Identify which experiments/reductions have keyed features requested
     # for them. Loop through experiments and reductions, instead of looping
     # through each var
-
+    
     # Get a list of all "keys" in the object
     key_names <-
       c(mainExpName(object),
         altExpNames(object),
         reducedDimNames(object)
-        )
-
+      )
+    
     # Construct a list of experiments with the indices of vars that match
     # each experiment
     keyed_var_locations <-
@@ -72,9 +189,9 @@ FetchData.SingleCellExperiment <-
           grep(pattern = paste0('^', key), x = vars)
         }
       )
-
+    
     names(keyed_var_locations) <- key_names
-
+    
     # Subset list for experiments that have at least one matching var
     keyed_var_locations <-
       Filter(
@@ -82,7 +199,7 @@ FetchData.SingleCellExperiment <-
         f = length,
         x = keyed_var_locations
       )
-
+    
     # 3. Loop through experiment and get data for the keyed vars in that experiment
     fetched_data <-
       lapply(
@@ -90,7 +207,7 @@ FetchData.SingleCellExperiment <-
         function(key){
           # Variables in current experiment/reduction
           key_vars <- vars[keyed_var_locations[[key]]]
-
+          
           # Remove experiment key for feature retrieval
           keyless_vars <-
             gsub(
@@ -99,14 +216,14 @@ FetchData.SingleCellExperiment <-
               x = key_vars,
               fixed = FALSE
             )
-
+          
           # Retrieve data
           if (key == mainExpName(object)){
             # For main experiment
             # Subset to variables that are included in the experiment,
             # to avoid errors
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(object)]
-
+            
             # Before pulling data, make sure the layer provided by the user
             # exists in the object. Throw an error if not
             if (!layer %in% names(assays(object))){
@@ -118,9 +235,9 @@ FetchData.SingleCellExperiment <-
                 " does not exist in the indicated experiment (",
                 mainExpName(object),
                 ")"
-                )
-              }
-
+              )
+            }
+            
             data <-
               assays(object)[[layer]][keyless_vars, cells, drop = FALSE] |>
               # Must be a matrix for feature names to properly display as names in
@@ -128,7 +245,7 @@ FetchData.SingleCellExperiment <-
               # (begins as a DelayedArray)
               as.matrix() |>
               t()
-
+            
             # Add experiment key back in (assuming at least one variable was
             # found. An error will result if none are found at this point)
             if (length(keyless_vars) >= 1){
@@ -138,9 +255,9 @@ FetchData.SingleCellExperiment <-
             # For alternate experimnent(s)
             # Switch to SingleCellExperiment object for the alternate experiment
             alt_sce <- altExps(object)[[key]]
-
+            
             keyless_vars <- keyless_vars[keyless_vars %in% rownames(alt_sce)]
-
+            
             # Before pulling data, make sure the layer provided by the user
             # exists in the object. Throw an error if not
             if (!layer %in% names(assays(alt_sce))){
@@ -152,45 +269,45 @@ FetchData.SingleCellExperiment <-
                 " does not exist in the indicated experiment (",
                 mainExpName(alt_sce),
                 ")"
-                )
-              }
-
-
+              )
+            }
+            
+            
             data <-
               assays(alt_sce)[[layer]][keyless_vars, cells, drop = FALSE] |>
               as.matrix() |>
               t()
-
+            
             # Add experiment key back in (assuming at least one variable was
             # found. An error will result if none are found at this point)
             if (length(keyless_vars) >= 1){
               colnames(data) <- paste0(key, "_", keyless_vars)
             }
-
+            
           } else if (key %in% reducedDimNames(object)){
             # For reductions
             # keyless_vars will be equal to the indices of the dimensions to
             # pull data from
             dims <- as.integer(keyless_vars)
-
+            
             data <-
               reducedDims(object)[[key]][cells, dims]
           }
-
+          
           # Return as a list
           data <- as.list(as.data.frame(data))
           data
         }
       )
-
+    
     # Nested list is returned, condense to a list (only unlist at the top level)
     fetched_data <- unlist(fetched_data, recursive = FALSE)
-
+    
     # 4. Fetch metadata variables
     # Identify metadata variables
     remaining_vars <- vars[!vars %in% names(fetched_data)]
     metadata_vars <- remaining_vars[remaining_vars %in% names(colData(object))]
-
+    
     # Fetch metadata vars and append to fetched_data
     fetched_data <-
       c(
@@ -200,7 +317,7 @@ FetchData.SingleCellExperiment <-
         # coerced to a list)
         as.data.frame(colData(object))[cells, metadata_vars, drop = FALSE]
       )
-
+    
     # Handle ambiguous case of metadata variables also existing in the
     # main experiment (warn users that only metadata will be returned)
     ambiguous_meta_vars <- metadata_vars[metadata_vars %in% rownames(object)]
@@ -211,15 +328,16 @@ FetchData.SingleCellExperiment <-
         '\nOnly the metadata will be returned. To get feature data from the main experiment, please add the "key" of the main experiment to the feature (eg. ',
         paste0(mainExpName(object), "_", ambiguous_meta_vars[1]),
         ")",
-        call. = FALSE
+        call. = FALSE,
+        immediate. = TRUE
       )
     }
-
+    
     # 5. Fetch data for vars in the main experiment that were not specified
     # with an assay key
     remaining_vars <- vars[!vars %in% names(fetched_data)]
     main_exp_vars <- remaining_vars[remaining_vars %in% rownames(object)]
-
+    
     if (!layer %in% names(assays(object))){
       stop(
         "Error for vars",
@@ -229,46 +347,46 @@ FetchData.SingleCellExperiment <-
         " does not exist in the indicated experiment (",
         mainExpName(object),
         ")"
-        )
-      }
-
+      )
+    }
+    
     # Pull vars from main experiment
     main_exp_data <-
       assays(object)[[layer]][main_exp_vars, cells, drop = FALSE] |>
       as.matrix() |>
       t()
-
+    
     # Explicitly specify feature names as column names
     colnames(main_exp_data) <- main_exp_vars
-
+    
     main_exp_data <-
       main_exp_data |>
       as.data.frame() |>
       as.list()
-
+    
     # Append data to the list of fetched data
     fetched_data <-
       c(
         fetched_data,
         main_exp_data
       )
-
+    
     # 6. Handle variables that have not yet been fetched
     missing_vars <- vars[!vars %in% names(fetched_data)]
-
+    
     if (length(missing_vars) > 0){
       # 6.1. Create a list to store the experiment(s) each missing feature is in
       # Empty list for storing data
       where_missing_vars <- vector(mode = 'list', length = length(missing_vars))
       names(where_missing_vars) <- missing_vars
-
+      
       for (key in altExpNames(object)){
         alt_sce <- altExps(object)[[key]]
-
+        
         # Determine which of the missing vars are in the current key., if any
         missing_in_exp <-
           missing_vars[missing_vars %in% rownames(assays(alt_sce)[[layer]])]
-
+        
         # For each variable found in this experiment, append the assay name to the
         # feature's entry in missing_in_exp (each entry is a vector)
         for (var in missing_in_exp){
@@ -279,7 +397,7 @@ FetchData.SingleCellExperiment <-
             )
         }
       }
-
+      
       # 6.2. Warn user if there are vars in multiple experiments. Do not pull data
       # in this case
       vars_multi_exp <-
@@ -291,7 +409,7 @@ FetchData.SingleCellExperiment <-
           where_missing_vars
         ) |>
         names()
-
+      
       if (length(vars_multi_exp) > 0){
         warning(
           "The following features were found in more than one alternate experiment. These features will not be included in the data returned: ",
@@ -306,7 +424,7 @@ FetchData.SingleCellExperiment <-
           immediate. = TRUE
         )
       }
-
+      
       # 6.3. Pull data for missing variables found in one alternate experiment
       # Update list of missing vars to exclude vars in one experiment
       missing_vars <-
@@ -317,7 +435,7 @@ FetchData.SingleCellExperiment <-
           where_missing_vars
         ) |>
         names()
-
+      
       # Subset missing vars for vars in one key
       where_missing_vars <-
         Filter(
@@ -326,12 +444,12 @@ FetchData.SingleCellExperiment <-
           },
           where_missing_vars
         )
-
+      
       for (var in names(where_missing_vars)){
         key <- where_missing_vars[[var]]
         # Load alternate experiment
         alt_sce <- altExps(object)[[key]]
-
+        
         if (!layer %in% names(assays(alt_sce))){
           stop(
             "Error for var",
@@ -341,20 +459,20 @@ FetchData.SingleCellExperiment <-
             " does not exist in the indicated experiment (",
             mainExpName(alt_sce),
             ")"
-            )
+          )
         }
-
+        
         data <-
           assays(alt_sce)[[layer]][var, cells, drop = FALSE] |>
           # Only one var will be fetched at once in this case, so data can be added
           # as a vector to the list of fetched data
           as.vector()
-
+        
         # Add experiment key to var
         keyed_var <- paste0(key, "_", var)
-
+        
         fetched_data[[keyed_var]] <- data
-
+        
         # Edit vars to use the keyed var
         vars <-
           sub(
@@ -364,7 +482,7 @@ FetchData.SingleCellExperiment <-
           )
       }
     }
-
+    
     # 7. User warnings/errors
     ten_plus_message <-
       if (length(x = missing_vars) > 10) {
@@ -372,7 +490,7 @@ FetchData.SingleCellExperiment <-
       } else {
         ''
       }
-
+    
     if (length(x = missing_vars) == length(x = vars)) {
       stop(
         "None of the requested variables were found",
@@ -388,7 +506,7 @@ FetchData.SingleCellExperiment <-
         paste(head(x = missing_vars, n = 10L), collapse = ', ')
       )
     }
-
+    
     # 8. Construct data.frame and return to user
     # Store names of vars fetched for downstream operations
     fetched_vars <- names(fetched_data)
@@ -399,7 +517,7 @@ FetchData.SingleCellExperiment <-
         row.names = cells,
         stringsAsFactors = FALSE
       )
-
+    
     # Re-order vars to reflect the order entered, instead of the order fetched
     data_order <-
       na.omit(
@@ -409,80 +527,56 @@ FetchData.SingleCellExperiment <-
             table = fetched_vars
           )
       )
-
+    
     if (length(x = data_order) > 1) {
       fetched_data <- fetched_data[, data_order]
     }
-
+    
     # Change column names to reflect `vars` that were fetched
     colnames(x = fetched_data) <- vars[vars %in% fetched_vars]
-
+    
     fetched_data
   }
 
-
-#' FetchData Equivalent for Anndata Objects
-#'
-#' The anndata equivalent of the SeuratObject FetchData method.
-#'
-#' @param object An anndata object.
-#' @param vars A character vector with desired features or metadata variables to
-#'   pull from the object. Any combination of entries in the genes matrix (X),
-#'   metadata (obs), or obsm matrices can be provided here. To include a feature
-#'   from layers, use the `layers` parameter. It is greatly preferred to specify
-#'   the matrix a variable is in with an underscore. for example, to pull the
-#'   FIS1 gene from the genes matrix (X), specify "X_FIS1" instead of "FIS1". To
-#'   pull metadata, use "obs_", and to pull data from a matrix in obsm, use the
-#'   name of that matrix, not obsm. For example, if a matrix in obsm is named
-#'   "protein", use "protein_" to pull data from that matrix. Variables that are
-#'   entered without a key can still be found, as long as there is only one
-#'   matrix in the object with that variable name. Variables that do not have a
-#'   valid key (X_, obs_, and a key from obj.obsm_names()) will be ignored, as
-#'   will duplicate variables.
-#' @param layer The layer to pull data from. If unspecified, the feature will
-#' be pulled from the X matrix. To view a list of available layers, run
-#' \code{object$layers}. Layers will not work with alternate modalities stored
-#' in \code{obsm}, only the main modality (the modality in the X matrix of the
-#' object).
-#' @param cells A character vector of cells to include, as they are named in
-#' the object (i.e. according to colNames(object)). If \code{NULL}, data will
-#' be returned for all cells in the object.
-#' @param ... parameter provided for consistency with S3 generic/methods
-#' 
-#' @return A data.frame object containing the requested expression
-#' data or metadata.
-#'
-#' @keywords internal
-#'
+#' @describeIn fetch_data anndata Objects
 #' @export
-#'
-#' @method FetchData AnnDataR6
-#'
-FetchData.AnnDataR6 <-
+fetch_data.AnnDataR6 <-
   function(
     object,
     vars,
     layer = NULL,
     cells = NULL,
     ...
-  ){
-    lifecycle::deprecate_warn(
-      when = "1.1.2",
-      what = "FetchData.AnnDataR6()",
-      details = 
-        paste0(
-          "Please use fetch_data() instead. The FetchData method ",
-          "for anndata objects will be removed in 1.3.0."
-        )
-    )
+    ){
+    library(reticulate)
     
     if (!requireNamespace("reticulate", quietly = TRUE)) {
       stop(
-        "Package \"reticulate\" must be installed to use this function.",
+        paste0(
+          'Package "reticulate" must be installed to use this ',
+          'function with anndata objects.'
+          ),
         call. = FALSE
       )
     }
-
+    
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (length(vars) >= 1000){
+      warning(
+        paste0(
+          "A very large number of features was requested (", 
+          length(vars), 
+          " features). fetch_data is not intended to be used with feature ",
+          "queries of this length. Data is returned in a dense format, so ",
+          "the memory usage of the output may be very large. Also, this ",
+          "query may take a while to complete."
+          ),
+        immediate. = TRUE
+      )
+    }
+    
     # Source fetch_anndata python script
     python_path =
       system.file(
@@ -491,14 +585,14 @@ FetchData.AnnDataR6 <-
         "fetch_anndata.py",
         package = "SCUBA"
         )
-
+    
     py_objs <- reticulate::py_run_file(python_path)
-
+    
     # Runs python fetch_anndata function and returns the resulting data.frame
     py_objs$fetch_anndata(
       obj = object,
       fetch_vars = vars,
       cells = cells,
       layer = layer
-    )
-  }
+      )
+    }

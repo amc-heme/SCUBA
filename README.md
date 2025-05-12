@@ -1,28 +1,46 @@
 # SCUBA
 
-###  *S*ingle *C*ell *U*nified *B*ack end *A*PI 
+## Overview
 
-SCUBA is a unified data accession interface for single cell data formats. The package pulls data from Seurat, SingleCellExperiment, and Anndata objects for use in downstream plotting and analysis. Plotting functions that produce Seurat-style plots from all three object formats are also included.
+SCUBA (*S*ingle *C*ell *U*nified *B*ack end *A*PI) is a unified data accession interface for single-cell object classes. The package streamlines R data analysis for Seurat, SingleCellExperiment, and anndata objects by providing a consistent interface for data access, exploration, and visualization.
 
-### Pre-requisites
+SCUBA can be used to retrieve the following information: 
 
-SCUBA relies on the [reticulate](https://rstudio.github.io/reticulate/) package to operate on AnnData objects. Please make sure you follow the instructions on the reticulate page before moving on.  
+- Feature expression data (genes, surface proteins, signatures, or any single-cell modality that can be expressed as a counts matrix)
+- Cell metadata
+- Reduction coordinates
 
-It is recommended to use conda environments to manage your python version that is being used by reticulate. A conda environment can be used on the current R session by using `reticulate::use_condaenv()`. If you want to make it automatically load on startup you can select your conda environment in RStudio > Options > Python. 
+The main function of SCUBA is `fetch_data()`. The workflow for `fetch_data()` is based on [Seurat's](https://satijalab.org/seurat/) `SeuratObject::FetchData()`. We added S3 methods to replicate the `FetchData` workflow in SingleCellExperiment and anndata objects.
 
-You must have the following packages installed and available in your python environment:
-- Numpy
-- Scipy
-- Pandas
-- AnnData
+`fetch_data()` returns data as an R data.frame with cells as rows, and variables requested as columns. The format of the output data.frame is consistent across all three object classes, allowing for the development of downstream visualization scripts that function the same for all accepted object classes. 
 
-### Installation
+<img src="man/figures/fetch_data_overview.svg" style = "width: 80%; margin-left: auto; margin-right: auto;" alt="Diagram illustrating single-cell data access via SCUBA. A representation of the structure of each supported object type is shown, illustrating the differences in how expression data, metadata, and reduction coordinates are stored. Arrows connect each supported object class with the output format of SCUBA functions, to indicate that the format remains constant regardless of the organization of the input object.">
+
+### Supported Single-Cell Objects
+
+SCUBA currently supports the following object classes:
+
+- [Seurat](https://satijalab.org/seurat/)
+- [SingleCellExperiment](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)
+- [anndata](https://anndata.readthedocs.io/en/stable/)
+
+Support for mudata objects will be added in the near future.
+
+### Backwards Compatability with Seurat v4
+
+Seurat v4 objects are compatible with SCUBA. `fetch_data()` is a wrapper for `SeuratObject::FetchData()` when used with Seurat objects, so the function supports all versions of Seurat objects that Seurat currently supports. If you are using an object created with Seurat v4, the `slot` parameter should be used instead of `layer` in the event you are accessing data from the `counts` or the `scale.data` layers (if you are accessing data from the `data` layer, this parameter is not needed, as is the case with Seurat).
+
+### Spatial Single-Cell Modalities
+
+SCUBA offers partial support for spatial single-cell modalities. Spatial data that is expressed as a counts matrix and stored in an assay/experiment/modality is supported by SCUBA, but spatial images are not currently supported. We will add support for spatial omics modalities in a future release.
+
+## Installation
 
 Run the command below to install SCUBA. BiocManager is used to automatically install Bioconductor dependencies (SCUBA is not a Bioconductor package).
 
 If you plan to use SCUBA with anndata objects, use `dependencies = TRUE`. If you only plan to use SCUBA with Seurat and SingleCellExperiment objects, use `dependencies = FALSE`.
 
-```
+```r
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
@@ -30,229 +48,99 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 ```
 
+## Additional Installation for anndata Objects
 
-### Working with different objects in SCUBA
-The following demonstrates how to use SCUBA to access data in various formats.
+To use SCUBA with anndata objects, you will need a Python installation and the reticulate R package. If you are using anndata objects, follow the steps below. **If you are only using Seurat of SingleCellExperiment objects, you do not need to complete these steps.**
 
-There are three primary data accession methods: `FetchData`, `fetch_metadata` and `fetch_reduction`. 
+First, install the [reticulate](https://rstudio.github.io/reticulate/) package in R.
 
-There are two object exploration methods: `meta_varnames` and `unique_values`
-
-
- 
-#### Primary Data Accession Methods
-
-For Seurat objects 
-
-```
-FetchData(
-      AML_Seurat,
-      layer = "data",
-      vars =
-        c("ab_CD117-AB",
-          "ab_CD123-AB",
-          "ab_CD11c-AB",
-          "rna_GAPDH",
-          "rna_MEIS1",
-          # Reductions
-          "UMAP_1",
-          "UMAP_2",
-          # Nonexistent features
-          "ab_CD900",
-          # Metadata
-          "nCount_RNA",
-          "nFeature_RNA",
-          # "Ambiguous" feature not in RNA assay
-          "CD11a-AB"
-        )
-    )
-    
-fetch_metadata(
-      AML_Seurat, 
-      vars = c("Batch", 
-               "nCount_RNA"
-               )
-            )
-#Can use full_table=T which is much more computationally efficient than selecting vars.
-
-fetch_reduction(
-      AML_Seurat,
-      dims = c(1, 2), 
-      reduction = default_reduction(AML_Seurat), 
-      cells = get_all_cells(AML_Seurat)
-  )
-
+```r
+install.packages("reticulate")
 ```
 
-For SingleCellExperiment
+Next, you will need to set up a version of Python with the necessary packages installed. There are several ways to do this. We recommend the use of an Anaconda environment, which will allow you to create an environment just for use by SCUBA that does not interfere with any other installations of Python you may have. The instructions below cover setting up an environment via anaconda, but other means of setting up Python environments will work with SCUBA. All that is needed is a Python environment connected to reticulate with the dependencies below installed:
 
-```
-FetchData(
-      AML_SCE(),
-      layer = "logcounts",
-      vars =
-        c("AB_CD117-AB",
-          "AB_CD123-AB",
-          "AB_CD11c-AB",
-          "RNA_GAPDH",
-          "RNA_MEIS1",
-          # Reductions
-          "UMAP_1",
-          "UMAP_2",
-          # Nonexistent features
-          "AB_CD900",
-          # Metadata
-          "nCount_RNA",
-          "nFeature_RNA",
-          # "Ambiguous" feature not in RNA assay
-          "CD11a-AB"
-        )
-    )
+- [anndata](https://anndata.readthedocs.io/en/stable/)
+- [scipy](https://scipy.org/)
+- [numpy](https://numpy.org/)
+- [pandas](https://pandas.pydata.org/)
 
-fetch_metadata(
-      AML_SCE(), 
-      vars = c("Batch", 
-               "nCount_RNA"
-               )
-            )
-#Can use full_table=T which is much more computationally efficient than selecting vars.
+### Setting up a Python Environment via Anaconda
 
-fetch_reduction(
-      AML_SCE(),
-      dims = c(1, 2), 
-      reduction = default_reduction(sce), 
-      cells = get_all_cells(sce)
-  )
+To set up an Anaconda environment with the requisite packages for SCUBA, follow the steps below:
+
+1. Download an [Anaconda Distribution](https://www.anaconda.com/download). Use whichever installer is most appropriate for your operating system and preferences.
+
+2. For MacOS and linux users: open a terminal window. For Windows users, you can open the Anaconda command prompt application (cmd.exe). Subsequent steps are the same for all operating systems. 
+
+3. In the termainal, create a new conda environment for use with SCUBA. 
+
+```bash
+conda create --name SCUBA_anndata 
 ```
 
-AnnData:
+4. Next, "Activate" the environment to switch to it in the terminal.
 
-```
-FetchData(
-      AML_h5ad(),
-      vars =
-        c("protein_CD123-AB",
-          "protein_CD117-AB",
-          "X_MEIS1",
-          "X_GAPDH",
-          # Reductions
-          "X_umap_1",
-          "X_umap_2",
-          # Metadata
-          "nCount_RNA",
-          "nFeature_RNA"
-        )
-    )
-    
-fetch_metadata(
-      AML_h5ad(), 
-      vars = c("Batch", 
-               "nCount_RNA"
-               )
-            )
-#Can use full_table=T which is much more computationally efficient than selecting vars.
-
-fetch_reduction(
-      AML_h5ad(),
-      dims = c(1, 2), 
-      reduction = default_reduction(AML_anndata), 
-      cells = get_all_cells(AML_anndata)
-  )
+```bash
+conda activate SCUBA_anndata
 ```
 
-#### Object Exploration Methods
+You should now see "(SCUBA_anndata)" to the left side of your cursor in the terminal.
 
-```
-> meta_varnames(AML_h5ad())
- [1] "nCount_RNA"          "nFeature_RNA"        "nCount_AB"           "nFeature_AB"         "nCount_BOTH"         "nFeature_BOTH"      
- [7] "BOTH_snn_res.0.9"    "seurat_clusters"     "Prediction_Ind"      "BOTH_snn_res.1"      "ClusterID"           "Batch"              
-[13] "x"                   "y"                   "x_mean"              "y_mean"              "cor"                 "ct"                 
-[19] "prop"                "meandist"            "cDC"                 "B.cells"             "Myelocytes"          "Erythroid"          
-[25] "Megakaryocte"        "Ident"               "RNA_snn_res.0.4"     "condensed_cell_type"
+5. Next, install the [anndata](https://anndata.readthedocs.io/en/stable/) package according to the instructions from their website. Make sure to specify the channel with `-c` to install the most recent version.
+
+```bash
+conda install anndata -c conda-forge
 ```
 
-```
-> unique_values(AML_h5ad(), var="condensed_cell_type")
- [1] Plasma cells                 Primitive                    Dendritic cells              Plasmacytoid dendritic cells
- [5] BM Monocytes                 NK Cells                     CD8+ T Cells                 B Cells                     
- [9] CD4+ T Cells                 PBMC Monocytes              
-10 Levels: B Cells BM Monocytes CD4+ T Cells CD8+ T Cells Dendritic cells NK Cells PBMC Monocytes ... Primitive
+6. SCUBA requires the following additional packages: [scipy](https://scipy.org/), [numpy](https://numpy.org/), and [pandas](https://pandas.pydata.org/). These should have been installed as dependencies when installing anndata. To verify these packages are present, you can run `conda list` on the environment:
+
+```bash
+conda list -n SCUBA_anndata pandas
+conda list -n SCUBA_anndata scipy
+conda list -n SCUBA_anndata numpy
 ```
 
-The following object exploration methods exist for Seurat and SingleCellExperiment objects. They are currently not implemented for AnnData objects.
+If the package is present, you will see information for the package.
 
 ```
-reduction_names(AML_Seurat)
-assay_names(AML_Seurat)
-features_in_assay(AML_Seurat, "RNA")
-```
-
-### Plotting
-
-SCUBA includes plotting functions that produce Seurat-style plots from all three object formats. 
+#
+# Name                    Version                   Build  Channel
+pandas                    2.2.3           py313h668b085_3    conda-forge
 
 ```
-plot_feature(
-    AML_h5ad(), 
-    feature = "UNG"
-  )
-```
-![plot_feature](inst/images/examples/plot_feature.jpeg)
 
+If it is not present, the list of information returned will have no rows. In this case, you can install the package via `conda install`.
 
 ```
-plot_dot(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type", 
-      features = c("X_UNG", "X_GAPDH", "X_CCR5")
-    )
+# Name                    Version                   Build  Channel
 ```
-![plot_dot](inst/images/examples/plot_dot.jpeg)
 
+7. Connect reticulate to the conda environment. To do this, run the following in an R console:
 
+```r
+reticulate::use_condaenv("SCUBA_anndata")
 ```
-plot_reduction(
-      AML_h5ad(),
-      group_by="condensed_cell_type",
-      split_by="Batch"
-    )
-```
-![plot_reduction](inst/images/examples/plot_reduction.jpeg)
 
-```
-plot_ridge(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type", 
-      features = c("UNG", "GAPDH")
-    )
-```
-![plot_ridge](inst/images/examples/plot_ridge.jpeg)
+Step 7 will need to be repeated each time you restart your R session. If you are using RStudio, you may set a default Python environment to use with reticulate to avoid having to repeat this step each time. To do this in RStudio, complete the following:
 
-```
-plot_scatter(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type", 
-      feature_1 = "GAPDH", 
-      feature_2 = "UNG"
-    )
-```
-![plot_scatter](inst/images/examples/plot_scatter.jpeg)
+- Go to **"Tools"** > **"Global Options"**. 
+- In the window that appears, select **"Python"**. 
+- Select the **"Select"** button next to the Python interpreter displayed. 
+- In the window that appears, select **"Conda Environments"**.
+- Select the path of your Conda environment (the path containing "SCUBA_Anndata" in this case).
 
-```
-plot_violin(
-      AML_h5ad(), 
-      group_by = "condensed_cell_type",
-      features = c("UNG", "GAPDH")
-    )
-```
-![plot_violin](inst/images/examples/plot_violin.jpeg)
+## Additional Infomration
 
+Please see our [website](https://amc-heme.github.io/SCUBA/) for a user guide and more information.
 
-### Citation
-Paper title and preprint link coming soon! 
+## Citation
 
-### Problems
-If any issues arise please use Github issues on this repository. 
+Showers, W.M., Desai, J., Engel, K.L., Smith, C., Jordan, C.T. and Gillen, A.E. (2024) SCUBA implements a storage format-agnostic API for single-cell data access in R. [10.12688/f1000research.154675.1](https://doi.org/10.12688/f1000research.154675.1).
+
+## Problems
+
+If any issues arise please file a Github issue on this repository. 
 
 <!-- badges: start -->
   [![R-CMD-check](https://github.com/amc-heme/SCUBA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/amc-heme/SCUBA/actions/workflows/R-CMD-check.yaml)

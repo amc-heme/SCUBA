@@ -1,20 +1,29 @@
-#' Get default reduction from object
+#' Return the default layer
 #'
 #' Returns the default layer for the object passed. The default layer is chosen
 #' based on the conventions used in each object to name the normalized counts
 #' layer.
+#' 
+#' This is a utility function that is most useful for defining defaults in plotting functions, to reduce the number of required parameters end users need to supply. [see our website]() for an example of usage in a function.
 #'
-#' @param object A single cell object. Currently, Seurat, SingleCellExpleriment, 
-#' and anndata objects are supported.
-#' @param ... Currently unused.
+#' @inheritParams object_param
 #'
 #' @rdname default_layer
 #'
 #' @export
+#' 
+#' @examples
+#' # Seurat objects
+#' default_layer(AML_Seurat)
+#' 
+#' # SingleCellExperiment objects
+#' default_layer(AML_SCE())
+#' 
+#' # anndata objects
+#' default_layer(AML_h5ad())
 default_layer <-
   function(
-    object,
-    ...
+    object
   ){
     UseMethod("default_layer")
   }
@@ -26,7 +35,8 @@ default_layer <-
 #' @export
 default_layer.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(

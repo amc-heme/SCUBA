@@ -1,17 +1,20 @@
-#' Get all cells from object
+#' Plotting utility function to return all cell IDs
 #'
-#' Returns a character vector with all cell names in the object.
+#' Returns a character vector with all cell names in the object. This is a utility function used to set defaults for plotting functions created by SCUBA
+#' 
+#' For additional information, see our GitHub.io website ("User Guide" article, "Data Visualization" section)
 #'
-#' @param object a single-cell object.
-#' @param ... Currently unused.
+#' @inheritParams object_param
 #'
 #' @rdname get_all_cells
 #'
 #' @export
+#' 
+#' @examples
+#' get_all_cells(AML_Seurat) |> str()
 get_all_cells <-
   function(
-    object,
-    ...
+    object
   ){
     UseMethod("get_all_cells")
   }

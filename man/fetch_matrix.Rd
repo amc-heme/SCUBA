@@ -7,7 +7,7 @@
 \usage{
 fetch_matrix(object, matrix_location, ...)
 
-\method{fetch_matrix}{AnnDataR6}(object, matrix_location, densify = FALSE)
+\method{fetch_matrix}{AnnDataR6}(object, matrix_location, ...)
 }
 \arguments{
 \item{object}{a single-cell object (Seurat, SingleCellExperiment, Anndata).}
@@ -24,3 +24,4 @@ Returns object metadata for a specified set of cells.
 \item \code{fetch_matrix(AnnDataR6)}: AnnDataR6 objects
 
 }}
+\keyword{internal}

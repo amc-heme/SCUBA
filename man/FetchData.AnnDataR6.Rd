@@ -4,7 +4,7 @@
 \alias{FetchData.AnnDataR6}
 \title{FetchData Equivalent for Anndata Objects}
 \usage{
-\method{FetchData}{AnnDataR6}(object, vars, layer = NULL, cells = NULL)
+\method{FetchData}{AnnDataR6}(object, vars, layer = NULL, cells = NULL, ...)
 }
 \arguments{
 \item{object}{An anndata object.}
@@ -32,6 +32,8 @@ object).}
 \item{cells}{A character vector of cells to include, as they are named in
 the object (i.e. according to colNames(object)). If \code{NULL}, data will
 be returned for all cells in the object.}
+
+\item{...}{parameter provided for consistency with S3 generic/methods}
 }
 \value{
 A data.frame object containing the requested expression
@@ -40,3 +42,4 @@ data or metadata.
 \description{
 The anndata equivalent of the SeuratObject FetchData method.
 }
+\keyword{internal}

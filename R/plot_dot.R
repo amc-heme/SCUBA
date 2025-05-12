@@ -45,6 +45,8 @@
 #' @importFrom stats dist hclust
 #' @importFrom RColorBrewer brewer.pal.info
 #'
+#' @keywords internal
+#'
 #' @export
 #'
 #' @seealso \code{RColorBrewer::brewer.pal.info}

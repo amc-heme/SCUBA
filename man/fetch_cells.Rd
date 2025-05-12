@@ -5,9 +5,9 @@
 \alias{fetch_cells.Seurat}
 \alias{fetch_cells.SingleCellExperiment}
 \alias{fetch_cells.AnnDataR6}
-\title{Subset cells based on metadata}
+\title{Return cell IDs for a subset based on metadata}
 \usage{
-fetch_cells(object, meta_var, meta_levels, ...)
+fetch_cells(object, meta_var, meta_levels)
 
 \method{fetch_cells}{Seurat}(object, meta_var, meta_levels)
 
@@ -16,15 +16,13 @@ fetch_cells(object, meta_var, meta_levels, ...)
 \method{fetch_cells}{AnnDataR6}(object, meta_var, meta_levels)
 }
 \arguments{
-\item{object}{a single-cell object. Currently, Seurat and
-SingleCellExperiment objects are supported.}
+\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+and anndata objects are supported.}
 
 \item{meta_var}{a metadata variable used as the basis for subsetting cells.}
 
 \item{meta_levels}{the levels of the specified metadata variable in
 \code{meta_var} to include in the}
-
-\item{...}{Currently unused.}
 }
 \description{
 Returns a character vector with the cell names matching the levels/classes

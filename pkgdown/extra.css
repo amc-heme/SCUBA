@@ -1,0 +1,6 @@
+/* Reduce white space in page headers (on desktop) */
+@media (min-width: 576px) {
+  div .page-header {
+    min-height: 75px; !important
+  }
+}

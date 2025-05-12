@@ -1,25 +1,59 @@
 Package: SCUBA
+Type: Package
 Title: Common data accession for single cell object formats
-Version: 1.0.0
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+Version: 1.1.2
+Authors@R: c(
+    person(
+        "William", 
+        "Showers",
+        role = "aut"
+        ),
+    person(
+        "Jairav",
+        "Desai",
+        role = "aut"
+        ),
+    person(
+        "Kent",
+        "Riemondy",
+        role = "ctb"
+        ),
+    person(
+        "Krysta",
+        "Engel",
+        role = "ctb"
+        ),
+    person(
+        "Clayton", 
+        "Smith", 
+        role = "fnd"
+        ),
+    person(
+        "Craig", 
+        "Jordan", 
+        role = "fnd"
+        ),
+    person(
+        "Austin", 
+        "Gillen", 
+        email = "austin.gillen@cuanschutz.edu",
+        role = c("aut", "cre", "fnd")
+        )
+    )
 Description: SCUBA provides a common accession framework for multiple single cell object formats (Seurat, SingleCellExperiment, Anndata), facilitating analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr, rmarkdown
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 Imports: 
     cowplot,
-    dplyr,
     ggplot2,
     rlang,
     Seurat,
-    shiny,
     SingleCellExperiment,
-    stringr,
     HDF5Array,
     patchwork,
     RColorBrewer,
@@ -27,10 +61,14 @@ Imports:
     scattermore,
     SeuratObject,
     SummarizedExperiment,
-    lifecycle
+    lifecycle,
+    methods
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
     reticulate,
-    anndata
+    anndata,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
+URL: https://amc-heme.github.io/SCUBA/

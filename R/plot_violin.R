@@ -21,6 +21,8 @@
 #' @export
 #' @concept visualization
 #'
+#' @keywords internal
+#'
 #' @seealso \code{\link{FetchData}}
 #'
 #' @examples
