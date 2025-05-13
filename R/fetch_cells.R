@@ -126,3 +126,31 @@ fetch_cells.AnnDataR6 <-
     object$obs[object$obs[[meta_var]] %in% meta_levels, ] |>
       rownames()
   }
+
+#' @describeIn fetch_cells MuData objects
+#' @export
+fetch_cells.md._core.mudata.MuData <-
+  function(
+    object,
+    meta_var,
+    meta_levels,
+    modality = NULL
+  ){
+    library(reticulate)
+    # Source fetch_cells python script for mudata
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_cells_mudata.py",
+        package = "SCUBA"
+      )
+    reticulate::source_python(python_path)
+    # Call the Python function
+    py$fetch_cells_mudata(
+      obj = object,
+      meta_var = meta_var,
+      meta_levels = meta_levels,
+      modality = modality
+    )
+  }
