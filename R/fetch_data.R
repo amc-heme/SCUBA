@@ -577,22 +577,44 @@ fetch_data.AnnDataR6 <-
       )
     }
     
-    # Source fetch_anndata python script
-    python_path =
-      system.file(
-        "extdata",
-        "Python",
-        "fetch_anndata.py",
-        package = "SCUBA"
+    # Detect if AnnData is in backed mode
+    is_backed <- FALSE
+    if (!is.null(object$filename) && !is.null(object$backed)) {
+      # AnnData object has a filename and backed attribute
+      is_backed <- (object$backed == "r")
+    }
+    
+    if (is_backed) {
+      # Use the backed mode fetcher
+      python_path =
+        system.file(
+          "extdata",
+          "Python",
+          "fetch_anndata_backed.py",
+          package = "SCUBA"
         )
-    
-    py_objs <- reticulate::py_run_file(python_path)
-    
-    # Runs python fetch_anndata function and returns the resulting data.frame
-    py_objs$fetch_anndata(
-      obj = object,
-      fetch_vars = vars,
-      cells = cells,
-      layer = layer
+      py_objs <- reticulate::py_run_file(python_path)
+      py_objs$fetch_anndata_backed(
+        obj = object,
+        fetch_vars = vars,
+        cells = cells,
+        layer = layer
       )
+    } else {
+      # Use the in-memory fetcher
+      python_path =
+        system.file(
+          "extdata",
+          "Python",
+          "fetch_anndata.py",
+          package = "SCUBA"
+        )
+      py_objs <- reticulate::py_run_file(python_path)
+      py_objs$fetch_anndata(
+        obj = object,
+        fetch_vars = vars,
+        cells = cells,
+        layer = layer
+      )
+    }
     }

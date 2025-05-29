@@ -1,0 +1,27 @@
+# Tests for fetch_data with AnnData objects (in-memory and backed)
+
+test_that("fetch_data works for AnnData in-memory", {
+  skip_if_not_installed("anndata")
+  skip_if_not_installed("reticulate")
+  library(anndata)
+  library(reticulate)
+  use_condaenv("SCUBA_anndata", required = TRUE)
+  adata <- read_h5ad(system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA"))
+  genes <- c("NPM1", "MSI2")
+  df <- fetch_data(adata, genes)
+  expect_true(all(genes %in% colnames(df)))
+  expect_gt(nrow(df), 0)
+})
+
+test_that("fetch_data works for AnnData backed mode", {
+  skip_if_not_installed("anndata")
+  skip_if_not_installed("reticulate")
+  library(anndata)
+  library(reticulate)
+  use_condaenv("SCUBA_anndata", required = TRUE)
+  adata <- read_h5ad(system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA"), backed = 'r')
+  genes <- c("NPM1", "MSI2")
+  df <- fetch_data(adata, genes)
+  expect_true(all(genes %in% colnames(df)))
+  expect_gt(nrow(df), 0)
+})
