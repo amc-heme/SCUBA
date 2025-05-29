@@ -3,7 +3,7 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   user_guide: user_guide.html
-last_built: 2025-05-29T16:54Z
+last_built: 2025-05-29T16:58Z
 urls:
   reference: https://amc-heme.github.io/SCUBA/reference
   article: https://amc-heme.github.io/SCUBA/articles
