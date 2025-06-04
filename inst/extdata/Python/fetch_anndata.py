@@ -5,6 +5,9 @@ import numpy as np
 
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
+# Anndata CSC_Matrix class (for disk-backed anndata objects)
+from anndata._core.sparse_dataset import _CSCDataset
+
 
 # Base Python
 from collections import Counter
@@ -180,6 +183,29 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 # Densify with np.asarray
                 for column in data:
                     data[column] = np.asarray(data[column])
+            
+            elif (isinstance(matrix, _CSCDataset)):
+                # Disk-backed anndata: X matrix uses _CSCDataset class from 
+                # anndata. This class is considered internal to the anndata 
+                # package and may change in the future
+                
+                # _CSCDataset matrices only support accessing cells and 
+                # features by index. To get the index of each var requested,
+                # get_loc is used
+                genes_idx = [r.backed_adata.var_names.get_loc(var) for var in keyless_vars]
+                cells_idx = [r.backed_adata.obs_names.get_loc(cell_id) for cell_id in cells]
+
+                # Index the CSCDataset. The result will be a scipy csc_matrix
+                backed_data = matrix[cells_idx, genes_idx]
+
+                data = pd.DataFrame.sparse.from_spmatrix(
+                    backed_data,
+                    # Add cell ids and var names back 
+                    # These should be in the same order as the indices 
+                    index = cells,
+                    columns = keyless_vars
+                    )
+                    
             elif (isinstance(matrix, pd.DataFrame)):
                 # Pandas dataframe: pull data via .loc 
                 data = matrix.loc[cells, keyless_vars]
@@ -226,7 +252,8 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 pep8-and-prevent-e501
                 """
                 raise NotImplementedError(
-                    ("FetchData does not know how to handle a matrix of class {0}. "
+                    ("The SCUBA Python function fetch_anndata does not know "
+                    "how to handle a matrix of class {0}. "
                     "This ocurred with the matrix at key '{1}'."
                     ).format(type(matrix), key)
                     )
