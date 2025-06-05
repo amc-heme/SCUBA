@@ -1,0 +1,289 @@
+seurat_data <-
+  suppressWarnings(
+    fetch_data(
+      AML_Seurat,
+      layer = "data",
+      vars =
+        c("ab_CD117-AB",
+          "ab_CD123-AB",
+          "ab_CD11c-AB",
+          "rna_GAPDH",
+          "rna_MEIS1",
+          # Reductions
+          "UMAP_1",
+          "UMAP_2",
+          # Metadata
+          "nCount_RNA",
+          "nFeature_RNA",
+          # "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+        )
+    )
+  )
+
+sce_data <-
+  fetch_data(
+    AML_SCE(),
+    layer = "logcounts",
+    vars =
+      c("AB_CD117-AB",
+        "AB_CD123-AB",
+        "AB_CD11c-AB",
+        "RNA_GAPDH",
+        "RNA_MEIS1",
+        # Reductions
+        "UMAP_1",
+        "UMAP_2",
+        # Metadata
+        "nCount_RNA",
+        "nFeature_RNA",
+        # "Ambiguous" feature not in RNA assay
+        "CD11a-AB"
+      )
+  )
+
+h5ad_data <-  
+  fetch_data(
+    AML_h5ad(),
+    vars =
+      c("protein_CD117-AB",
+        "protein_CD123-AB",
+        "protein_CD11c-AB",
+        "X_GAPDH",
+        "X_MEIS1",
+        # Reductions
+        "X_umap_1",
+        "X_umap_2",
+        # Metadata
+        "nCount_RNA",
+        "nFeature_RNA",
+        # "Ambiguous" feature not in RNA assay
+        "CD11a-AB"
+      )
+  )
+
+h5ad_backed_data <-
+  fetch_data(
+    AML_h5ad_backed(),
+    vars =
+      c("protein_CD117-AB",
+        "protein_CD123-AB",
+        "protein_CD11c-AB",
+        "X_GAPDH",
+        "X_MEIS1",
+        # Reductions
+        "X_umap_1",
+        "X_umap_2",
+        # Metadata
+        "nCount_RNA",
+        "nFeature_RNA",
+        # "Ambiguous" feature not in RNA assay
+        "CD11a-AB"
+      )
+  )
+
+test_that("All fetch_data methods return the same data.", {
+  # Check rowSums and colSums of data
+  expect_equal(
+    object = rowSums(sce_data),
+    expected = rowSums(seurat_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+
+  expect_equal(
+    object = colSums(sce_data),
+    expected = colSums(seurat_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  expect_equal(
+    object = rowSums(sce_data),
+    expected = rowSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  expect_equal(
+    object = colSums(sce_data),
+    expected = colSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+})
+
+test_that("Disk-backed outputs match in-memory outputs", {
+  # Seurat vs. BPCells: incomplete
+  
+  # SingleCellExperiment: incomplete
+  
+  # anndata
+  expect_equal(
+    object = rowSums(h5ad_data),
+    expected = rowSums(h5ad_backed_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+    )
+})
+
+test_that("fetch_data returns a warning, but no errors, for ambiguous feature inputs", {
+  # Seurat
+  expect_warning(
+    fetch_data(
+      AML_Seurat,
+      vars = 
+        c(# Ambiguously entered feature in an alternate assay (AB)
+          "CD11a-AB"
+        )
+      )
+    )
+  
+  # SingleCellExperiment
+  expect_warning(
+    fetch_data(
+      AML_SCE(),
+      vars = 
+        c(# Ambiguously entered feature in an alternate experiment (AB)
+          "CD11a-AB"
+        )
+    )
+  )
+  
+  # anndata
+  expect_warning(
+    fetch_data(
+      AML_h5ad(),
+      vars = 
+        c(# Ambiguously entered feature not in an alternate modality (AB)
+          "CD11a-AB"
+        )
+    )
+  )
+  
+  # Disk-backed anndata
+  expect_warning(
+    fetch_data(
+      AML_h5ad_backed(),
+      vars = 
+        c(# Ambiguously entered feature not in an alternate modality (AB)
+          "CD11a-AB"
+        )
+    )
+  )
+})
+
+test_that("fetch_data returns a warning, but no errors, for mixed feature inputs", {
+  # Inputs below are present features mixed with features not present
+  # Seurat
+  expect_warning(
+    fetch_data(
+      AML_Seurat,
+      vars = 
+        c(# Legitamate features
+          "ab_CD11c-AB",
+          "rna_GAPDH",
+          "rna_MEIS1",
+          # Nonsensical input
+          "nonsense",
+          # Feature with genes key, but that doesn't exist
+          "rna_MESS1"
+        )
+    )
+  )
+  
+  # SingleCellExperiment
+  expect_warning(
+    fetch_data(
+      AML_SCE(),
+      vars = 
+        c(# Legitamate features
+          "AB_CD11c-AB",
+          "RNA_GAPDH",
+          "RNA_MEIS1",
+          # Nonsensical input
+          "nonsense",
+          # Feature with genes key, but that doesn't exist
+          "RNA_MESS1"
+        )
+    )
+  )
+  
+  # anndata
+  expect_warning(
+    fetch_data(
+      AML_h5ad(),
+      vars = 
+        c(# Legitamate features
+          "protein_CD11c-AB",
+          "X_GAPDH",
+          "X_MEIS1",
+          # Nonsensical input
+          "nonsense",
+          # Feature with genes key, but that doesn't exist
+          "X_MESS1"
+        )
+    )
+  )
+  
+  # Disk-backed anndata
+  expect_warning(
+    fetch_data(
+      AML_h5ad_backed(),
+      vars = 
+        c(# Legitamate features
+          "protein_CD11c-AB",
+          "X_GAPDH",
+          "X_MEIS1",
+          # Nonsensical input
+          "nonsense",
+          # Feature with genes key, but that doesn't exist
+          "X_MESS1"
+        )
+    )
+  )
+})
+
+test_that("fetch_data returns an error when a nonsensical feature is entered", {
+  #Test for error on missing feature on Seurat
+  expect_error(
+    fetch_data(
+      AML_Seurat,
+      layer = "data",
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
+  )
+  
+  #Test for error on missing feature on SingleCellExperiment
+  expect_error(
+    fetch_data(
+      AML_SCE(),
+      layer = "logcounts",
+      vars =
+        # Nonexistent feature
+        c("AB_CD900")
+    )
+  )
+  
+  # anndata
+  expect_error(
+    fetch_data(
+      AML_h5ad(),
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
+  )
+  
+  # Backed anndata
+  expect_error(
+    fetch_data(
+      AML_h5ad_backed(),
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
+  )
+})
