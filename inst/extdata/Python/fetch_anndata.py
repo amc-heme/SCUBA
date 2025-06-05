@@ -5,9 +5,8 @@ import numpy as np
 
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
-# Anndata CSC_Matrix class (for disk-backed anndata objects)
-from anndata._core.sparse_dataset import _CSCDataset
-
+# Anndata CSCDataset class (for disk-backed anndata objects)
+from anndata._core.sparse_dataset import CSCDataset
 
 # Base Python
 from collections import Counter
@@ -184,7 +183,7 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 for column in data:
                     data[column] = np.asarray(data[column])
             
-            elif (isinstance(matrix, _CSCDataset)):
+            elif (isinstance(matrix, CSCDataset)):
                 # Disk-backed anndata: X matrix uses _CSCDataset class from 
                 # anndata. This class is considered internal to the anndata 
                 # package and may change in the future
@@ -192,11 +191,16 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 # _CSCDataset matrices only support accessing cells and 
                 # features by index. To get the index of each var requested,
                 # get_loc is used
-                genes_idx = [r.backed_adata.var_names.get_loc(var) for var in keyless_vars]
-                cells_idx = [r.backed_adata.obs_names.get_loc(cell_id) for cell_id in cells]
+                
+                # To avoid an error from get_loc(), filter keyless vars for 
+                # only those that are in var_names
+                vars_in_X = [var for var in keyless_vars if var in obj.var_names]
+                
+                vars_idx = [obj.var_names.get_loc(var) for var in vars_in_X]
+                cells_idx = [obj.obs_names.get_loc(cell_id) for cell_id in cells]
 
                 # Index the CSCDataset. The result will be a scipy csc_matrix
-                backed_data = matrix[cells_idx, genes_idx]
+                backed_data = matrix[cells_idx, vars_idx]
 
                 data = pd.DataFrame.sparse.from_spmatrix(
                     backed_data,
@@ -205,7 +209,12 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     index = cells,
                     columns = keyless_vars
                     )
-                    
+                
+                # Columns returned will be pandas sparse arrays.
+                # Arrays must be densified to be accesssible downstream in R 
+                # Densify with np.asarray
+                for column in data:
+                    data[column] = np.asarray(data[column])
             elif (isinstance(matrix, pd.DataFrame)):
                 # Pandas dataframe: pull data via .loc 
                 data = matrix.loc[cells, keyless_vars]
