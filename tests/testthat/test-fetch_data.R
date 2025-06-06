@@ -1,4 +1,8 @@
+# Fetch data for equivalence testing across objects
+# The data below is used in two test_that statements, so is ran before
+# both statements
 seurat_data <-
+  # Warnings are expected here due to the ambiguous feature
   suppressWarnings(
     fetch_data(
       AML_Seurat,
@@ -243,6 +247,113 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
     )
   )
 })
+
+test_that(
+  paste0("fetch_data returns a warning when duplicate features are entered, ",
+         "but still returns one instance of the duplicate feature."), 
+  {
+    # 1. Seurat
+    ## 1.a. Warning with duplicate features
+    # Doesn't exist in the Seurat FetchData method. Nice to add but low priority
+    # expect_warning(
+    #   fetch_data(
+    #     AML_Seurat,
+    #     vars = c("rna_GAPDH", "rna_GAPDH")
+    #     )
+    # )
+    
+    ## 1.b. But normal feature return
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_Seurat,
+        vars = c("rna_GAPDH", "rna_GAPDH")
+        ),
+      # Is the same as...
+      fetch_data(
+        AML_Seurat,
+        vars = c("rna_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
+    # 2. SingleCellExperiment
+    ## 2.a. Warning with duplicate features
+    # expect_warning(
+    #   fetch_data(
+    #     AML_SCE(),
+    #     vars = c("RNA_GAPDH", "RNA_GAPDH")
+    #     )
+    # )
+    
+    ## 2.b. Proper return of duplicate features
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH", "RNA_GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
+    # 3. anndata 
+    ## 3.a. Warning with duplicate features
+    expect_warning(
+      fetch_data(
+        AML_h5ad(),
+        vars = c("X_GAPDH", "X_GAPDH")
+        )
+    )
+    
+    ## 3.b. Proper return of duplicate features
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH", "RNA_GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
+    
+    # 4. anndata (disk backed)
+    ## 4.a. Warning with duplicate features
+    expect_warning(
+      fetch_data(
+        AML_h5ad(),
+        vars = c("X_GAPDH", "X_GAPDH")
+      )
+    )
+    
+    ## 4.b. Proper return of duplicate features
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH", "RNA_GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+  })
 
 test_that("fetch_data returns an error when a nonsensical feature is entered", {
   #Test for error on missing feature on Seurat

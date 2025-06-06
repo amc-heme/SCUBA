@@ -55,7 +55,7 @@ features_in_assay.Seurat <-
     assay
   ){
     if (!assay %in% names(object@assays)){
-      stop("Assay", assay, "not found in the current object.")
+      stop("Assay ", assay, " not found in the current object.")
     }
     
     # Return rownames of assay entered
@@ -71,7 +71,7 @@ features_in_assay.SingleCellExperiment <-
   ){
     # Check if assay ("experiment" in SingleCellExperiment) is a valid  
     if (!assay %in% c(mainExpName(object), altExpNames(object))){
-      stop("Assay", assay, "not found in the current object.")
+      stop("Assay ", assay, " not found in the current object.")
     }
     
     # If the assay is the main experiment, use rownames(object)
@@ -93,7 +93,7 @@ features_in_assay.AnnDataR6 <-
   ){
     # Check that assay is valid (either X, or a feature from obsm)
     if (!assay %in% c("X", object$obsm_keys())){
-      stop("Assay", assay, "not found in the obsm slot of the current object.")
+      stop("Assay ", assay, " not found in the obsm slot of the current object.")
     }
     
     if (assay == "X"){

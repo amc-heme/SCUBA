@@ -397,10 +397,19 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     # Report duplicates to the user and notify that only one entry 
     # will be included 
     if len(duplicate_vars) > 0:
-        warnings.warn(
+        r.warning(
             ("Duplicate entries passed to vars: " +
             ", ".join(duplicate_vars) +
-            ". Only one entry for each variable will be returned.")
+            ". Only one entry for each variable will be returned."),
+            # The call context for the warning prints as 
+            # do.call(fn, c(args, named_args)) 
+            # which is not useful for the end user. The call is suppressed by
+            # setting call. to FALSE. 
+            # The . in call. causes an error with Python syntax, so it is 
+            # specified using dictionary unpacking. "call." is passed as a 
+            # string in a dictionary, and tells warning() to accept a call. 
+            # argument and set it to False (FALSE in R)
+            **{'call.': False}
             )
 
     # Remove duplicates by creating a dictionary from the list, and converting
@@ -508,7 +517,8 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             example_str = ", ".join(example_entries)
         
         # Display warning message
-        warnings.warn(
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
             ("The following variables were found in multiple locations: " +
             ", ".join(list(ambiguous_vars.keys())) +
             ". These variables will not be retrieved due to ambiguity. " +
@@ -517,7 +527,9 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             "underscore (for example: " +
             example_str +
             ")."
-            )
+            ),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
             )
             
     # 6. Fetch data for remaining vars ####
@@ -567,13 +579,16 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         # Example of the keyed variable(s) to be returned
         will_be_returned = ", ".join(list(duplicate_vars.values()))
         
-        warnings.warn(
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
             ("The following variables entered describe the same variable: " +
             duplicate_description + 
             ". Only the copy of the variable with the key entered will be " +
             "returned (" +
             will_be_returned +
-            ").")
+            ")."),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
             )
         
         # Remove the duplicate variable(s) before fetching data
@@ -635,11 +650,14 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             ", ".join(vars_not_found)
             )
     elif len(vars_not_found) > 0:
-        warnings.warn(
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
             "The following requested variables were not found " +
             ten_plus_message +
             ": " +
-            ", ".join(vars_not_found)
+            ", ".join(vars_not_found),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
             )
     
     # 9. Sort columns ####

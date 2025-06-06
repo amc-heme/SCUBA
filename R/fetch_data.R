@@ -588,11 +588,47 @@ fetch_data.AnnDataR6 <-
     
     py_objs <- reticulate::py_run_file(python_path)
     
-    # Runs python fetch_anndata function and returns the resulting data.frame
+    # Runs python fetch_anndata function
+    # fetch_anndata has multiple outputs, which are stored in a list
     py_objs$fetch_anndata(
       obj = object,
       fetch_vars = vars,
       cells = cells,
       layer = layer
-      )
-    }
+    )
+      
+    
+    # First return value: data
+    # data <- fetch_anndata_output[[1]]
+    # # Second value: variables not found
+    # vars_not_found <- fetch_anndata_output[[2]]
+    # 
+    # # Display R warnings or errors for variables not found
+    # # (using R for these warnings simplifies both UX and 
+    # # testthat script execution)
+    # ten_plus_message <-
+    #   if (length(x = vars_not_found) > 10) {
+    #     paste0(' (10 out of ', length(x = vars_not_found), ' shown)')
+    #   } else {
+    #     ''
+    #   }
+    # 
+    # if (length(x = vars_not_found) == length(x = vars)) {
+    #   stop(
+    #     "None of the requested variables were found",
+    #     ten_plus_message,
+    #     ': ',
+    #     paste(head(x = vars_not_found, n = 10L), collapse = ', ')
+    #   )
+    # } else if (length(x = vars_not_found) > 0) {
+    #   warning(
+    #     "The following requested variables were not found",
+    #     ten_plus_message,
+    #     ': ',
+    #     paste(head(x = vars_not_found, n = 10L), collapse = ', ')
+    #     )
+    # }
+    # 
+    # # Return data
+    # data
+  }
