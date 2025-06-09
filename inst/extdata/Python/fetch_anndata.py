@@ -136,18 +136,47 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         if (len(keyless_vars) > 0):
             
             ### 2.2.1. Pull expression matrix for the current key location ####
+            # Also, subset keyless vars for those that are in the matrix. It 
+            # is possible to enter inputs starting with a modality key that are 
+            # not in the matrix, which will cause uninformative error messages
             if key == "X":
                 # The X matrix alone supports "layer" (via layers)
                 if layer == None:
                     matrix = obj.X
                 else:
                     matrix = obj.layers[layer]
+                    
+                # Subset for vars in matrix
+                keyless_vars = [var for var in keyless_vars if var in obj.var_names]
             elif key == "obs":
                 # Metadata (obs)
                 matrix = obj.obs
+                
+                # Subset for vars in matrix
+                
             elif key in obj.obsm_keys():
                 # For a key in the list of obsm keys, pull matrix for that entry
                 matrix = obj.obsm[key]
+                
+                # Subset for vars in matrix (depending on matrix types)
+                if (isinstance(matrix, pd.DataFrame)):
+                    # Pandas dataframes: use .columns method to pull valid 
+                    # entries
+                    keyless_vars = [var for var in keyless_vars if var in matrix.columns]
+                elif (
+                    isinstance(matrix, np.ndarray) |
+                    isinstance(matrix, csr_matrix) | 
+                    isinstance(matrix, csc_matrix) |
+                    isinstance(matrix, CSCDataset)
+                ):
+                    # For numpy arrays (most likely, used for reductions), 
+                    # and sparse matrices (less likely but possible)
+                    # No column names, valid entries are based on index 
+                    # Valid vars are the index values as strings, using a 
+                    # 1-based index (for consistency with R SCUBA methods)
+                    valid_idx = [str(x) for x in range(1, matrix.shape[1] + 1)] 
+                    
+                    keyless_vars = [var for var in keyless_vars if var in valid_idx]
                     
             ### 2.2.2. Pull data for cells, keyless vars from matrix ####
             # Type checking via isinstance is used here due to the variety of
@@ -284,7 +313,7 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     [data_return, data],
                     axis = 1
                     )
-            
+                    
     # When finished with iteration, return the dataframe
     return data_return
 

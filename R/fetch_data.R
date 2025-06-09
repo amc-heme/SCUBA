@@ -290,6 +290,15 @@ fetch_data.SingleCellExperiment <-
             # pull data from
             dims <- as.integer(keyless_vars)
             
+            # Nonsensical dim inputs
+            # It is possible to enter a dim that does not exist in the reduction
+            # matrix, for example via a typo. These will cause an error 
+            # To avoid this, dims not within the bounds of the matrix 
+            # are filtered out
+            # Upper bound defined using the second element of dims (number of
+            # columns)
+            dims <- dims[dims >= 1 & dims <= dim(matrix)[2]]
+            
             data <-
               reducedDims(object)[[key]][cells, dims]
           }

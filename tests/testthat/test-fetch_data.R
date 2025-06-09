@@ -185,13 +185,18 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
       AML_Seurat,
       vars = 
         c(# Legitamate features
-          "ab_CD11c-AB",
+          "ab_CD110-AB",
           "rna_GAPDH",
           "rna_MEIS1",
+          "UMAP_1",
           # Nonsensical input
           "nonsense",
           # Feature with genes key, but that doesn't exist
-          "rna_MESS1"
+          "rna_MESS1",
+          # Misspelled feature from AB modality
+          "ab_CD1110-AB",
+          # Reduction from nonsensical index (due to a typo)
+          "UMAP_11"
         )
     )
   )
@@ -202,13 +207,18 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
       AML_SCE(),
       vars = 
         c(# Legitamate features
-          "AB_CD11c-AB",
+          "AB_CD110-AB",
           "RNA_GAPDH",
           "RNA_MEIS1",
+          "UMAP_1",
           # Nonsensical input
           "nonsense",
           # Feature with genes key, but that doesn't exist
-          "RNA_MESS1"
+          "RNA_MESS1",
+          # Misspelled feature from AB modality
+          "AB_CD1110-AB",
+          # Reduction from nonsensical index (due to a typo)
+          "UMAP_11"
         )
     )
   )
@@ -218,14 +228,19 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
     fetch_data(
       AML_h5ad(),
       vars = 
-        c(# Legitamate features
-          "protein_CD11c-AB",
+        c(# Legitimate vars
+          "protein_CD110-AB",
           "X_GAPDH",
           "X_MEIS1",
+          "X_umap_1",
           # Nonsensical input
           "nonsense",
           # Feature with genes key, but that doesn't exist
-          "X_MESS1"
+          "X_MESS1",
+          # Misspelled feature from AB modality
+          "protein_CD1110-AB",
+          # Reduction from nonsensical index (due to a typo)
+          "X_umap_11"
         )
     )
   )
@@ -235,14 +250,19 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
     fetch_data(
       AML_h5ad_backed(),
       vars = 
-        c(# Legitamate features
-          "protein_CD11c-AB",
+        c(# Legitimate features
+          "protein_CD110-AB",
           "X_GAPDH",
           "X_MEIS1",
+          "X_umap_1",
           # Nonsensical input
           "nonsense",
           # Feature with genes key, but that doesn't exist
-          "X_MESS1"
+          "X_MESS1",
+          # Misspelled feature from AB modality
+          "protein_CD1110-AB",
+          # Reduction from nonsensical index (due to a typo)
+          "X_umap_11"
         )
     )
   )
