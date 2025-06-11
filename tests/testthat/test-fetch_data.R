@@ -312,6 +312,23 @@ test_that(
       ignore_attr = TRUE
     )
     
+    ## 1.c. Duplicate features caused by entering a key with one but not the
+    # other are caught
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_Seurat,
+        vars = c("rna_GAPDH", "GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_Seurat,
+        vars = c("rna_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
     # 2. SingleCellExperiment
     ## 2.a. Warning with duplicate features
     # expect_warning(
@@ -327,6 +344,23 @@ test_that(
       fetch_data(
         AML_SCE(),
         vars = c("RNA_GAPDH", "RNA_GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
+    ## 2.c. Duplicate features caused by entering a key with one but not the
+    # other are caught
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_SCE(),
+        vars = c("RNA_GAPDH", "GAPDH")
       ),
       # Is the same as...
       fetch_data(
@@ -362,6 +396,23 @@ test_that(
       ignore_attr = TRUE
     )
     
+    ## 3.c. Duplicate features caused by entering a key with one but not the
+    # other are caught
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_h5ad(),
+        vars = c("X_GAPDH", "GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_h5ad(),
+        vars = c("X_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
     
     # 4. anndata (disk backed)
     ## 4.a. Warning with duplicate features
@@ -378,6 +429,23 @@ test_that(
       fetch_data(
         AML_h5ad_backed(),
         vars = c("X_GAPDH", "X_GAPDH")
+      ),
+      # Is the same as...
+      fetch_data(
+        AML_h5ad_backed(),
+        vars = c("X_GAPDH")
+      ),
+      tolerance = 1e-6,
+      ignore_attr = TRUE
+    )
+    
+    ## 4.c. Duplicate features caused by entering a key with one but not the
+    # other are caught
+    expect_equal(
+      # Test that...
+      fetch_data(
+        AML_h5ad_backed(),
+        vars = c("X_GAPDH", "GAPDH")
       ),
       # Is the same as...
       fetch_data(
