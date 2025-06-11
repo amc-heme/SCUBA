@@ -589,6 +589,11 @@ fetch_data.AnnDataR6 <-
       )
     }
     
+    py_require("anndata>=0.11.4")
+    py_require("pandas>=2.0.0")
+    py_require("numpy")
+    py_require("scipy>=1.14.0")
+    
     # Check vars input
     # If more than 1000 features are requested, warn the user of potential 
     # performance issues
