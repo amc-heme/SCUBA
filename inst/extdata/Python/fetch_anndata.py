@@ -566,7 +566,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     
     ## 6.1. Add keys (for remaining vars where a key was identified) ####
     # Identify vars to add key to (vars with exactly one location identified)
-    vars_add_key = {key:value 
+    ambiguous_vars_in_one_location = {key:value 
         for (key, value) in remaining_locations.items() 
         if len(value) == 1
         }
@@ -574,7 +574,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     # Create dictionary mapping the vars above to their keyed equivalents
     # Add key with underscore to var name 
     map_keyed_vars = {key:value[0] + "_" + key 
-        for (key, value) in vars_add_key.items()}
+        for (key, value) in ambiguous_vars_in_one_location.items()}
     
     new_keyed_vars = list(map_keyed_vars.values())
 
@@ -661,7 +661,22 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         if var not in new_keyed_vars_found
         ]
     
-    # 8. Warnings/errors for variables not found ####
+    # 8. Warn for ambigous entries with one match in obs or obsm matrices
+    for ambig_var, key in ambiguous_vars_in_one_location.items():
+        if ambig_var not in vars_not_found:
+            r.warning(
+                (ambig_var +
+                " was passed to fetch_data without specifying the key of the " +
+                "matrix to pull the feature from, and it is not present in " +
+                "X. The feature was found in " +
+                "'obsm."+ "".join(key) + "'"+ 
+                " and successfully returned. Future returns without a key will " +
+                "fail if features are present in multiple obsm matrices."),
+                # Remove call context (not useful, see comment above)
+                **{'call.': False}
+                )
+            
+    # 9. Warnings/errors for variables not found ####
     # ten_plus_message: added to message if there are more than 10 
     # missing variables
     if (len(vars_not_found) > 10):
@@ -689,7 +704,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             **{'call.': False}
             )
     
-    # 9. Sort columns ####
+    # 10. Sort columns ####
     # Order of columns in data should reflect the order entered, not the 
     # order fetched
     # Columns in dataframe use keys for all vars, including those entered 
@@ -705,7 +720,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     # Pass list to fetched_data to order columns accordingly
     fetched_data = fetched_data[var_order]
 
-    # 10. Remove keys from obs variables, X variables entered without a key
+    # 11. Remove keys from obs variables, X variables entered without a key
     # This is done for consistency with Seurat FetchData
     fetched_data = remove_key(
         data = fetched_data,

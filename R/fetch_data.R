@@ -297,7 +297,7 @@ fetch_data.SingleCellExperiment <-
             # are filtered out
             # Upper bound defined using the second element of dims (number of
             # columns)
-            dims <- dims[dims >= 1 & dims <= dim(matrix)[2]]
+            dims <- dims[dims >= 1 & dims <= dim(reducedDims(object)[[key]])[2]]
             
             data <-
               reducedDims(object)[[key]][cells, dims]
@@ -421,16 +421,23 @@ fetch_data.SingleCellExperiment <-
       
       if (length(vars_multi_exp) > 0){
         warning(
-          "The following features were found in more than one alternate experiment. These features will not be included in the data returned: ",
-          paste(vars_multi_exp, collapse = ', '),
-          ". \n",
-          "To include these features, please specify which experiment you would like to pull data from using the experiment name and an underscore (i.e. ",
-          # Display an example with the experiment key added (using an key that
-          # the example is certain to be in)
-          paste0(where_missing_vars[[vars_multi_exp[1]]][1], "_", vars_multi_exp[1]),
-          ").",
-          call. = FALSE,
-          immediate. = TRUE
+          paste0(
+            "The following features were found in more than one alternate ",
+            "experiment. These features will not be included in the data ",
+            "returned, since the query does not specify which experiment ",
+            "to pull the features from: ",
+            paste(vars_multi_exp, collapse = ', '),
+            ". \n",
+            "To include these features, please specify which experiment you ",
+            "would like to pull data from using the experiment name and an ",
+            "underscore (i.e. ",
+            # Display an example with the experiment key added (using an key that
+            # the example is certain to be in)
+            paste0(where_missing_vars[[vars_multi_exp[1]]][1], "_", vars_multi_exp[1]),
+            ").",
+            call. = FALSE,
+            immediate. = TRUE
+          )
         )
       }
       
@@ -468,14 +475,27 @@ fetch_data.SingleCellExperiment <-
             " does not exist in the indicated experiment (",
             mainExpName(alt_sce),
             ")"
-          )
-        }
+            )
+          }
         
         data <-
           assays(alt_sce)[[layer]][var, cells, drop = FALSE] |>
           # Only one var will be fetched at once in this case, so data can be added
           # as a vector to the list of fetched data
           as.vector()
+        
+        warning(
+          paste0(
+            var,
+            " was passed to fetch_data without specifying the key of the ",
+            "experiment to pull the feature from, and it is not present in ",
+            "the main experiment. The feature was found in ", 
+            sQuote(key), 
+            " and successfully returned."
+            ),
+          call. = FALSE,
+          immediate. = TRUE
+        )
         
         # Add experiment key to var
         keyed_var <- paste0(key, "_", var)

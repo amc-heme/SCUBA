@@ -2,7 +2,9 @@
 # The data below is used in two test_that statements, so is ran before
 # both statements
 seurat_data <-
-  # Warnings are expected here due to the ambiguous feature
+  # Warnings are expected here due to ambiguous feature inputs
+  # The warnings are not the subject of the tests based on this data, so they
+  # are suppressed
   suppressWarnings(
     fetch_data(
       AML_Seurat,
@@ -26,64 +28,71 @@ seurat_data <-
   )
 
 sce_data <-
-  fetch_data(
-    AML_SCE(),
-    layer = "logcounts",
-    vars =
-      c("AB_CD117-AB",
-        "AB_CD123-AB",
-        "AB_CD11c-AB",
-        "RNA_GAPDH",
-        "RNA_MEIS1",
-        # Reductions
-        "UMAP_1",
-        "UMAP_2",
-        # Metadata
-        "nCount_RNA",
-        "nFeature_RNA",
-        # "Ambiguous" feature not in RNA assay
-        "CD11a-AB"
-      )
+  # Warnings are expected here due to ambiguous feature inputs
+  suppressWarnings(
+    fetch_data(
+      AML_SCE(),
+      layer = "logcounts",
+      vars =
+        c("AB_CD117-AB",
+          "AB_CD123-AB",
+          "AB_CD11c-AB",
+          "RNA_GAPDH",
+          "RNA_MEIS1",
+          # Reductions
+          "UMAP_1",
+          "UMAP_2",
+          # Metadata
+          "nCount_RNA",
+          "nFeature_RNA",
+          # "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+        )
+    )
   )
 
 h5ad_data <-  
-  fetch_data(
-    AML_h5ad(),
-    vars =
-      c("protein_CD117-AB",
-        "protein_CD123-AB",
-        "protein_CD11c-AB",
-        "X_GAPDH",
-        "X_MEIS1",
-        # Reductions
-        "X_umap_1",
-        "X_umap_2",
-        # Metadata
-        "nCount_RNA",
-        "nFeature_RNA",
-        # "Ambiguous" feature not in RNA assay
-        "CD11a-AB"
-      )
+  suppressWarnings(
+    fetch_data(
+      AML_h5ad(),
+      vars =
+        c("protein_CD117-AB",
+          "protein_CD123-AB",
+          "protein_CD11c-AB",
+          "X_GAPDH",
+          "X_MEIS1",
+          # Reductions
+          "X_umap_1",
+          "X_umap_2",
+          # Metadata
+          "nCount_RNA",
+          "nFeature_RNA",
+          # "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+        )
+    )
   )
 
 h5ad_backed_data <-
-  fetch_data(
-    AML_h5ad_backed(),
-    vars =
-      c("protein_CD117-AB",
-        "protein_CD123-AB",
-        "protein_CD11c-AB",
-        "X_GAPDH",
-        "X_MEIS1",
-        # Reductions
-        "X_umap_1",
-        "X_umap_2",
-        # Metadata
-        "nCount_RNA",
-        "nFeature_RNA",
-        # "Ambiguous" feature not in RNA assay
-        "CD11a-AB"
-      )
+  suppressWarnings(
+    fetch_data(
+      AML_h5ad_backed(),
+      vars =
+        c("protein_CD117-AB",
+          "protein_CD123-AB",
+          "protein_CD11c-AB",
+          "X_GAPDH",
+          "X_MEIS1",
+          # Reductions
+          "X_umap_1",
+          "X_umap_2",
+          # Metadata
+          "nCount_RNA",
+          "nFeature_RNA",
+          # "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+        )
+    )
   )
 
 test_that("All fetch_data methods return the same data.", {
@@ -199,7 +208,12 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
           "UMAP_11"
         )
     )
-  )
+  ) |> 
+    # Four warnings will be returned in this case. Each one needs to be caught
+    # in an expect_warning statement for the test to succeed.
+    expect_warning() |> 
+    expect_warning() |> 
+    expect_warning()
   
   # SingleCellExperiment
   expect_warning(
@@ -336,13 +350,13 @@ test_that(
     expect_equal(
       # Test that...
       fetch_data(
-        AML_SCE(),
-        vars = c("RNA_GAPDH", "RNA_GAPDH")
+        AML_h5ad(),
+        vars = c("X_GAPDH", "X_GAPDH")
       ),
       # Is the same as...
       fetch_data(
-        AML_SCE(),
-        vars = c("RNA_GAPDH")
+        AML_h5ad(),
+        vars = c("X_GAPDH")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
@@ -353,7 +367,7 @@ test_that(
     ## 4.a. Warning with duplicate features
     expect_warning(
       fetch_data(
-        AML_h5ad(),
+        AML_h5ad_backed(),
         vars = c("X_GAPDH", "X_GAPDH")
       )
     )
@@ -362,13 +376,13 @@ test_that(
     expect_equal(
       # Test that...
       fetch_data(
-        AML_SCE(),
-        vars = c("RNA_GAPDH", "RNA_GAPDH")
+        AML_h5ad_backed(),
+        vars = c("X_GAPDH", "X_GAPDH")
       ),
       # Is the same as...
       fetch_data(
-        AML_SCE(),
-        vars = c("RNA_GAPDH")
+        AML_h5ad_backed(),
+        vars = c("X_GAPDH")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
