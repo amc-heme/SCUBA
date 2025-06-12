@@ -618,7 +618,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         
         # Warn in R (better user experience, and can be detected by testthat)
         r.warning(
-            ("The following variables entered describe the same variable: " +
+            ("The following entries describe the same variable: " +
             duplicate_description + 
             ". Only the copy of the variable with the key entered will be " +
             "returned (" +
@@ -633,6 +633,13 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             for var in new_keyed_vars 
             if var not in duplicate_vars.values()]
             
+        # Also remove duplicate vars from the list of X_vars 
+        # (X_vars is used to remove the modality key from features in X entered
+        # without a modality key. If this is not done, an entry of "X_GAPDH" 
+        # and "GAPDH" will result in a return of the column name "GAPDH" 
+        # instead of "X_GAPDH").
+        X_vars = [var for var in X_vars if var not in duplicate_vars.keys()]
+        
         # Also remove duplicates from fetch_vars (this variable is used later on 
         # to sort the final dataframe, and duplicate entries in fetch_vars will
         # cause duplication in the dataframe).
