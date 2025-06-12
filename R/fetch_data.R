@@ -145,7 +145,8 @@ fetch_data.SingleCellExperiment <-
     cells = NULL,
     ...
   ){
-    # Check vars input
+    # 1. Check vars input ####
+    # 1.1. Very large queries in vars ####
     # If more than 1000 features are requested, warn the user of potential 
     # performance issues
     if (length(vars) >= 1000){
@@ -158,8 +159,25 @@ fetch_data.SingleCellExperiment <-
           "the memory usage of the output may be very large. Also, this ",
           "query may take a while to complete."
           ),
+        call. = FALSE,
         immediate. = TRUE
       )
+    }
+    
+    ## 1.2. Duplicate feature entries ####
+    # Remove duplicates and warn the user that duplicates were entered
+    if (any(duplicated(vars))){
+      warning(
+        paste0(
+          "The following entries to `vars` are duplicates: '",
+          paste(vars[duplicated(vars)], collapse = "', '"), 
+          "'. Only one entry for each duplicated var will be returned."
+          ),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      
+      vars <- vars[!duplicated(vars)]
     }
     
     # 1. Set default values
@@ -347,6 +365,37 @@ fetch_data.SingleCellExperiment <-
     remaining_vars <- vars[!vars %in% names(fetched_data)]
     main_exp_vars <- remaining_vars[remaining_vars %in% rownames(object)]
     
+    # Catch duplicate entries: it is possible to enter the same feature, 
+    # with a key in one case and without a key in another case
+    # for example, GAPDH and RNA_GAPDH. Only one feature should be returned in 
+    # this case. 
+    # To test, add the key of the main experiment to the variables to test 
+    # if these variables were already fetched above
+    keyed_main_exp_vars <- paste0(mainExpName(object), "_", main_exp_vars)
+    # Construct relationship of keyed vars to the vars as entered for error
+    # message reporting
+    names(keyed_main_exp_vars) <- main_exp_vars
+    
+    duplicate_main_exp_vars <- 
+      keyed_main_exp_vars[keyed_main_exp_vars %in% names(fetched_data)]
+    
+    if (length(duplicate_main_exp_vars) > 0){
+      warning(
+        paste0(
+          "The entries to `vars` '", 
+          paste(names(duplicate_main_exp_vars), collapse = "', '"),
+          "' are the same as the entries '", 
+          paste(duplicate_main_exp_vars, collapse = "', '"), 
+          "'. Only one entry for each of these variables will be returned."
+          ),
+        call. = FALSE, 
+        immediate. = TRUE
+        )
+      
+      main_exp_vars <- 
+        main_exp_vars[!main_exp_vars %in% names(duplicate_main_exp_vars)]
+    }
+    
     if (!layer %in% names(assays(object))){
       stop(
         "Error for vars",
@@ -382,6 +431,11 @@ fetch_data.SingleCellExperiment <-
     
     # 6. Handle variables that have not yet been fetched
     missing_vars <- vars[!vars %in% names(fetched_data)]
+    # If there were any entries found to be duplicated in 5, remove them from
+    # the list of missing vars
+    missing_vars <- 
+      missing_vars[!missing_vars %in% names(duplicate_main_exp_vars)]
+    
     
     if (length(missing_vars) > 0){
       # 6.1. Create a list to store the experiment(s) each missing feature is in
@@ -589,6 +643,9 @@ fetch_data.AnnDataR6 <-
       )
     }
     
+    # Establish Python package dependencies
+    # Reticulate will automatically manage a Python environment with these 
+    # packages, installing each if they are not already present
     py_require("anndata>=0.11.4")
     py_require("pandas>=2.0.0")
     py_require("numpy")

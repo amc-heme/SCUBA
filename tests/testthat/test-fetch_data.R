@@ -140,7 +140,9 @@ test_that("Disk-backed outputs match in-memory outputs", {
     )
 })
 
-test_that("fetch_data returns a warning, but no errors, for ambiguous feature inputs", {
+test_that(
+  "fetch_data returns a warning, but no errors, for ambiguous feature inputs not in the main modality", 
+  {
   # Seurat
   expect_warning(
     fetch_data(
@@ -185,6 +187,30 @@ test_that("fetch_data returns a warning, but no errors, for ambiguous feature in
     )
   )
 })
+
+test_that(
+  paste0(
+    "fetch_data does not warn for ambiguously entered features that are ",
+    "in the main modality or are metadata."
+    ),
+  {
+    # No warning for an ambiguous feature in the genes assay
+    expect_no_warning(
+      fetch_data(AML_Seurat, vars = c("GAPDH", "nCount_RNA"))
+      )
+    
+    expect_no_warning(
+      fetch_data(AML_SCE(), vars = c("GAPDH", "nCount_RNA"))
+      )
+    
+    expect_no_warning(
+      fetch_data(AML_h5ad(), vars = c("GAPDH", "nCount_RNA"))
+      )
+    
+    expect_no_warning(
+      fetch_data(AML_h5ad_backed(), vars = c("GAPDH", "nCount_RNA"))
+      )
+  })
 
 test_that("fetch_data returns a warning, but no errors, for mixed feature inputs", {
   # Inputs below are present features mixed with features not present
@@ -301,12 +327,12 @@ test_that(
       # Test that...
       fetch_data(
         AML_Seurat,
-        vars = c("rna_GAPDH", "rna_GAPDH")
+        vars = c("rna_GAPDH", "rna_GAPDH", "rna_MEIS1", "rna_MEIS1")
         ),
       # Is the same as...
       fetch_data(
         AML_Seurat,
-        vars = c("rna_GAPDH")
+        vars = c("rna_GAPDH", "rna_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
@@ -331,166 +357,151 @@ test_that(
     # )
     
     # 2. SingleCellExperiment
-    ## 2.a. Warning with duplicate features
-    # expect_warning(
-    #   fetch_data(
-    #     AML_SCE(),
-    #     vars = c("RNA_GAPDH", "RNA_GAPDH")
-    #     )
-    # )
-    
-    ## 2.b. Proper return of duplicate features
+    ## 2.a. Proper return of duplicate features, but with a warning
     expect_equal(
       # Test that...
       fetch_data(
         AML_SCE(),
-        vars = c("RNA_GAPDH", "RNA_GAPDH")
+        vars = c("RNA_GAPDH", "RNA_GAPDH", "RNA_MEIS1", "RNA_MEIS1")
       ),
       # Is the same as...
       fetch_data(
         AML_SCE(),
-        vars = c("RNA_GAPDH")
+        vars = c("RNA_GAPDH", "RNA_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
-    ## 2.c. Duplicate features caused by entering a key with one but not the
+    ## 2.b. Duplicate features caused by entering a key with one but not the
     # other are caught
     expect_equal(
       # Test that...
       fetch_data(
         AML_SCE(),
-        vars = c("RNA_GAPDH", "GAPDH")
+        vars = c("RNA_GAPDH", "GAPDH", "RNA_MEIS1", "MEIS1")
       ),
       # Is the same as...
       fetch_data(
         AML_SCE(),
-        vars = c("RNA_GAPDH")
+        vars = c("RNA_GAPDH", "RNA_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
-    ## 2.d. Column names of return in 2.c. should be equal to the feature
+    ## 2.c. Column names of return in 2.c. should be equal to the feature
     # specified with the key
     expect_equal(
       fetch_data(
         AML_SCE(),
-        vars = c("RNA_GAPDH", "GAPDH")
+        vars = c("RNA_GAPDH", "GAPDH", "RNA_MEIS1", "MEIS1")
       ) |> colnames(),
       # Is the same as...
-      "RNA_GAPDH",
+      c("RNA_GAPDH", "RNA_MEIS1"),
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
     # 3. anndata 
-    ## 3.a. Warning with duplicate features
-    expect_warning(
-      fetch_data(
-        AML_h5ad(),
-        vars = c("X_GAPDH", "X_GAPDH")
-        )
-    )
-    
-    ## 3.b. Proper return of duplicate features
+    ## 3.a. Proper return of duplicate features, but with a warning
     expect_equal(
       # Test that...
       fetch_data(
         AML_h5ad(),
-        vars = c("X_GAPDH", "X_GAPDH")
+        vars = c("X_GAPDH", "X_GAPDH", "X_MEIS1", "X_MEIS1")
       ),
       # Is the same as...
       fetch_data(
         AML_h5ad(),
-        vars = c("X_GAPDH")
+        vars = c("X_GAPDH", "X_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
-    ## 3.c. Duplicate features caused by entering a key with one but not the
+    ## 3.b. Duplicate features caused by entering a key with one but not the
     # other are caught
     expect_equal(
       # Test that...
       fetch_data(
         AML_h5ad(),
-        vars = c("X_GAPDH", "GAPDH")
+        vars = c("X_GAPDH", "GAPDH", "X_MEIS1", "MEIS1")
       ),
       # Is the same as...
       fetch_data(
         AML_h5ad(),
-        vars = c("X_GAPDH")
+        vars = c("X_GAPDH", "X_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
-    ## 3.d. Column names of return in 3.c. should be equal to the feature
+    ## 3.c. Column names of return in 3.c. should be equal to the feature
     # specified with the key
     expect_equal(
       fetch_data(
         AML_h5ad(),
-        vars = c("X_GAPDH", "GAPDH")
+        vars = c("X_GAPDH", "GAPDH", "X_MEIS1", "MEIS1")
       ) |> colnames(),
       # Is the same as...
-      "X_GAPDH",
+      c("X_GAPDH", "X_MEIS1"),
       ignore_attr = TRUE
-      )
+      ) |> 
+      expect_warning()
     
     # 4. anndata (disk backed)
-    ## 4.a. Warning with duplicate features
-    expect_warning(
-      fetch_data(
-        AML_h5ad_backed(),
-        vars = c("X_GAPDH", "X_GAPDH")
-      )
-    )
-    
-    ## 4.b. Proper return of duplicate features
+    ## 4.a. Proper return of duplicate features, but with a warning
     expect_equal(
       # Test that...
       fetch_data(
         AML_h5ad_backed(),
-        vars = c("X_GAPDH", "X_GAPDH")
+        vars = c("X_GAPDH", "X_GAPDH", "X_MEIS1", "X_MEIS1")
       ),
       # Is the same as...
       fetch_data(
         AML_h5ad_backed(),
-        vars = c("X_GAPDH")
+        vars = c("X_GAPDH", "X_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
-    ## 4.c. Duplicate features caused by entering a key with one but not the
+    ## 4.b. Duplicate features caused by entering a key with one but not the
     # other are caught
     expect_equal(
       # Test that...
       fetch_data(
         AML_h5ad_backed(),
-        vars = c("X_GAPDH", "GAPDH")
+        vars = c("X_GAPDH", "GAPDH", "X_MEIS1", "MEIS1")
       ),
       # Is the same as...
       fetch_data(
         AML_h5ad_backed(),
-        vars = c("X_GAPDH")
+        vars = c("X_GAPDH", "X_MEIS1")
       ),
       tolerance = 1e-6,
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
     
-    ## 4.d. Column names of return in 4.c. should be equal to the feature
+    ## 4.c. Column names of return in 4.c. should be equal to the feature
     # specified with the key
     expect_equal(
       fetch_data(
         AML_h5ad_backed(),
-        vars = c("X_GAPDH", "GAPDH")
+        vars = c("X_GAPDH", "GAPDH", "X_MEIS1", "MEIS1")
       ) |> colnames(),
       # Is the same as...
-      "X_GAPDH",
+      c("X_GAPDH", "X_MEIS1"),
       ignore_attr = TRUE
-    )
+      ) |> 
+      expect_warning()
   })
 
 test_that("fetch_data returns an error when a nonsensical feature is entered", {

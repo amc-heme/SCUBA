@@ -576,6 +576,14 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     map_keyed_vars = {key:value[0] + "_" + key 
         for (key, value) in ambiguous_vars_in_one_location.items()}
     
+    # Identify ambiguous obsm vars (these will result in a warning while 
+    # ambiguous vars in X or obs will not)
+    ambiguous_obsm_vars = {key:value 
+        for (key, value) in ambiguous_vars_in_one_location.items() 
+        # if value (checks that value exists, though it always should)
+        if value and value[0] not in {"X", "obs"}
+        }
+    
     new_keyed_vars = list(map_keyed_vars.values())
 
     ## 6.2. Catch duplicate vars ####
@@ -661,8 +669,8 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         if var not in new_keyed_vars_found
         ]
     
-    # 8. Warn for ambigous entries with one match in obs or obsm matrices
-    for ambig_var, key in ambiguous_vars_in_one_location.items():
+    # 8. Warn for ambiguous entries with one match in obsm matrices
+    for ambig_var, key in ambiguous_obsm_vars.items():
         if ambig_var not in vars_not_found:
             r.warning(
                 (ambig_var +
