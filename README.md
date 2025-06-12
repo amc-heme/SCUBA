@@ -50,6 +50,12 @@ BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 
 ## Additional Installation for anndata Objects
 
+### Note
+
+As of SCUBA version 1.2.0, Python package management is now handled automatically by SCUBA. The steps in this section are no longer necessary. Simply call library(SCUBA) and load your anndata object in R, and SCUBA will be ready to use!
+
+---
+
 To use SCUBA with anndata objects, you will need a Python installation and the reticulate R package. If you are using anndata objects, follow the steps below. **If you are only using Seurat of SingleCellExperiment objects, you do not need to complete these steps.**
 
 First, install the [reticulate](https://rstudio.github.io/reticulate/) package in R.
@@ -66,6 +72,12 @@ Next, you will need to set up a version of Python with the necessary packages in
 - [pandas](https://pandas.pydata.org/)
 
 ### Setting up a Python Environment via Anaconda
+
+#### Note
+
+As of SCUBA version 1.2.0, Python package management is now handled automatically by SCUBA. The steps in this section are no longer necessary. Simply call library(SCUBA) and load your anndata object in R, and SCUBA will be ready to use!
+
+---
 
 To set up an Anaconda environment with the requisite packages for SCUBA, follow the steps below:
 

@@ -2,18 +2,28 @@
 % Please edit documentation in R/data.R
 \name{AML_h5ad}
 \alias{AML_h5ad}
+\alias{AML_h5ad_backed}
 \title{Reference dataset used for testing and demonstration (anndata)}
 \source{
 The dataset was obtained from the \href{https://figshare.com/articles/dataset/Expression_of_197_surface_markers_and_462_mRNAs_in_15281_cells_from_blood_and_bone_marrow_from_a_young_healthy_donor/13398065/2}{Figshare}. For more information on the operations performed on the original object, see the \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{SCUBA manuscript repository}.
 }
 \usage{
 AML_h5ad()
+
+AML_h5ad_backed()
 }
 \description{
 A reference dataset for accute myeloid leukemia was included in this package for demonstration and testing. The data was originally published in \href{https://doi.org/10.1038/s41590-021-01059-0}{Triana et al. 2021}. The SCUBA authors downsampled the original Seurat object to use in the package for automated testing, and converted it into other object formats. The cell types provided by Triana et al. were also condensed into 10 generalized cell types to facilitate demonstration of SCUBA visualization capabilities. Details on the operations performed from the original object are provided in \href{https://github.com/amc-heme/SCUBA_Manuscript/blob/main/Demo_Object_Generation.Rmd}{this script} in the SCUBA manuscript repository.
 }
 \details{
-\code{AML_h5ad()} is called as a function, with parentheses. This is because the dataset is in Python, and can't be loaded using the typical process of loading data included with R packages.
+\itemize{
+\item \code{AML_h5ad()}: Loads the reference dataset in-memory.
+\item \code{AML_h5ad_backed()}: Loads the reference dataset on-disk (via \code{backed=r} in \code{anndata::read_h5ad}).
+}
+
+\code{AML_h5ad()} and \code{AML_h5ad_backed()} are called as functions, with parentheses.
+This is because the dataset is in Python, and can't be loaded using the
+typical process of loading data included with R packages.
 }
 \examples{
 # These examples require a functional Python installation with prerequisite

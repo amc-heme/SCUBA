@@ -145,7 +145,8 @@ fetch_data.SingleCellExperiment <-
     cells = NULL,
     ...
   ){
-    # Check vars input
+    # 1. Check vars input ####
+    # 1.1. Very large queries in vars ####
     # If more than 1000 features are requested, warn the user of potential 
     # performance issues
     if (length(vars) >= 1000){
@@ -158,8 +159,25 @@ fetch_data.SingleCellExperiment <-
           "the memory usage of the output may be very large. Also, this ",
           "query may take a while to complete."
           ),
+        call. = FALSE,
         immediate. = TRUE
       )
+    }
+    
+    ## 1.2. Duplicate feature entries ####
+    # Remove duplicates and warn the user that duplicates were entered
+    if (any(duplicated(vars))){
+      warning(
+        paste0(
+          "The following entries to `vars` are duplicates: '",
+          paste(vars[duplicated(vars)], collapse = "', '"), 
+          "'. Only one entry for each duplicated var will be returned."
+          ),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      
+      vars <- vars[!duplicated(vars)]
     }
     
     # 1. Set default values
@@ -290,6 +308,15 @@ fetch_data.SingleCellExperiment <-
             # pull data from
             dims <- as.integer(keyless_vars)
             
+            # Nonsensical dim inputs
+            # It is possible to enter a dim that does not exist in the reduction
+            # matrix, for example via a typo. These will cause an error 
+            # To avoid this, dims not within the bounds of the matrix 
+            # are filtered out
+            # Upper bound defined using the second element of dims (number of
+            # columns)
+            dims <- dims[dims >= 1 & dims <= dim(reducedDims(object)[[key]])[2]]
+            
             data <-
               reducedDims(object)[[key]][cells, dims]
           }
@@ -338,6 +365,37 @@ fetch_data.SingleCellExperiment <-
     remaining_vars <- vars[!vars %in% names(fetched_data)]
     main_exp_vars <- remaining_vars[remaining_vars %in% rownames(object)]
     
+    # Catch duplicate entries: it is possible to enter the same feature, 
+    # with a key in one case and without a key in another case
+    # for example, GAPDH and RNA_GAPDH. Only one feature should be returned in 
+    # this case. 
+    # To test, add the key of the main experiment to the variables to test 
+    # if these variables were already fetched above
+    keyed_main_exp_vars <- paste0(mainExpName(object), "_", main_exp_vars)
+    # Construct relationship of keyed vars to the vars as entered for error
+    # message reporting
+    names(keyed_main_exp_vars) <- main_exp_vars
+    
+    duplicate_main_exp_vars <- 
+      keyed_main_exp_vars[keyed_main_exp_vars %in% names(fetched_data)]
+    
+    if (length(duplicate_main_exp_vars) > 0){
+      warning(
+        paste0(
+          "The entries to `vars` '", 
+          paste(names(duplicate_main_exp_vars), collapse = "', '"),
+          "' are the same as the entries '", 
+          paste(duplicate_main_exp_vars, collapse = "', '"), 
+          "'. Only one entry for each of these variables will be returned."
+          ),
+        call. = FALSE, 
+        immediate. = TRUE
+        )
+      
+      main_exp_vars <- 
+        main_exp_vars[!main_exp_vars %in% names(duplicate_main_exp_vars)]
+    }
+    
     if (!layer %in% names(assays(object))){
       stop(
         "Error for vars",
@@ -373,6 +431,11 @@ fetch_data.SingleCellExperiment <-
     
     # 6. Handle variables that have not yet been fetched
     missing_vars <- vars[!vars %in% names(fetched_data)]
+    # If there were any entries found to be duplicated in 5, remove them from
+    # the list of missing vars
+    missing_vars <- 
+      missing_vars[!missing_vars %in% names(duplicate_main_exp_vars)]
+    
     
     if (length(missing_vars) > 0){
       # 6.1. Create a list to store the experiment(s) each missing feature is in
@@ -412,16 +475,23 @@ fetch_data.SingleCellExperiment <-
       
       if (length(vars_multi_exp) > 0){
         warning(
-          "The following features were found in more than one alternate experiment. These features will not be included in the data returned: ",
-          paste(vars_multi_exp, collapse = ', '),
-          ". \n",
-          "To include these features, please specify which experiment you would like to pull data from using the experiment name and an underscore (i.e. ",
-          # Display an example with the experiment key added (using an key that
-          # the example is certain to be in)
-          paste0(where_missing_vars[[vars_multi_exp[1]]][1], "_", vars_multi_exp[1]),
-          ").",
-          call. = FALSE,
-          immediate. = TRUE
+          paste0(
+            "The following features were found in more than one alternate ",
+            "experiment. These features will not be included in the data ",
+            "returned, since the query does not specify which experiment ",
+            "to pull the features from: ",
+            paste(vars_multi_exp, collapse = ', '),
+            ". \n",
+            "To include these features, please specify which experiment you ",
+            "would like to pull data from using the experiment name and an ",
+            "underscore (i.e. ",
+            # Display an example with the experiment key added (using an key that
+            # the example is certain to be in)
+            paste0(where_missing_vars[[vars_multi_exp[1]]][1], "_", vars_multi_exp[1]),
+            ").",
+            call. = FALSE,
+            immediate. = TRUE
+          )
         )
       }
       
@@ -459,14 +529,27 @@ fetch_data.SingleCellExperiment <-
             " does not exist in the indicated experiment (",
             mainExpName(alt_sce),
             ")"
-          )
-        }
+            )
+          }
         
         data <-
           assays(alt_sce)[[layer]][var, cells, drop = FALSE] |>
           # Only one var will be fetched at once in this case, so data can be added
           # as a vector to the list of fetched data
           as.vector()
+        
+        warning(
+          paste0(
+            var,
+            " was passed to fetch_data without specifying the key of the ",
+            "experiment to pull the feature from, and it is not present in ",
+            "the main experiment. The feature was found in ", 
+            sQuote(key), 
+            " and successfully returned."
+            ),
+          call. = FALSE,
+          immediate. = TRUE
+        )
         
         # Add experiment key to var
         keyed_var <- paste0(key, "_", var)
@@ -560,6 +643,14 @@ fetch_data.AnnDataR6 <-
       )
     }
     
+    # Establish Python package dependencies
+    # Reticulate will automatically manage a Python environment with these 
+    # packages, installing each if they are not already present
+    py_require("anndata>=0.11.4")
+    py_require("pandas>=2.0.0")
+    py_require("numpy")
+    py_require("scipy>=1.14.0")
+    
     # Check vars input
     # If more than 1000 features are requested, warn the user of potential 
     # performance issues
@@ -588,11 +679,47 @@ fetch_data.AnnDataR6 <-
     
     py_objs <- reticulate::py_run_file(python_path)
     
-    # Runs python fetch_anndata function and returns the resulting data.frame
+    # Runs python fetch_anndata function
+    # fetch_anndata has multiple outputs, which are stored in a list
     py_objs$fetch_anndata(
       obj = object,
       fetch_vars = vars,
       cells = cells,
       layer = layer
-      )
-    }
+    )
+      
+    
+    # First return value: data
+    # data <- fetch_anndata_output[[1]]
+    # # Second value: variables not found
+    # vars_not_found <- fetch_anndata_output[[2]]
+    # 
+    # # Display R warnings or errors for variables not found
+    # # (using R for these warnings simplifies both UX and 
+    # # testthat script execution)
+    # ten_plus_message <-
+    #   if (length(x = vars_not_found) > 10) {
+    #     paste0(' (10 out of ', length(x = vars_not_found), ' shown)')
+    #   } else {
+    #     ''
+    #   }
+    # 
+    # if (length(x = vars_not_found) == length(x = vars)) {
+    #   stop(
+    #     "None of the requested variables were found",
+    #     ten_plus_message,
+    #     ': ',
+    #     paste(head(x = vars_not_found, n = 10L), collapse = ', ')
+    #   )
+    # } else if (length(x = vars_not_found) > 0) {
+    #   warning(
+    #     "The following requested variables were not found",
+    #     ten_plus_message,
+    #     ': ',
+    #     paste(head(x = vars_not_found, n = 10L), collapse = ', ')
+    #     )
+    # }
+    # 
+    # # Return data
+    # data
+  }
