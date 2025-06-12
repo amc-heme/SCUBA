@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,7 +93,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>  "RNA"   "AB"  "PCA" "UMAP" </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># anndata objects </span></span></span>
-<span class="r-in"><span><span class="fu">all_keys</span><span class="op">(</span><span class="fu"><a href="AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">all_keys</span><span class="op">(</span><span class="fu"><a href="anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         X     X_pca    X_umap   protein </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       "X"   "X_pca"  "X_umap" "protein" </span>
 <span class="r-in"><span></span></span>
@@ -101,7 +101,7 @@
 <span class="r-in"><span><span class="co"># Fetch a feature from the "protein" </span></span></span>
 <span class="r-in"><span><span class="co"># modality using its key from above</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="fetch_data.html">fetch_data</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  <span class="fu"><a href="anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  vars <span class="op">=</span> <span class="st">"protein_CD9-AB"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 'data.frame':	250 obs. of  1 variable:</span>
@@ -116,7 +116,7 @@
 <span class="r-in"><span><span class="co"># Fetch reduction coordinates using </span></span></span>
 <span class="r-in"><span><span class="co"># the key for the UMAP reduction</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="fetch_data.html">fetch_data</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  <span class="fu"><a href="anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X_umap_1"</span>, <span class="st">"X_umap_2"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 'data.frame':	250 obs. of  2 variables:</span>

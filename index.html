@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -112,6 +112,11 @@
 <div class="section level2">
 <h2 id="additional-installation-for-anndata-objects">Additional Installation for anndata Objects<a class="anchor" aria-label="anchor" href="#additional-installation-for-anndata-objects"></a>
 </h2>
+<div class="section level3">
+<h3 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a>
+</h3>
+<p>As of SCUBA version 1.2.0, Python package management is now handled automatically by SCUBA. The steps in this section are no longer necessary. Simply call library(SCUBA) and load your anndata object in R, and SCUBA will be ready to use!</p>
+<hr>
 <p>To use SCUBA with anndata objects, you will need a Python installation and the reticulate R package. If you are using anndata objects, follow the steps below. <strong>If you are only using Seurat of SingleCellExperiment objects, you do not need to complete these steps.</strong></p>
 <p>First, install the <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> package in R.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -123,9 +128,15 @@
 <li><a href="https://numpy.org/" class="external-link">numpy</a></li>
 <li><a href="https://pandas.pydata.org/" class="external-link">pandas</a></li>
 </ul>
+</div>
 <div class="section level3">
 <h3 id="setting-up-a-python-environment-via-anaconda">Setting up a Python Environment via Anaconda<a class="anchor" aria-label="anchor" href="#setting-up-a-python-environment-via-anaconda"></a>
 </h3>
+<div class="section level4">
+<h4 id="note-1">Note<a class="anchor" aria-label="anchor" href="#note-1"></a>
+</h4>
+<p>As of SCUBA version 1.2.0, Python package management is now handled automatically by SCUBA. The steps in this section are no longer necessary. Simply call library(SCUBA) and load your anndata object in R, and SCUBA will be ready to use!</p>
+<hr>
 <p>To set up an Anaconda environment with the requisite packages for SCUBA, follow the steps below:</p>
 <ol style="list-style-type: decimal">
 <li><p>Download an <a href="https://www.anaconda.com/download" class="external-link">Anaconda Distribution</a>. Use whichever installer is most appropriate for your operating system and preferences.</p></li>
@@ -168,6 +179,7 @@ pandas                    2.2.3           py313h668b085_3    conda-forge
 <li>In the window that appears, select <strong>“Conda Environments”</strong>.</li>
 <li>Select the path of your Conda environment (the path containing “SCUBA_Anndata” in this case).</li>
 </ul>
+</div>
 </div>
 </div>
 <div class="section level2">

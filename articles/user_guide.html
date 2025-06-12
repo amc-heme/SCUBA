@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -148,7 +148,7 @@ for instructions to install SCUBA.</p>
 <p>Next, load your single-cell object. Objects should be loaded
 according using the conventional means for each object, shown below.</p>
 <p>In this tutorial, we use <code>AML_Seurat</code>,
-<code><a href="../reference/AML_SCE.html">AML_SCE()</a></code>, and <code><a href="../reference/AML_h5ad.html">AML_h5ad()</a></code> to load an example
+<code><a href="../reference/AML_SCE.html">AML_SCE()</a></code>, and <code><a href="../reference/anndata_example.html">AML_h5ad()</a></code> to load an example
 dataset included with SCUBA in Seurat, SingleCellExperiment, and anndata
 format, respectively.</p>
 <p>For anndata objects, we recommend loading via the <a href="https://github.com/dynverse/anndata" class="external-link"><code>anndata</code></a> R
@@ -311,7 +311,7 @@ assay.</p>
 <div class="tab-pane" id="anndata-1" role="tabpanel" aria-labelledby="anndata-1-tab">
 
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/all_keys.html">all_keys</a></span><span class="op">(</span><span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/all_keys.html">all_keys</a></span><span class="op">(</span><span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         X     X_pca    X_umap   protein </span></span>
 <span><span class="co">##       "X"   "X_pca"  "X_umap" "protein"</span></span></code></pre>
 <p>By convention, the gene expression modality in anndata objects is
@@ -321,7 +321,7 @@ named “X”. In this example object, use the “X” key to pull data from the
 “X_FLT3” to <code>vars</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="st">"X_FLT3"</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="co"># First 10 rows are shown for this example</span></span>
@@ -437,7 +437,7 @@ assay before passage to fetch_data.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">available_genes</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/features_in_assay.html">features_in_assay</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    assay <span class="op">=</span> <span class="st">"X"</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
@@ -452,7 +452,7 @@ assay before passage to fetch_data.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Request data for multiple features</span></span>
 <span><span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X_FLT3"</span>, <span class="st">"X_MEIS1"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
@@ -579,7 +579,7 @@ raw counts are stored in an alternate layer named “counts”.</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Raw counts in "counts"</span></span>
 <span><span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X_FLT3"</span>, <span class="st">"X_MEIS1"</span><span class="op">)</span>,</span>
 <span>  layer <span class="op">=</span> <span class="st">"counts"</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -598,7 +598,7 @@ raw counts are stored in an alternate layer named “counts”.</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Normalized counts in X</span></span>
 <span><span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X_FLT3"</span>, <span class="st">"X_MEIS1"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
@@ -711,7 +711,7 @@ metadata variables.</p>
 
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View available metadata</span></span>
-<span><span class="fu"><a href="../reference/meta_varnames.html">meta_varnames</a></span><span class="op">(</span><span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/meta_varnames.html">meta_varnames</a></span><span class="op">(</span><span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "nCount_RNA"          "nFeature_RNA"        "nCount_AB"          </span></span>
 <span><span class="co">##  [4] "nFeature_AB"         "nCount_BOTH"         "nFeature_BOTH"      </span></span>
 <span><span class="co">##  [7] "BOTH_snn_res.0.9"    "seurat_clusters"     "Prediction_Ind"     </span></span>
@@ -724,7 +724,7 @@ metadata variables.</p>
 <span><span class="co">## [28] "condensed_cell_type"</span></span></code></pre>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"condensed_cell_type"</span>, <span class="st">"Batch"</span>, <span class="st">"nCount_RNA"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="co"># head is used in this example since metadata will be returned for all cells</span></span>
@@ -823,7 +823,7 @@ performance advantages over <code><a href="../reference/fetch_data.html">fetch_d
 
 <div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/fetch_metadata.html">fetch_metadata</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"condensed_cell_type"</span>, <span class="st">"Batch"</span>, <span class="st">"nCount_RNA"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="co"># head is used in this example since metadata will be returned for all cells</span></span>
@@ -912,7 +912,7 @@ This can be done with <code><a href="../reference/fetch_metadata.html">fetch_met
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">table</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_metadata.html">fetch_metadata</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    full_table <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span></span>
 <span></span>
@@ -1016,14 +1016,14 @@ in this object is “UMAP_”.</p>
 <p>From running <code><a href="../reference/all_keys.html">all_keys()</a></code>, the key of the UMAP reduction
 in this object is “X_umap_”.</p>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/all_keys.html">all_keys</a></span><span class="op">(</span><span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/all_keys.html">all_keys</a></span><span class="op">(</span><span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         X     X_pca    X_umap   protein </span></span>
 <span><span class="co">##       "X"   "X_pca"  "X_umap" "protein"</span></span></code></pre>
 <p>To fetch the first and second dims, pass “X_umap_1” and “X_umap_2” to
 <code>vars</code>.</p>
 <div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X_umap_1"</span>, <span class="st">"X_umap_2"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
@@ -1126,20 +1126,12 @@ dimensions of the specified reduction are returned.</p>
 
 <div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/fetch_reduction.html">fetch_reduction</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  reduction <span class="op">=</span> <span class="st">"X_umap"</span>,</span>
 <span>  dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="co"># head is used in this example since metadata will be returned for all cells</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: `FetchData.AnnDataR6()` was deprecated in SCUBA 1.1.2.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Please use fetch_data() instead. The FetchData method for anndata objects</span></span>
-<span><span class="co">##   will be removed in 1.3.0.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">SCUBA</span> package.</span></span>
-<span><span class="co">##   Please report the issue to the authors.</span></span>
-<span><span class="co">## <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">## <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">## <span style="color: #555555;">generated.</span></span></span></code></pre>
 <pre><code><span><span class="co">##           X_umap_1  X_umap_2</span></span>
 <span><span class="co">## 487013_1 -1.643589  9.901035</span></span>
 <span><span class="co">## 39207_1  -1.504856 10.125558</span></span>
@@ -1184,12 +1176,12 @@ the values entered will be returned.</p>
 <div class="active  tab-pane" id="seurat-9" role="tabpanel" aria-labelledby="seurat-9-tab">
 
 <p>Identifying available values for the variable “Batch”:</p>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span><span class="va">AML_Seurat</span>, var <span class="op">=</span> <span class="st">"Batch"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "BM_200AB"   "PBMC_200AB"</span></span></code></pre>
 <p>Returning cells are returned where “Batch” is equal to
 “PBMC_200AB”:</p>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cell_subset</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="../reference/fetch_cells.html">fetch_cells</a></span><span class="op">(</span></span>
 <span>    object <span class="op">=</span> <span class="va">AML_Seurat</span>, </span>
@@ -1200,12 +1192,12 @@ the values entered will be returned.</p>
 <span><span class="co"># Preview cell IDs returned</span></span>
 <span><span class="va">cell_subset</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "844178_2" "809777_2" "613075_2" "401992_2" "15150_2"  "208437_2"</span></span></code></pre>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Number of cells</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cell_subset</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 98</span></span></code></pre>
 <p>Retrieving expression data for the subset:</p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
 <span>    <span class="va">AML_Seurat</span>,</span>
@@ -1216,7 +1208,7 @@ the values entered will be returned.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## 'data.frame':    98 obs. of  1 variable:</span></span>
 <span><span class="co">##  $ rna_FLT3: num  0 0 0 0 0 0 0 0 0 0 ...</span></span></code></pre>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare with full data</span></span>
 <span><span class="va">full_data</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
@@ -1231,12 +1223,12 @@ the values entered will be returned.</p>
 <div class="tab-pane" id="singlecellexperiment-9" role="tabpanel" aria-labelledby="singlecellexperiment-9-tab">
 
 <p>Identifying available values for the variable “Batch”:</p>
-<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span><span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>, var <span class="op">=</span> <span class="st">"Batch"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "BM_200AB"   "PBMC_200AB"</span></span></code></pre>
 <p>Returning cells are returned where “Batch” is equal to
 “PBMC_200AB”:</p>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cell_subset</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="../reference/fetch_cells.html">fetch_cells</a></span><span class="op">(</span></span>
 <span>    object <span class="op">=</span> <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>, </span>
@@ -1247,12 +1239,12 @@ the values entered will be returned.</p>
 <span><span class="co"># Preview cell IDs returned</span></span>
 <span><span class="va">cell_subset</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "844178_2" "809777_2" "613075_2" "401992_2" "15150_2"  "208437_2"</span></span></code></pre>
-<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Number of cells</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cell_subset</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 98</span></span></code></pre>
 <p>Retrieving expression data for the subset:</p>
-<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -1263,7 +1255,7 @@ the values entered will be returned.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## 'data.frame':    98 obs. of  1 variable:</span></span>
 <span><span class="co">##  $ RNA_FLT3: num  0 0 0 0 0 0 0 0 0 0 ...</span></span></code></pre>
-<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare with full data</span></span>
 <span><span class="va">full_data</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
@@ -1278,16 +1270,16 @@ the values entered will be returned.</p>
 <div class="tab-pane" id="anndata-9" role="tabpanel" aria-labelledby="anndata-9-tab">
 
 <p>Identifying available values for the variable “Batch”:</p>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span><span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, var <span class="op">=</span> <span class="st">"Batch"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span><span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, var <span class="op">=</span> <span class="st">"Batch"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] BM_200AB   PBMC_200AB</span></span>
 <span><span class="co">## Levels: BM_200AB PBMC_200AB</span></span></code></pre>
 <p>Returning cells are returned where “Batch” is equal to
 “PBMC_200AB”:</p>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cell_subset</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="../reference/fetch_cells.html">fetch_cells</a></span><span class="op">(</span></span>
-<span>    object <span class="op">=</span> <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, </span>
+<span>    object <span class="op">=</span> <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>, </span>
 <span>    meta_var <span class="op">=</span> <span class="st">"Batch"</span>, </span>
 <span>    meta_levels <span class="op">=</span> <span class="st">"PBMC_200AB"</span></span>
 <span>    <span class="op">)</span></span>
@@ -1295,15 +1287,15 @@ the values entered will be returned.</p>
 <span><span class="co"># Preview cell IDs returned</span></span>
 <span><span class="va">cell_subset</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "844178_2" "809777_2" "613075_2" "401992_2" "15150_2"  "208437_2"</span></span></code></pre>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Number of cells</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cell_subset</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 98</span></span></code></pre>
 <p>Retrieving expression data for the subset:</p>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    vars <span class="op">=</span> <span class="st">"X_FLT3"</span>,</span>
 <span>    cells <span class="op">=</span> <span class="va">cell_subset</span></span>
 <span>    <span class="op">)</span></span>
@@ -1329,11 +1321,11 @@ the values entered will be returned.</p>
 <span><span class="co">##        '691696_2', '431743_2', '158371_2', '679107_2', '844492_2', '729807_2',</span></span>
 <span><span class="co">##        '545562_2', '849364_2'],</span></span>
 <span><span class="co">##       dtype='object')</span></span></code></pre>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare with full data</span></span>
 <span><span class="va">full_data</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/fetch_data.html">fetch_data</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    vars <span class="op">=</span> <span class="st">"X_FLT3"</span></span>
 <span>    <span class="op">)</span></span>
 <span></span>
@@ -1392,7 +1384,7 @@ via <code><a href="../reference/meta_varnames.html">meta_varnames()</a></code>.<
 <div class="tab-content">
 <div class="active  tab-pane" id="seurat-10" role="tabpanel" aria-labelledby="seurat-10-tab">
 
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/meta_varnames.html">meta_varnames</a></span><span class="op">(</span></span>
 <span>  <span class="va">AML_Seurat</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -1409,7 +1401,7 @@ via <code><a href="../reference/meta_varnames.html">meta_varnames()</a></code>.<
 </div>
 <div class="tab-pane" id="singlecellexperiment-10" role="tabpanel" aria-labelledby="singlecellexperiment-10-tab">
 
-<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/meta_varnames.html">meta_varnames</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -1426,9 +1418,9 @@ via <code><a href="../reference/meta_varnames.html">meta_varnames()</a></code>.<
 </div>
 <div class="tab-pane" id="anndata-10" role="tabpanel" aria-labelledby="anndata-10-tab">
 
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/meta_varnames.html">meta_varnames</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "nCount_RNA"          "nFeature_RNA"        "nCount_AB"          </span></span>
 <span><span class="co">##  [4] "nFeature_AB"         "nCount_BOTH"         "nFeature_BOTH"      </span></span>
@@ -1467,7 +1459,7 @@ variable to the <code>var</code> parameter of the
 <div class="tab-content">
 <div class="active  tab-pane" id="seurat-11" role="tabpanel" aria-labelledby="seurat-11-tab">
 
-<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span></span>
 <span>  <span class="va">AML_Seurat</span>,</span>
 <span>  var <span class="op">=</span> <span class="st">"condensed_cell_type"</span></span>
@@ -1480,22 +1472,22 @@ variable to the <code>var</code> parameter of the
 </div>
 <div class="tab-pane" id="singlecellexperiment-11" role="tabpanel" aria-labelledby="singlecellexperiment-11-tab">
 
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  var <span class="op">=</span> <span class="st">"condensed_cell_type"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb128"><pre class="sourceCode sce"><code class="sourceCode sci"><span id="cb128-1"><a href="#cb128-1" tabindex="-1"></a>##  [<span class="dv">1</span>] <span class="st">"Plasma cells"</span>                 <span class="st">"Primitive"</span>                   </span>
-<span id="cb128-2"><a href="#cb128-2" tabindex="-1"></a>##  [<span class="dv">3</span>] <span class="st">"Dendritic cells"</span>              <span class="st">"Plasmacytoid dendritic cells"</span></span>
-<span id="cb128-3"><a href="#cb128-3" tabindex="-1"></a>##  [<span class="dv">5</span>] <span class="st">"BM Monocytes"</span>                 <span class="st">"NK Cells"</span>                    </span>
-<span id="cb128-4"><a href="#cb128-4" tabindex="-1"></a>##  [<span class="dv">7</span>] <span class="st">"CD8+ T Cells"</span>                 <span class="st">"B Cells"</span>                     </span>
-<span id="cb128-5"><a href="#cb128-5" tabindex="-1"></a>##  [<span class="dv">9</span>] <span class="st">"CD4+ T Cells"</span>                 <span class="st">"PBMC Monocytes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre class="sourceCode sce"><code class="sourceCode sci"><span id="cb127-1"><a href="#cb127-1" tabindex="-1"></a>##  [<span class="dv">1</span>] <span class="st">"Plasma cells"</span>                 <span class="st">"Primitive"</span>                   </span>
+<span id="cb127-2"><a href="#cb127-2" tabindex="-1"></a>##  [<span class="dv">3</span>] <span class="st">"Dendritic cells"</span>              <span class="st">"Plasmacytoid dendritic cells"</span></span>
+<span id="cb127-3"><a href="#cb127-3" tabindex="-1"></a>##  [<span class="dv">5</span>] <span class="st">"BM Monocytes"</span>                 <span class="st">"NK Cells"</span>                    </span>
+<span id="cb127-4"><a href="#cb127-4" tabindex="-1"></a>##  [<span class="dv">7</span>] <span class="st">"CD8+ T Cells"</span>                 <span class="st">"B Cells"</span>                     </span>
+<span id="cb127-5"><a href="#cb127-5" tabindex="-1"></a>##  [<span class="dv">9</span>] <span class="st">"CD4+ T Cells"</span>                 <span class="st">"PBMC Monocytes"</span></span></code></pre></div>
 </div>
 <div class="tab-pane" id="anndata-11" role="tabpanel" aria-labelledby="anndata-11-tab">
 
-<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/unique_values.html">unique_values</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  var <span class="op">=</span> <span class="st">"condensed_cell_type"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre class="anndata"><code><span><span class="co">##  [1] Plasma cells                 Primitive                   </span></span>
@@ -1548,11 +1540,11 @@ variable present in that object. It does not matter which value is used
 here as long as it exists. When developing your own functions, these
 values could reflect a test case for the function you are
 developing.</p>
-<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">object</span> <span class="op">&lt;-</span> <span class="va">AML_Seurat</span></span>
 <span><span class="va">feature</span> <span class="op">&lt;-</span> <span class="st">"rna_GAPDH"</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="st">"condensed_cell_type"</span></span></code></pre></div>
-<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">object</span> <span class="op">&lt;-</span> <span class="va">AML_Seurat</span></span>
 <span><span class="va">feature</span> <span class="op">&lt;-</span> <span class="st">"rna_GAPDH"</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="st">"condensed_cell_type"</span></span>
@@ -1570,7 +1562,7 @@ developing.</p>
 <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code> from the ggplot2 package. In this stage, it
 will be for the full object and not split by a metadata variable.</p>
 <p>Make sure you have loaded ggplot2 before proceeding.</p>
-<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ggplot2"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -1582,7 +1574,7 @@ ggplot. Using <code>.data[[]]</code> allows the script to accept any
 feature without needing to make changes to the code, or having to rename
 the column corresponding to the feature in the output of
 <code><a href="../reference/fetch_data.html">fetch_data()</a></code>.</p>
-<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">object</span> <span class="op">&lt;-</span> <span class="va">AML_Seurat</span></span>
 <span><span class="va">feature</span> <span class="op">&lt;-</span> <span class="st">"rna_GAPDH"</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="st">"condensed_cell_type"</span></span>
@@ -1608,7 +1600,7 @@ the column corresponding to the feature in the output of
 <p>Next, we will add a fill attribute based on the metadata variable
 entered. The metadata variable is supplied to the fill attribute, again
 using <code>.data[[]]</code>.</p>
-<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">object</span> <span class="op">&lt;-</span> <span class="va">AML_Seurat</span></span>
 <span><span class="va">feature</span> <span class="op">&lt;-</span> <span class="st">"rna_GAPDH"</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="st">"condensed_cell_type"</span></span>
@@ -1634,7 +1626,7 @@ using <code>.data[[]]</code>.</p>
 <p>For this plot to be interperetable, the curves will need to be
 “split” out into separate plots. This is done with
 <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap()</a></code>.</p>
-<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">object</span> <span class="op">&lt;-</span> <span class="va">AML_Seurat</span></span>
 <span><span class="va">feature</span> <span class="op">&lt;-</span> <span class="st">"rna_GAPDH"</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="st">"condensed_cell_type"</span></span>
@@ -1677,13 +1669,13 @@ transparent by setting the <a href="https://www.digitalocean.com/community/tutor
 value of the hex code color</a> to zero.</li>
 <li>The text is made bold and shrank via <code>strip.text</code>.</li>
 </ul>
-<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://wilkelab.org/cowplot/" class="external-link">"cowplot"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"cowplot"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/" class="external-link">cowplot</a></span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">object</span> <span class="op">&lt;-</span> <span class="va">AML_Seurat</span></span>
 <span><span class="va">feature</span> <span class="op">&lt;-</span> <span class="st">"rna_GAPDH"</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="st">"condensed_cell_type"</span></span>
@@ -1722,7 +1714,7 @@ packaged in a function.</p>
 <p>At this stage, simply transfer the variables defined at the beginning
 to the function as parameters, and move the subsequent code into the
 function.</p>
-<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Transfer variables to parameters</span></span>
 <span><span class="co"># object &lt;- AML_Seurat</span></span>
 <span><span class="co"># feature &lt;- "rna_GAPDH"</span></span>
@@ -1779,7 +1771,7 @@ when entering features.</p>
 <div class="tab-content">
 <div class="active  tab-pane" id="seurat-12" role="tabpanel" aria-labelledby="seurat-12-tab">
 
-<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">density_plot</span><span class="op">(</span></span>
 <span>  object <span class="op">=</span> <span class="va">AML_Seurat</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"rna_GAPDH"</span>,</span>
@@ -1789,7 +1781,7 @@ when entering features.</p>
 </div>
 <div class="tab-pane" id="singlecellexperiment-12" role="tabpanel" aria-labelledby="singlecellexperiment-12-tab">
 
-<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">density_plot</span><span class="op">(</span></span>
 <span>  object <span class="op">=</span> <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"RNA_GAPDH"</span>,</span>
@@ -1799,9 +1791,9 @@ when entering features.</p>
 </div>
 <div class="tab-pane" id="anndata-12" role="tabpanel" aria-labelledby="anndata-12-tab">
 
-<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">density_plot</span><span class="op">(</span></span>
-<span>  object <span class="op">=</span> <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  object <span class="op">=</span> <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"X_GAPDH"</span>,</span>
 <span>  metadata <span class="op">=</span> <span class="st">"condensed_cell_type"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -1841,7 +1833,7 @@ object.</li>
 dimensions to pull, for passage to <code>vars</code> in
 <code>fetch_data</code>.</li>
 </ul>
-<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">feature_plot</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="kw">function</span><span class="op">(</span></span>
 <span>    <span class="va">object</span>,</span>
@@ -1921,7 +1913,7 @@ dimensions to pull, for passage to <code>vars</code> in
 
 <p>Running function without specifying default reduction, layer: utility
 functions will supply defaults.</p>
-<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">feature_plot</span><span class="op">(</span></span>
 <span>  object <span class="op">=</span> <span class="va">AML_Seurat</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"rna_GAPDH"</span></span>
@@ -1940,7 +1932,7 @@ feature_plot(
 ```
 -->
 <p>Running the function with the raw counts layer:</p>
-<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">feature_plot</span><span class="op">(</span></span>
 <span>  object <span class="op">=</span> <span class="va">AML_Seurat</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"rna_GAPDH"</span>,</span>
@@ -1952,7 +1944,7 @@ feature_plot(
 
 <p>Running function without specifying default reduction, layer: utility
 functions will supply defaults.</p>
-<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">feature_plot</span><span class="op">(</span></span>
 <span>  object <span class="op">=</span> <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"RNA_GAPDH"</span></span>
@@ -1971,7 +1963,7 @@ feature_plot(
 
 -->
 <p>Running the function using the raw counts layer:</p>
-<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">feature_plot</span><span class="op">(</span></span>
 <span>  object <span class="op">=</span> <span class="fu"><a href="../reference/AML_SCE.html">AML_SCE</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"RNA_GAPDH"</span>,</span>
@@ -1983,9 +1975,9 @@ feature_plot(
 
 <p>Running function without specifying default reduction, layer: utility
 functions will supply defaults.</p>
-<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">feature_plot</span><span class="op">(</span></span>
-<span>  object <span class="op">=</span> <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  object <span class="op">=</span> <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"X_GAPDH"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><img src="user_guide_files/figure-html/unnamed-chunk-70-1.png" width="700"></p>
@@ -2002,9 +1994,9 @@ feature_plot(
 ```
 -->
 <p>Running the function with the raw counts layer:</p>
-<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">feature_plot</span><span class="op">(</span></span>
-<span>  object <span class="op">=</span> <span class="fu"><a href="../reference/AML_h5ad.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  object <span class="op">=</span> <span class="fu"><a href="../reference/anndata_example.html">AML_h5ad</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  feature <span class="op">=</span> <span class="st">"X_GAPDH"</span>,</span>
 <span>  layer <span class="op">=</span> <span class="st">"counts"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
