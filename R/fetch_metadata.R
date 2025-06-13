@@ -68,7 +68,7 @@ fetch_metadata.default <-
       paste0(
         "fetch_metadata does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment, anndata (AnnDataR6), and MuData (as loaded from SCUBA::load_data)."
       )
     )
   }
@@ -325,4 +325,38 @@ fetch_metadata.AnnDataR6 <-
     }
 
     data
+  }
+
+
+#' @describeIn fetch_metadata Mudata objects
+#' @export
+fetch_metadata.md._core.mudata.MuData <-
+  function(
+    object,
+    vars = NULL,
+    cells = NULL,
+    full_table = FALSE,
+    return_class = "dataframe"
+  ){
+    # Subset for first modality (anndata object, assumed to be the default)]
+    # Python indexing is used for mod_names to select the first element
+    adata <- object[object$mod_names[[1]]]
+    
+    lapply(
+      object$mod_names,
+      function(mod){
+        # Pull modality (as anndata object)
+        adata <- object[[mod]]
+        
+        # Run fetchdata on the anndata object
+        fetch_metadata(
+          adata,
+          vars,
+          cells,
+          full_table,
+          return_class 
+        )
+      }
+    )
+    
   }
