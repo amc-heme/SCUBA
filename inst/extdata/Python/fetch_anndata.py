@@ -5,6 +5,8 @@ import numpy as np
 
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
+# Anndata CSCDataset class (for disk-backed anndata objects)
+from anndata.abc import CSCDataset
 
 # Base Python
 from collections import Counter
@@ -134,18 +136,47 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
         if (len(keyless_vars) > 0):
             
             ### 2.2.1. Pull expression matrix for the current key location ####
+            # Also, subset keyless vars for those that are in the matrix. It 
+            # is possible to enter inputs starting with a modality key that are 
+            # not in the matrix, which will cause uninformative error messages
             if key == "X":
                 # The X matrix alone supports "layer" (via layers)
                 if layer == None:
                     matrix = obj.X
                 else:
                     matrix = obj.layers[layer]
+                    
+                # Subset for vars in matrix
+                keyless_vars = [var for var in keyless_vars if var in obj.var_names]
             elif key == "obs":
                 # Metadata (obs)
                 matrix = obj.obs
+                
+                # Subset for vars in matrix
+                
             elif key in obj.obsm_keys():
                 # For a key in the list of obsm keys, pull matrix for that entry
                 matrix = obj.obsm[key]
+                
+                # Subset for vars in matrix (depending on matrix types)
+                if (isinstance(matrix, pd.DataFrame)):
+                    # Pandas dataframes: use .columns method to pull valid 
+                    # entries
+                    keyless_vars = [var for var in keyless_vars if var in matrix.columns]
+                elif (
+                    isinstance(matrix, np.ndarray) |
+                    isinstance(matrix, csr_matrix) | 
+                    isinstance(matrix, csc_matrix) |
+                    isinstance(matrix, CSCDataset)
+                ):
+                    # For numpy arrays (most likely, used for reductions), 
+                    # and sparse matrices (less likely but possible)
+                    # No column names, valid entries are based on index 
+                    # Valid vars are the index values as strings, using a 
+                    # 1-based index (for consistency with R SCUBA methods)
+                    valid_idx = [str(x) for x in range(1, matrix.shape[1] + 1)] 
+                    
+                    keyless_vars = [var for var in keyless_vars if var in valid_idx]
                     
             ### 2.2.2. Pull data for cells, keyless vars from matrix ####
             # Type checking via isinstance is used here due to the variety of
@@ -175,6 +206,39 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                         columns = keyless_vars
                         )
                     
+                # Columns returned will be pandas sparse arrays.
+                # Arrays must be densified to be accesssible downstream in R 
+                # Densify with np.asarray
+                for column in data:
+                    data[column] = np.asarray(data[column])
+            
+            elif (isinstance(matrix, CSCDataset)):
+                # Disk-backed anndata: X matrix uses _CSCDataset class from 
+                # anndata. This class is considered internal to the anndata 
+                # package and may change in the future
+                
+                # _CSCDataset matrices only support accessing cells and 
+                # features by index. To get the index of each var requested,
+                # get_loc is used
+                
+                # To avoid an error from get_loc(), filter keyless vars for 
+                # only those that are in var_names
+                vars_in_X = [var for var in keyless_vars if var in obj.var_names]
+                
+                vars_idx = [obj.var_names.get_loc(var) for var in vars_in_X]
+                cells_idx = [obj.obs_names.get_loc(cell_id) for cell_id in cells]
+
+                # Index the CSCDataset. The result will be a scipy csc_matrix
+                backed_data = matrix[cells_idx, vars_idx]
+
+                data = pd.DataFrame.sparse.from_spmatrix(
+                    backed_data,
+                    # Add cell ids and var names back 
+                    # These should be in the same order as the indices 
+                    index = cells,
+                    columns = keyless_vars
+                    )
+                
                 # Columns returned will be pandas sparse arrays.
                 # Arrays must be densified to be accesssible downstream in R 
                 # Densify with np.asarray
@@ -226,7 +290,8 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 pep8-and-prevent-e501
                 """
                 raise NotImplementedError(
-                    ("FetchData does not know how to handle a matrix of class {0}. "
+                    ("The SCUBA Python function fetch_anndata does not know "
+                    "how to handle a matrix of class {0}. "
                     "This ocurred with the matrix at key '{1}'."
                     ).format(type(matrix), key)
                     )
@@ -248,7 +313,7 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     [data_return, data],
                     axis = 1
                     )
-            
+                    
     # When finished with iteration, return the dataframe
     return data_return
 
@@ -361,10 +426,19 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     # Report duplicates to the user and notify that only one entry 
     # will be included 
     if len(duplicate_vars) > 0:
-        warnings.warn(
+        r.warning(
             ("Duplicate entries passed to vars: " +
             ", ".join(duplicate_vars) +
-            ". Only one entry for each variable will be returned.")
+            ". Only one entry for each variable will be returned."),
+            # The call context for the warning prints as 
+            # do.call(fn, c(args, named_args)) 
+            # which is not useful for the end user. The call is suppressed by
+            # setting call. to FALSE. 
+            # The . in call. causes an error with Python syntax, so it is 
+            # specified using dictionary unpacking. "call." is passed as a 
+            # string in a dictionary, and tells warning() to accept a call. 
+            # argument and set it to False (FALSE in R)
+            **{'call.': False}
             )
 
     # Remove duplicates by creating a dictionary from the list, and converting
@@ -472,7 +546,8 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             example_str = ", ".join(example_entries)
         
         # Display warning message
-        warnings.warn(
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
             ("The following variables were found in multiple locations: " +
             ", ".join(list(ambiguous_vars.keys())) +
             ". These variables will not be retrieved due to ambiguity. " +
@@ -481,7 +556,9 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             "underscore (for example: " +
             example_str +
             ")."
-            )
+            ),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
             )
             
     # 6. Fetch data for remaining vars ####
@@ -489,7 +566,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     
     ## 6.1. Add keys (for remaining vars where a key was identified) ####
     # Identify vars to add key to (vars with exactly one location identified)
-    vars_add_key = {key:value 
+    ambiguous_vars_in_one_location = {key:value 
         for (key, value) in remaining_locations.items() 
         if len(value) == 1
         }
@@ -497,7 +574,15 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     # Create dictionary mapping the vars above to their keyed equivalents
     # Add key with underscore to var name 
     map_keyed_vars = {key:value[0] + "_" + key 
-        for (key, value) in vars_add_key.items()}
+        for (key, value) in ambiguous_vars_in_one_location.items()}
+    
+    # Identify ambiguous obsm vars (these will result in a warning while 
+    # ambiguous vars in X or obs will not)
+    ambiguous_obsm_vars = {key:value 
+        for (key, value) in ambiguous_vars_in_one_location.items() 
+        # if value (checks that value exists, though it always should)
+        if value and value[0] not in {"X", "obs"}
+        }
     
     new_keyed_vars = list(map_keyed_vars.values())
 
@@ -531,13 +616,16 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         # Example of the keyed variable(s) to be returned
         will_be_returned = ", ".join(list(duplicate_vars.values()))
         
-        warnings.warn(
-            ("The following variables entered describe the same variable: " +
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
+            ("The following entries describe the same variable: " +
             duplicate_description + 
             ". Only the copy of the variable with the key entered will be " +
             "returned (" +
             will_be_returned +
-            ").")
+            ")."),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
             )
         
         # Remove the duplicate variable(s) before fetching data
@@ -545,6 +633,13 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             for var in new_keyed_vars 
             if var not in duplicate_vars.values()]
             
+        # Also remove duplicate vars from the list of X_vars 
+        # (X_vars is used to remove the modality key from features in X entered
+        # without a modality key. If this is not done, an entry of "X_GAPDH" 
+        # and "GAPDH" will result in a return of the column name "GAPDH" 
+        # instead of "X_GAPDH").
+        X_vars = [var for var in X_vars if var not in duplicate_vars.keys()]
+        
         # Also remove duplicates from fetch_vars (this variable is used later on 
         # to sort the final dataframe, and duplicate entries in fetch_vars will
         # cause duplication in the dataframe).
@@ -581,7 +676,22 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         if var not in new_keyed_vars_found
         ]
     
-    # 8. Warnings/errors for variables not found ####
+    # 8. Warn for ambiguous entries with one match in obsm matrices
+    for ambig_var, key in ambiguous_obsm_vars.items():
+        if ambig_var not in vars_not_found:
+            r.warning(
+                (ambig_var +
+                " was passed to fetch_data without specifying the key of the " +
+                "matrix to pull the feature from, and it is not present in " +
+                "X. The feature was found in " +
+                "'obsm."+ "".join(key) + "'"+ 
+                " and successfully returned. Future returns without a key will " +
+                "fail if features are present in multiple obsm matrices."),
+                # Remove call context (not useful, see comment above)
+                **{'call.': False}
+                )
+            
+    # 9. Warnings/errors for variables not found ####
     # ten_plus_message: added to message if there are more than 10 
     # missing variables
     if (len(vars_not_found) > 10):
@@ -599,14 +709,17 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             ", ".join(vars_not_found)
             )
     elif len(vars_not_found) > 0:
-        warnings.warn(
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
             "The following requested variables were not found " +
             ten_plus_message +
             ": " +
-            ", ".join(vars_not_found)
+            ", ".join(vars_not_found),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
             )
     
-    # 9. Sort columns ####
+    # 10. Sort columns ####
     # Order of columns in data should reflect the order entered, not the 
     # order fetched
     # Columns in dataframe use keys for all vars, including those entered 
@@ -622,7 +735,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     # Pass list to fetched_data to order columns accordingly
     fetched_data = fetched_data[var_order]
 
-    # 10. Remove keys from obs variables, X variables entered without a key
+    # 11. Remove keys from obs variables, X variables entered without a key
     # This is done for consistency with Seurat FetchData
     fetched_data = remove_key(
         data = fetched_data,

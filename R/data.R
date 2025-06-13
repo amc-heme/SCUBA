@@ -44,11 +44,19 @@ AML_SCE <- function(){
 #' @inherit AML_Seurat description source
 #'
 #' @details
-#' `AML_h5ad()` is called as a function, with parentheses. This is because the dataset is in Python, and can't be loaded using the typical process of loading data included with R packages.
+#' - `AML_h5ad()`: Loads the reference dataset in-memory.
+#' - `AML_h5ad_backed()`: Loads the reference dataset on-disk (via `backed=r` in `anndata::read_h5ad`).
+#' 
+#' `AML_h5ad()` and `AML_h5ad_backed()` are called as functions, with parentheses. 
+#' This is because the dataset is in Python, and can't be loaded using the 
+#' typical process of loading data included with R packages.
+#'
+#' @rdname anndata_example
 #'
 #' @export
 #'
-#' @usage AML_h5ad()
+#' @usage 
+#' AML_h5ad()
 #'
 #' @examples
 #' # These examples require a functional Python installation with prerequisite
@@ -69,6 +77,16 @@ AML_h5ad <- function(){
   anndata::read_h5ad(
     system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA")
   )
+}
+
+#' @rdname anndata_example
+#' @usage AML_h5ad_backed()
+#' @export
+AML_h5ad_backed <- function(){
+    anndata::read_h5ad(
+        system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA"),
+        backed = "r"
+    )
 }
 
 #' @export

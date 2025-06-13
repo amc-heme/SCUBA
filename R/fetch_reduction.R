@@ -171,7 +171,7 @@ fetch_reduction.AnnDataR6 <-
     # Cells: if NULL, use all cells in the object
     cells <- cells %||% get_all_cells(object)
 
-    FetchData(
+    fetch_data(
         object,
         vars = reduction_dimnames(object, reduction, dims),
         cells = cells
