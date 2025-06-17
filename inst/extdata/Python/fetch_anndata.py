@@ -6,7 +6,7 @@ import numpy as np
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
 # Anndata CSCDataset class (for disk-backed anndata objects)
-from anndata.abc import CSCDataset
+from anndata.abc import CSRDataset, CSCDataset
 
 # Base Python
 from collections import Counter
@@ -212,7 +212,7 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 for column in data:
                     data[column] = np.asarray(data[column])
             
-            elif (isinstance(matrix, CSCDataset)):
+            elif (isinstance(matrix, CSCDataset) | isinstance(matrix, CSRDataset)):
                 # Disk-backed anndata: X matrix uses _CSCDataset class from 
                 # anndata. This class is considered internal to the anndata 
                 # package and may change in the future
