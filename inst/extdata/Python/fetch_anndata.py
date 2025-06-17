@@ -6,7 +6,7 @@ import numpy as np
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
 # Anndata CSCDataset class (for disk-backed anndata objects)
-from anndata.abc import CSCDataset, CSRDataset
+from anndata.abc import CSRDataset, CSCDataset
 
 # Base Python
 from collections import Counter
