@@ -6,7 +6,7 @@ import numpy as np
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
 # Anndata CSCDataset class (for disk-backed anndata objects)
-from anndata.abc import CSCDataset
+from anndata.abc import CSRDataset, CSCDataset
 
 # Base Python
 from collections import Counter
@@ -31,6 +31,194 @@ def is_match(regex_search, target):
         return True
     else: 
         return False
+
+def fetch_vars_from_matrix(matrix, matrix_vars, cells, var_names = None, obs_names = None):
+    """
+    Returns data for a set of vars from a single matrix (X, 
+    obs, obsm, for example). 
+    
+    Arguments
+    ----------
+    matrix: a matrix from X, obs, obsm, or var. 
+    
+    matrix_vars: a set of vars that are present in the matrix passed 
+    to `matrix`. All vars passed must be present in the matrix, and 
+    must be passed as they appear in the matrix (i.e. without a 
+    "key").
+    
+    cells: the cells in `matrix` from which to pull data.
+    
+    var_names: the var_names attribute of the anndata or MuData 
+    object from which the matrix has been pulled. This is only 
+    required if the matrix being passed is a numpy array, a 
+    CSRDataset, or a CSCDatset CSRDataset and CSCDataset classes are 
+    the sparse matrix format for disk-backed anndata/MuData objects).
+    
+    obs_names: the obs_names attribute of the anndata or MuData 
+    object from which the matrix has been pulled. This is only 
+    required if the matrix being passed is a numpy array, a 
+    CSRDataset, or a CSCDatset CSRDataset and CSCDataset classes are 
+    the sparse matrix format for disk-backed anndata/MuData objects).
+    """
+    if (
+        isinstance(matrix, csr_matrix) | 
+        isinstance(matrix, csc_matrix)
+        ):
+        # Sparse matrices (in-memory)
+        # Cells and vars are accessed by index. The indices of cells and 
+        # vars are fetched using obs_names and var_names, respectively.
+        
+        # Check if var_names and obs_names are defined before proceeding 
+        # with this operation
+        if var_names is None:
+            raise valueError(
+                "If `matrix` is a csc_matrix or a csr_matrix, " + 
+                "`var_names` must be defined."
+            )
+            
+        if obs_names is None:
+            raise valueError(
+                "If `matrix` is a csc_matrix or a csr_matrix, " + 
+                "`obs_names` must be defined."
+            )
+        
+        # To avoid an error from get_loc(), filter keyless vars for 
+        # only those that are in var_names
+        vars_in_X = [var for var in matrix_vars if var in var_names]
+        
+        vars_idx = [var_names.get_loc(var) for var in vars_in_X]
+        cells_idx = [obs_names.get_loc(cell_id) for cell_id in cells]
+    
+        # Subset matrix for vars and cells 
+        if (isinstance(matrix, csc_matrix)):
+            # CSC matrix: subsetting by *columns* is computationally cheap,
+            # while subsetting by rows is expensive
+            # Pull vars, then cells (expensive step of pulling cells is less
+            # so when vars have been pulled first)
+            matrix_subset = matrix[:,vars_idx][cells_idx,:]
+        elif (isinstance(matrix, csr_matrix)):
+            # CSC matrix: subsetting by *rows* is computationally cheap,
+            # while subsetting by columns is expensive
+            # Pull cells, then vars
+            matrix_subset = matrix[cells_idx,:][:,vars_idx]
+        
+        data = pd.DataFrame(
+            # Convert subset to numpy array
+            # Ensures columns are densified and therefore can be 
+            # converted to equivalent R data structures
+            matrix_subset.toarray(),
+            # Add cell ids and var names back 
+            # These should be in the same order as the indices 
+            index = cells,
+            columns = matrix_vars
+            )
+    elif (
+        isinstance(matrix, CSCDataset) | 
+        isinstance(matrix, CSRDataset)
+    ):
+        # Sparse matrices (disk-backed)
+        # Cells and vars are accessed by index. The indices of cells and 
+        # vars are fetched using obs_names and var_names, respectively.
+        
+        # Check if var_names and obs_names are defined before proceeding 
+        # with this operation
+        if var_names is None:
+            raise valueError(
+                "If `matrix` is a CSCDataset or a CSRDataset, " + 
+                "`var_names` must be defined."
+            )
+            
+        if obs_names is None:
+            raise valueError(
+                "If `matrix` is a CSCDataset or a CSRDataset, " + 
+                "`obs_names` must be defined."
+            )
+        
+        # To avoid an error from get_loc(), filter keyless vars for 
+        # only those that are in var_names
+        vars_in_X = [var for var in matrix_vars if var in var_names]
+        
+        vars_idx = [var_names.get_loc(var) for var in vars_in_X]
+        cells_idx = [obs_names.get_loc(cell_id) for cell_id in cells]
+        
+        # Subset matrix for vars and cells 
+        if (isinstance(matrix, CSCDataset)):
+            # CSCDataset: subsetting by *columns* is computationally cheap,
+            # while subsetting by rows is expensive
+            # Pull vars, then cells (expensive step of pulling cells is less
+            # so when vars have been pulled first)
+            matrix_subset = matrix[:,vars_idx][cells_idx,:]
+        elif (isinstance(matrix, CSRDataset)):
+            # CSCDataset: subsetting by *rows* is computationally cheap,
+            # while subsetting by columns is expensive
+            # Pull cells, then vars
+            matrix_subset = matrix[cells_idx,:][:,vars_idx]
+        
+        data = pd.DataFrame(
+            # Convert subset to numpy array
+            # Ensures columns are densified and therefore can be 
+            # converted to equivalent R data structures
+            matrix_subset.toarray(),
+            # Add cell ids and var names back 
+            # These should be in the same order as the indices 
+            index = cells,
+            columns = matrix_vars
+            )
+    elif (isinstance(matrix, pd.DataFrame)):
+        # Pandas dataframe: pull data via .loc 
+        data = matrix.loc[cells, matrix_vars]
+    elif (isinstance(matrix, np.ndarray)):
+        # Numpy arrays
+        
+        # obs_names are required. Throw an error if not present
+        if obs_names is None:
+            raise valueError(
+                "If `matrix` is a numpy ndarray, " + 
+                "`obs_names` must be defined."
+            )
+        
+        # The process below was designed with the assumption that only 
+        # reductions would have this format. It should be applicable 
+        # to other arrays however since arrays are stored without column
+        # names, and the user would likely reference variables in these
+        # arrays using an index (i.e. "X_umap_1", "(matrix_name)_1")
+        
+        # Convert string entry to a numeric index
+        # (This will also drop vars that are not valid entries, such as
+        # the vars that were passed in issue #90)
+        vars_idx = [int(var) for var in matrix_vars if var.isdigit()]
+        # Subtract one from indices (expectation is that var indices will be 
+        # entered using a one-based index for consistency with R syntax)
+        vars_idx = [idx-1 for idx in vars_idx]
+        
+        # Convert cells to pull to index
+        cells_idx = [obs_names.get_loc(cell_id) for cell_id in cells]
+        
+        # Slice numpy array based on the indices above
+        # numpy.ix: provides most efficient means of slicing a numpy array
+        matrix_subset = matrix[np.ix_(cells_idx, vars_idx)]
+        
+        # Convert subset to a pandas dataframe
+        data = pd.DataFrame(
+            matrix_subset,
+            # Add cell IDs to dataframe
+            index = cells,
+            # Add the string representation of the vars pulled as columns
+            columns = matrix_vars
+            )
+    else:
+        """
+        Strings wrapped according to PEP-8 style guidelines
+        https://stackoverflow.com/questions/1874592/
+        how-to-write-very-long-string-that-conforms-with-
+        pep8-and-prevent-e501
+        """
+        raise NotImplementedError(
+            ("fetch_vars_from_matrix does not know how to handle " + 
+            "a matrix of class {0}").format(type(matrix))
+            )
+            
+    return data
 
 def fetch_keyed_vars(obj, target_vars, cells, layer):
     """
@@ -147,13 +335,19 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     matrix = obj.layers[layer]
                     
                 # Subset for vars in matrix
-                keyless_vars = [var for var in keyless_vars if var in obj.var_names]
+                keyless_vars = [
+                    var for var in keyless_vars if var in obj.var_names
+                    ]
             elif key == "obs":
                 # Metadata (obs)
                 matrix = obj.obs
                 
                 # Subset for vars in matrix
-                
+                # Expectation: if vars are in obs_keys(), they should be in obs.
+                # There should not be obs vars that are not in obs_keys()
+                keyless_vars = [
+                        var for var in keyless_vars if var in obj.obs_keys()
+                        ]
             elif key in obj.obsm_keys():
                 # For a key in the list of obsm keys, pull matrix for that entry
                 matrix = obj.obsm[key]
@@ -179,116 +373,22 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     keyless_vars = [var for var in keyless_vars if var in valid_idx]
                     
             ### 2.2.2. Pull data for cells, keyless vars from matrix ####
-            # Type checking via isinstance is used here due to the variety of
-            # data types possible for the matrix
-            # This is not considered "pythonic" and may need to be re-thought 
-            # https://stackoverflow.com/questions/2225038/determine-the-type-of-an-object
-            if (isinstance(matrix, csr_matrix) | isinstance(matrix, csc_matrix)):
-                # Sparse matrix format (X and layers) 
-                # subset *object for genes, then construct a pandas dataframe 
-                # (sparse matrices don't subset easily in python)
-                if layer == None:
-                    # Subset object and pull from X if layer is underfined
-                    data = pd.DataFrame.sparse.from_spmatrix(
-                        obj[cells, keyless_vars].X,
-                        # csr_matrices don't have row, column names. 
-                        # These are added here
-                        index = cells,
-                        columns = keyless_vars
-                        )
-                else:
-                    # Otherwise, subset and pull from the specified layer
-                    data = pd.DataFrame.sparse.from_spmatrix(
-                        obj[cells, keyless_vars].layers[layer],
-                        # csr_matrices don't have row, column names. 
-                        # These are added here
-                        index = cells,
-                        columns = keyless_vars
-                        )
-                    
-                # Columns returned will be pandas sparse arrays.
-                # Arrays must be densified to be accesssible downstream in R 
-                # Densify with np.asarray
-                for column in data:
-                    data[column] = np.asarray(data[column])
-            
-            elif (isinstance(matrix, CSCDataset)):
-                # Disk-backed anndata: X matrix uses _CSCDataset class from 
-                # anndata. This class is considered internal to the anndata 
-                # package and may change in the future
-                
-                # _CSCDataset matrices only support accessing cells and 
-                # features by index. To get the index of each var requested,
-                # get_loc is used
-                
-                # To avoid an error from get_loc(), filter keyless vars for 
-                # only those that are in var_names
-                vars_in_X = [var for var in keyless_vars if var in obj.var_names]
-                
-                vars_idx = [obj.var_names.get_loc(var) for var in vars_in_X]
-                cells_idx = [obj.obs_names.get_loc(cell_id) for cell_id in cells]
-
-                # Index the CSCDataset. The result will be a scipy csc_matrix
-                backed_data = matrix[cells_idx, vars_idx]
-
-                data = pd.DataFrame.sparse.from_spmatrix(
-                    backed_data,
-                    # Add cell ids and var names back 
-                    # These should be in the same order as the indices 
-                    index = cells,
-                    columns = keyless_vars
+            # Use fetch_vars_from_matrix from above
+            try:
+                data = fetch_vars_from_matrix(
+                    matrix = matrix, 
+                    matrix_vars = keyless_vars, 
+                    cells = cells, 
+                    var_names = obj.var_names, 
+                    obs_names = obj.obs_names
                     )
-                
-                # Columns returned will be pandas sparse arrays.
-                # Arrays must be densified to be accesssible downstream in R 
-                # Densify with np.asarray
-                for column in data:
-                    data[column] = np.asarray(data[column])
-            elif (isinstance(matrix, pd.DataFrame)):
-                # Pandas dataframe: pull data via .loc 
-                data = matrix.loc[cells, keyless_vars]
-            elif (isinstance(matrix, np.ndarray)):
-                # Numpy arrays
-                
-                # The process below was designed with the assumption that only 
-                # reductions would have this format. It should be applicable 
-                # to other arrays however since arrays are stored without column
-                # names, and the user would likely reference variables in these
-                # arrays using an index (i.e. "X_umap_1", "(matrix_name)_1")
-                
-                # Convert numpy array to pandas dataframe, then slice for vars
-                matrix = pd.DataFrame(
-                    matrix,
-                    index = obj.obs_names,
-                    # Construct var names using a 1-based index (for consistency 
-                    # with Seurat, R objects used in SCUBA)
-                    columns = [str(x) for x in range(1, matrix.shape[1] + 1)]
-                    )
-                    
-                # Slice based on keyless vars (should be string format of the 
-                # column desired, "1" for the first column)
-                try:
-                    data = matrix.loc[cells, keyless_vars]
-                except KeyError:
-                    # If any values are not present, a KeyError is returned.
-                    # If this happens, don't pull anything and keep going
-                    # (the assumption is that for similarly named matrices
-                    # like mofa and mofa_umap, mofa will return an error 
-                    # when searched, but mofa_umap will not). This may result
-                    # in values that are there not being found, but fixes 
-                    # SCUBA #90.
-                    # Set key_error to TRUE to prevent attempts to access the
-                    # non-existent data variable that would have been created
-                    key_error = True
-                    pass
-                  
-            else:
-                """
-                Strings wrapped according to PEP-8 style guidelines
-                https://stackoverflow.com/questions/1874592/
-                how-to-write-very-long-string-that-conforms-with-
-                pep8-and-prevent-e501
-                """
+            except NotImplementedError as e:
+                # There is a NotImplementedError raised from 
+                # fetch_vars_from_matrix that appears when an unsupported 
+                # matrix type is entered. However, the context of which matrix 
+                # triggered the error (what key) is not available to that 
+                # function. The error is caught here and reported
+                # with that context
                 raise NotImplementedError(
                     ("The SCUBA Python function fetch_anndata does not know "
                     "how to handle a matrix of class {0}. "
@@ -296,17 +396,15 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                     ).format(type(matrix), key)
                     )
             
+            ### 2.2.3. Concatenate with data already fetched
             # Add location key back in to variable names and concatenate data
             # to data already fetched
-            # (if there are no errors fetching keyed_vars and ncol of the data
-            # frame is greater than zero)
-            if key_error == False:
-                if data.shape[1] > 0:
-                    # Lambda function prepends the key and "_" to each element
-                    data = data.rename(
-                        lambda x: key + "_" + x, 
-                        axis = "columns"
-                        )
+            if data.shape[1] > 0:
+                # Lambda function prepends the key and "_" to each element
+                data = data.rename(
+                    lambda x: key + "_" + x, 
+                    axis = "columns"
+                    )
                     
                 # Concatenate data frame with data already fetched
                 data_return = pd.concat(
@@ -754,3 +852,4 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
         )
     
     return fetched_data
+
