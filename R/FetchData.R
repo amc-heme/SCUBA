@@ -488,7 +488,7 @@ FetchData.AnnDataR6 <-
       system.file(
         "extdata",
         "Python",
-        "fetch_anndata.py",
+        "fetch_data.py",
         package = "SCUBA"
         )
 

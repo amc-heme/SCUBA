@@ -673,7 +673,7 @@ fetch_data.AnnDataR6 <-
       system.file(
         "extdata",
         "Python",
-        "fetch_anndata.py",
+        "fetch_data.py",
         package = "SCUBA"
         )
     
@@ -762,7 +762,7 @@ fetch_data.md._core.mudata.MuData <-
       system.file(
         "extdata",
         "Python",
-        "fetch_anndata.py",
+        "fetch_data.py",
         package = "SCUBA"
       )
     
