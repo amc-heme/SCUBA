@@ -5,6 +5,7 @@
 \alias{fetch_data.Seurat}
 \alias{fetch_data.SingleCellExperiment}
 \alias{fetch_data.AnnDataR6}
+\alias{fetch_data.md._core.mudata.MuData}
 \title{Fetch feature expression data, reduction coordinates, or metadata from single-cell objects}
 \usage{
 fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
@@ -14,6 +15,8 @@ fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
 \method{fetch_data}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL, ...)
 
 \method{fetch_data}{AnnDataR6}(object, vars, layer = NULL, cells = NULL, ...)
+
+\method{fetch_data}{md._core.mudata.MuData}(object, vars, layer = NULL, cells = NULL, ...)
 }
 \arguments{
 \item{object}{A single-cell object. Currently, Seurat, SingleCellExperiment,
@@ -67,6 +70,8 @@ SeuratObject package.
 \item \code{fetch_data(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{fetch_data(AnnDataR6)}: anndata Objects
+
+\item \code{fetch_data(md._core.mudata.MuData)}: MuData Objects
 
 }}
 \examples{

@@ -32,6 +32,113 @@ def is_match(regex_search, target):
     else: 
         return False
 
+from typing import List, Optional, Tuple
+
+def _match_key(
+    var: str, 
+    keys: List[str]
+    ) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Helper function to match a variable prefixed with a key and an undsercore 
+    against a list of keys. 
+    
+    Sorts by descending key‐length so that, for example, 'MOFA_UMAP' won't 
+    accidentally match 'MOFA' if both 'MOFA_UMAP' and "MOFA" are keys.
+    
+    Arguments
+    ----------
+    var: a single variable to match against keys.
+    
+    keys: a list of keys to match var against.
+    
+    Returns
+    ----------
+    Returns (key, suffix) where:
+      - `key` is the matching key (or None if no match)
+      - `suffix` is everything after the first underscore following the key,
+         or None if there was no underscore+suffix.
+    """
+    # Convert keys to list
+    # Prevents unexpected behavior when a string is entered instead of a list
+    # Otherwise, entering just "X_pca" would check the var for "X", "_", 
+    # "p", "c", and "a" as separate keys
+    keys = [keys] if isinstance(keys, str) else keys
+    
+    # Code below was written by a LLM and later hand-annotated
+    # sorted: keys are sorted by decreasing number of characters to 
+    # avoid premature matches (i.e. if MOFA_UMAP and MOFA are keys, 
+    # MOFA_UMAP should be checked first)
+    for k in sorted(keys, key=len, reverse=True):
+        if var == k:
+            # Exact match of key with no content afterwards, return the key
+            # that was matched, and None for the suffix
+            return k, None
+        if var.startswith(k + "_"):
+            # Match of key with trailing content after an underscore
+            # Return key matched, and trailing content
+            return k, var[len(k) + 1 :]
+    # If all keys were iterated through and there are no matches, return
+    # None for both key and suffix
+    return None, None
+
+def match_vars(
+    keys: list[str],
+    match_vars: list[str],
+    mod_obs_keys: list[str] = list()
+    ) -> dict:
+    """
+    Helper function to map a set of variables to a set of keys, 
+    identifying which variables map to which keys.
+    
+    Arguments
+    ----------
+    keys: a list of keys to check vars against. For MuData 
+    objects, do not add mod_obs keys to the list of keys, 
+    pass them to `mod_obs_keys` instead. 
+    
+    match_vars: a list of vars to map to keys.
+    
+    mod_obs_keys: optional, a list of mod-obs keys to match. 
+    Any vars in match_vars that are contained in the list of 
+    mod_obs_keys will be placed in a list in the key "mod_obs"
+    of the dictionary returned.
+    
+    Returns
+    ----------
+    Dictionary
+        Keys are the values from `keys` with matching vars from 
+        `match_vars`. The values are the vars that match each key.
+        When mod_obs_keys is specified (for MuData objects), a 
+        special key, "mod_obs", will be created, and will contain
+        a list of all vars in match_vars that match any key in 
+        mod_obs_keys.
+    """
+     # Initilize dictionary for return
+    key_matches = {}
+    
+    # Convert keys to list to prevent accidential mis-handling of
+    keys = [keys] if isinstance(keys, str) else keys
+    
+    # Record mod-obs var matches in a special entry
+    if len(mod_obs_keys) > 0:
+        key_matches["mod_obs"] = [
+            var 
+            for var in match_vars 
+            if any(_match_key(var, key)[0] is not None for key in mod_obs_keys)
+            ]
+    
+    # Iterate through keys
+    for key in keys:
+        matches = [
+            var 
+            for var in match_vars 
+            if (key_match := _match_key(var, key)[0]) is not None
+            ]
+        if len(matches) > 0:
+            key_matches[key] = matches
+            
+    return key_matches
+
 def fetch_vars_from_matrix(matrix, matrix_vars, cells, var_names = None, obs_names = None):
     """
     Returns data for a set of vars from a single matrix (X, 
@@ -244,6 +351,96 @@ def fetch_vars_from_matrix(matrix, matrix_vars, cells, var_names = None, obs_nam
             
     return data
 
+def filter_obsm_vars(obsm_matrix, obsm_vars):
+    """
+    Given an obsm matrix of an anndata object and a set of variables
+    (keyless_vars in fetch_keyed_vars, with the obsm key removed)         
+    filter_obsm_vars() subsets the list of variables for those 
+    that are in the obsm matrix.
+    
+    Arguments
+    ----------
+    obsm_matrix: a matrix from the obsm slot of an anndata object 
+        (or an anndata object that is a modality of a MuData object).
+    
+    obsm_vars: a list of variables to check for presence in obsm_matrix.
+    
+    Returns
+    ----------
+    A list of vars from obsm_vars that exist in obsm_matrix.
+    """
+    if (isinstance(obsm_matrix, pd.DataFrame)):
+        # Pandas dataframes: use .columns method to pull valid 
+        # entries
+        obsm_vars = [var for var in obsm_vars if var in obsm_matrix.columns]
+    elif (
+        isinstance(obsm_matrix, np.ndarray) |
+        isinstance(obsm_matrix, csr_matrix) | 
+        isinstance(obsm_matrix, csc_matrix) |
+        isinstance(obsm_matrix, CSCDataset)
+    ):
+        # For numpy arrays (most likely, used for reductions), 
+        # and sparse matrices (less likely but possible)
+        # No column names, valid entries are based on index 
+        
+        # Form input to var_names argument 
+        # var_names is constructed for obs matrices, using the 
+        # same type as var_names in anndata objects (Pandas Index)
+        # var_names consists of the valid vars, which are the 
+        # dimensions of the matrix using a 1-based index (for 
+        # consistency with R SCUBA methods, and based on the 
+        # assumption that the user is requesting vars from R)
+        var_names = pd.Index(
+            [str(x) for x in range(1, obsm_matrix.shape[1] + 1)]
+            )
+        
+        # Subset vars to valid dimensions as defined above
+        obsm_vars = [
+            var for var in obsm_vars if var in var_names
+            ]
+            
+    return obsm_vars
+
+def form_obsm_var_names(obsm_matrix):
+    """
+    Forms the var_names argument to fetch_vars_from_matrix for obsm 
+    matrices in anndata objects (or anndata objects that are 
+    modalities of MuData objects).
+    
+    Arguments
+    ----------
+    obsm_matrix: a matrix from the obsm slot of an anndata object 
+        (or an anndata object that is a modality of a MuData object).
+    
+    Returns
+    ----------
+    A numpy index of vars in the object that can be passed as an 
+        argument to fetch_vars_from_matrix.
+    """
+    if (isinstance(obsm_matrix, pd.DataFrame)):
+        # var_names is not required as an input to 
+        # fetch_vars_from_matrix when matrix is a pd.DataFrame
+        var_names = None
+    elif (
+        isinstance(obsm_matrix, np.ndarray) |
+        isinstance(obsm_matrix, csr_matrix) | 
+        isinstance(obsm_matrix, csc_matrix) |
+        isinstance(obsm_matrix, CSCDataset)
+        ):
+        # For numpy arrays (most likely, used for reductions), 
+        # and sparse matrices (less likely but possible)
+        # No column names, valid entries are based on index 
+        
+        # var_names are the dimensions of the obsm matrix, using 
+        # a one-based index for consistency with R SCUBA methods,
+        # and based on the assumption the user is requesting vars 
+        # from R
+        var_names = pd.Index(
+            [str(x) for x in range(1, obsm_matrix.shape[1] + 1)]
+            )
+    
+    return var_names
+
 # This is used by fetch_keyed_vars_mudata so it must be in this script
 def fetch_metadata_mudata(obj, meta_vars):
     """
@@ -301,18 +498,23 @@ def fetch_metadata_mudata(obj, meta_vars):
     
     # Transform names matching the regex if they do not appear in 
     # the set of existing vars
-    meta_vars = [
-        var if var in obs_vars
-        else pattern.sub(r"\1:\2", var)
-        for var in meta_vars
-    ]
+    # Transformed vars are stored in a dictionary with the transformed var
+    # as keys (if transfored) and the orginal var as the value
+    # This allows mapping of transformed vars to original vars, so the 
+    # original var can be determined.
+    transformed_vars = {}
+    for var in meta_vars:
+        if var in obs_vars:
+            transformed_vars[var] = var
+        else:
+            transformed_vars[pattern.sub(r"\1:\2", var)] = var
     
     # Pull metadata vars into MuData obs table
     obj.pull_obs(columns = meta_vars)
     
     # Suggested code for aggregation of metadata accross modalities
     if obj.axis == 0:
-        for var in meta_vars:
+        for var, orginal_var in transformed_vars.items():
             # When axis = 0, columns pulled will always contain the modality 
             # prefix with a ":" (i.e. "mod1:qc")
             # In the case a user enters a variable with a modality prefix, 
@@ -321,7 +523,10 @@ def fetch_metadata_mudata(obj, meta_vars):
             # obs matrix of the MuData object
             if var in obj.obs.columns:
                 # In this case, pull the variable that exactly matches the query
-                obs_data[var] = obj.obs[var]
+                # Store the data in the return dataframe using the var name
+                # as it was entered to the function, rather than the 
+                # transformed machine-readable var
+                obs_data[orginal_var] = obj.obs[var]
             else:
                 # Vars entered without a modality prefix
                 # Extract columns returned via regex
@@ -345,7 +550,7 @@ def fetch_metadata_mudata(obj, meta_vars):
                     # either in just one modality (when axis = 0, obs_names 
                     # are shared)
                     # Copy the matching column to the metadata table output
-                    obs_data[var] = obj.obs[matches[0]]
+                    obs_data[orginal_var] = obj.obs[matches[0]]
                 else:
                     # Multiple entires found: variable is in more than one 
                     # modality, and may not be describing the same property 
@@ -637,134 +842,270 @@ def fetch_keyed_vars_mudata(obj, target_vars, cells, layer):
     data_return = pd.DataFrame()
     
     # 1. Define keys
-    # Modality keys, plus "obs", plus obsm keys from each modality
+    # Types of keys in Mudata
+    # A. Modality keys 
+    # Used to pull features from a modality
+    mod_keys = list(obj.mod_names)
     
-    # Compile obsm keys
-    # Construct a set of unique keys by looping through the obsm keys of each 
-    # constituent anndata object
-    obsm_keys = list({key 
+    # B. obs key: used for generic metadata queries
+    # In MuData objects with axis = 0, obs vars with the same name in multiple 
+    # modalities may not 
+    # describe the same thing (i.e. GEX_n_counts and ADT_n_counts), so users
+    # will have to specify the modality. These are mod-obs keys (see D.)
+    obs_key = ["obs"]
+    
+    # C. obsm keys: used for generic obsm queries
+    # In MuData objects with axis = 0, obsm entries with the same name 
+    # likewise may not describe the same thing. mod-obsm keys will be required
+    # to specify which modality to pull obsm data from 
+    obsm_keys = list(
+        # Construct a set of unique keys by looping through the obsm keys of each 
+        # constituent anndata object (then transform to list to concatenate
+        # with other keys)
+        {key 
         for adata in obj.mod.values() 
-        for key in adata.obsm.keys()})
+        for key in adata.obsm.keys()}
+        )
     
-    key_names = list(obj.mod_names) + ["obs"] + obsm_keys
+    # D. Mod-obs keys: specifies which modality to pull an obs variable from
+    mod_obs_keys = [
+        f"{mod_name}_{obs_var}"
+        for mod_name, adata in obj.mod.items()
+        for obs_var in adata.obs.keys()
+        ]
     
-    # 2. For each key, identify vars and fetch data if found
-    # Before iterating through keys, initialize a list of vars found 
-    keyed_var_locations = []
+    # E. Mod-obsm keys: specifies which modality to pull an obsm variable from
+    mod_obsm_keys = [
+        f"{mod_name}_{obsm_var}"
+        for mod_name, adata in obj.mod.items()
+        for obsm_var in adata.obsm.keys()
+        ]
     
-    for key in key_names:
-        # Conditional that is set to True in 2.2. if there are issues accessing
+    # Run match_vars to record which vars match which key
+    # Construct keys to search through for vars. mod-obs keys are 
+    # passed separately to match_vars since they can be fetched all
+    # at once as if they came from a single key
+    key_names = mod_keys + obs_key + obsm_keys + mod_obsm_keys
+    
+    var_locations = match_vars(
+        keys = key_names, 
+        match_vars = target_vars,
+        mod_obs_keys = mod_obs_keys
+        )
+    
+    # 2. Fetch data for each key
+    # Each key is a location from which associated vars can be pulled all 
+    # at once and packaged into a dataframe of cells by vars.
+    for key, key_vars in var_locations.items():
+        # Iteration: each key has a list of associated variables (key_vars)
+        # Construct a list of "keyless vars" for the key
+        # This list represents the
+        keyless_vars = [
+          (keyless_var := _match_key(var, key)[1]) 
+          for var in key_vars
+          ]
+    
+        # Conditional that is set to True in 2.2. if there are 
+        # issues accessing
         # any variables in a given matrix
         # See if this is still needed for mudata
         # key_error = False
         
         ## 2.1. Search for keyed vars for the current location in target_vars ####
-        # Create regex object from the current key for searching
-        # Capture group will return the text in the var after the key and "_" 
-        # (the name of the var in the matrix)
-        key_regex = re.compile("^" + key + "_(.*)")
         
-        # matches: a dictionary mapping the original keyed var to the "keyless" 
-        # var produced from removing the key plus an underscore. The keyless var 
-        # is how the var should appear in the matrix it is being pulled from.
-        
-        # Dictionary comprehension is used to return variables for which the 
-        # regex search is "truthy". When a match is found, a a regex match 
-        # object will be returned, which will evaluate as true in the if 
-        # statement below.
-        matches = {var:key_regex.search(var).groups()[0] 
-            for var in target_vars 
-            if key_regex.search(var)
-            }
-        
-        # Extract values from curated matches dictionary (keyless vars to search
-        # matrix for)
-        keyless_vars = list(matches.values())
-        
-        ## 2.2. Fetch Data if vars exist in the current location ####
-        if (len(keyless_vars) > 0):
-            # Means of fetching data based on key
-            # Feature data
-            if key in list(obj.mod_names):
-                # Define matrix associated with key
-                if layer == None:
-                    matrix = obj[key].X
+        ## 2.2. Fetch Data based on key type ####
+        # Features (mod keys)
+        if key in list(obj.mod_names):
+            # Define matrix to pull based on `layer` 
+            if layer == None:
+                matrix = obj[key].X
+            else:
+                # Check if layer is in object before pulling
+                if layer in obj.layers.keys:
+                    obj[key].layers[layer]
                 else:
-                    # Check if layer is in object before pulling
-                    if layer in obj.layers.keys:
-                        obj[key].layers[layer]
-                    else:
-                        r.warning(
-                            "Requested layer " +
-                            layer +
-                            " not found in modality " +
-                            key +
-                            "."
-                            )
+                    r.warning(
+                        "Requested layer " +
+                        layer +
+                        " not found in modality " +
+                        key +
+                        "."
+                        )
+        
+            # Before fetching data, subset for keyless vars 
+            # that are in the var names of the anndata object 
+            # representing the modality
+            keyless_vars = [
+                var for var in keyless_vars if var in obj[key].var_names
+                ]
+                    
+            # Form input to var_names argument of fetch_matrix,
+            # to properly index matrices for features
+            # Uses the var names for the modality corresponding to the key
+            var_names = obj[key].var_names
             
-                # Before fetching data, subset for keyless vars 
-                # that are in the var names of the anndata object 
-                # representing the modality
-                keyless_vars = [
-                        var for var in keyless_vars if var in obj[key].var_names
-                        ]
-                        
-                # Form input to var_names argument of fetch_matrix,
-                # to properly index matrices for features
-                # Uses the var names for the modality corresponding to the key
-                var_names = obj[key].var_names
-                
-                ### Pull data for cells, keyless vars from matrix ####
-                # Use fetch_vars_from_matrix from above
-                try:
-                    print("Key = {}".format(key))
-                    breakpoint()
-                    data = fetch_vars_from_matrix(
-                        matrix = matrix, 
-                        matrix_vars = keyless_vars, 
-                        cells = cells, 
-                        var_names = var_names, 
-                        obs_names = obj.obs_names
-                        )
-                except NotImplementedError as e:
-                    # There is a NotImplementedError raised from 
-                    # fetch_vars_from_matrix that appears when an unsupported 
-                    # matrix type is entered. However, the context of which matrix 
-                    # triggered the error (what key) is not available to that 
-                    # function. The error is caught here and reported
-                    # with that context
-                    raise NotImplementedError(
-                        ("The SCUBA Python function fetch_anndata does not know "
-                        "how to handle a matrix of class {0}. "
-                        "This ocurred with the matrix at key '{1}'."
-                        ).format(type(matrix), key)
-                        )
-                
-            elif key == "obs":
-                # Metadata
-                # Pass variables to the fetch_metadata_mudata function
-                data = fetch_metadata_mudata(
-                    obj = obj, 
-                    meta_vars = keyless_vars
+            ### Pull data for cells, keyless vars from matrix ####
+            # Use fetch_vars_from_matrix from above
+            try:
+                data = fetch_vars_from_matrix(
+                    matrix = matrix, 
+                    matrix_vars = keyless_vars, 
+                    cells = cells, 
+                    var_names = var_names, 
+                    obs_names = obj.obs_names
                     )
-            elif key in obsm_keys:
-                pass
+            except NotImplementedError as e:
+                # There is a NotImplementedError raised from 
+                # fetch_vars_from_matrix that appears when an unsupported 
+                # matrix type is entered. However, the context of which matrix 
+                # triggered the error (what key) is not available to that 
+                # function. The error is caught here and reported
+                # with that context
+                raise NotImplementedError(
+                    ("The SCUBA Python function fetch_anndata does not know "
+                    "how to handle a matrix of class {0}. "
+                    "This ocurred with the matrix at key '{1}'."
+                    ).format(type(matrix), key)
+                    )
             
-            # Concatenate with data already fetched
+        elif key == "obs":
+            # Metadata
+            # Pass variables to the fetch_metadata_mudata function
+            data = fetch_metadata_mudata(
+                obj = obj, 
+                meta_vars = keyless_vars
+                )
+        elif key in obsm_keys:
+            # Query which modalities the obsm key is present in
+            mods_present = [
+                mod for mod, adata in obj.mod.items() if key in adata.obsm
+                ]
+            
+            if len(mods_present) == 0:
+                # Obsm key not found in any modality: pass
+                pass
+            elif len(mods_present) == 1:
+                # Obsm key found in one modality: pull data
+                # Identify modality in which the key was found
+                mod = mods_present[0]
+                
+                # Filter keyless_vars for those in the matrix and then 
+                # pull via fetch_vars_from_matrix
+                keyless_vars = filter_obsm_vars(
+                    obsm_matrix = obj[mod].obsm[key], 
+                    obsm_vars = keyless_vars
+                    )
+                
+                var_names = form_obsm_var_names(
+                    obsm_matrix = obj[mod].obsm[key]
+                    )
+                
+                # Fetch vars from matrix
+                data = fetch_vars_from_matrix(
+                    matrix = obsm_matrix,
+                    matrix_vars = keyless_vars,
+                    # Filter cells for those in the modality
+                    cells = [cell for cell in cells if cell in obj[mod].obs_names],
+                    var_names = var_names,
+                    obs_names = obj[mod].obs_names
+                    )
+                
+            else:
+                # Obsm key found in multiple modalites: warn
+                r.warning(
+                    'The obsm key entered (' + key + ') was found in ' + 
+                    "more than one modality. This is considered an " +
+                    "ambiguous entry, since it can't be guaranteed that " +
+                    "the key entered describes the same information " +
+                    "accross the different modalities. To pull data for " + 
+                    "this variable, please specify which modality to " +
+                    "pull the obsm variable from (for example, to pull " +
+                    "the first coordinate of the " +
+                    'X_umap matrix from mod1, enter "mod1_X_umap_1".',
+                    **{'call.': False}
+                )
+        
+        elif key == "mod_obs":
+            # Metadata from a specific modality (mod-obs keys)
+            
+            # Pass variables to the fetch_metadata_mudata function
+            data = fetch_metadata_mudata(
+                obj = obj, 
+                # Use vars with keys (fetch_metadata_mudata will handle them)
+                meta_vars = key_vars
+                )
+            
+        elif key in mod_obsm_keys:
+            # Obsm data from a specific modality (mod-obsm keys)
+            # Key contains the obsm matrix to pull from, and the modality 
+            # from which to pull the obsm matrix. 
+            # To parse this information, use _match_key against modality keys
+            # The modality will be returned as the key, and the obsm_matrix
+            # key will be the trailing content
+            mod, obsm_key = _match_key(var = key, keys = mod_keys)
+            
+            # Pull the matrix for the modality and the obsm key
+            obsm_matrix = obj[mod].obsm[obsm_key]
+            
+            # Filter keyless_vars for those in the matrix and then 
+            # pull via fetch_vars_from_matrix
+            keyless_vars = filter_obsm_vars(
+                obsm_matrix = obsm_matrix, 
+                obsm_vars = keyless_vars
+                )
+            
+            var_names = form_obsm_var_names(
+                obsm_matrix = obsm_matrix
+                )
+            
+            # Fetch vars from matrix
+            data = fetch_vars_from_matrix(
+                matrix = obsm_matrix,
+                matrix_vars = keyless_vars,
+                # Filter cells for those in the modality
+                cells = [cell for cell in cells if cell in obj[mod].obs_names],
+                var_names = var_names,
+                obs_names = obj[mod].obs_names
+                )
+            
+        else:
+            r.warning(
+                ("Unrecognized key: {0}. This is an issue with SCUBA. If " + 
+                "there is not already an open issue for 'unrecognized key', " +
+                "please file an issue with the input made to fetch_data, " + 
+                "and a description the data you were intending to pull " +
+                "from your object (i.e. is it a reduction matrix, a varm " +
+                "matrix, etc.)").format(key)
+                )
+            # Skip to the next key
+            pass
+            
+        
+        # Concatenate with data already fetched
+        if data.shape[1] > 0:
             # Add location key back in to variable names and concatenate data
             # to data already fetched
-            if data.shape[1] > 0:
-                # Lambda function prepends the key and "_" to each element
+            # Lambda function prepends the key and "_" to each element
+            # This is not needed for mod-obs vars (the special key "mod_obs")
+            # will be present, and this should not be added
+            if (key != "mod_obs"):
                 data = data.rename(
                     lambda x: key + "_" + x, 
                     axis = "columns"
                     )
-                    
-                # Concatenate data frame with data already fetched
-                data_return = pd.concat(
-                    [data_return, data],
-                    axis = 1
-                    )
+            
+            # It is possible for data returned from a modality to be a 
+            # subset of the full object (but not likely with axis=0)
+            # The data returned is therefore reindexed to the cells 
+            # requested. NaN values will be added for cells requested
+            # that aren't in data.
+            data = data.reindex(index=cells)
+                
+            # Concatenate data frame with data already fetched
+            data_return = pd.concat(
+                [data_return, data],
+                axis = 1
+                )
                     
     # When finished with iteration through keys, return the dataframe
     return data_return
@@ -794,7 +1135,7 @@ def remove_key(data, key, vars_modify=None):
     A pandas dataframe with modified column names. The data itself will
     be unchanged.
     """
-    # Identify variables with obs key
+    # Identify variables with key to remove
     key_regex = re.compile("^" + key + "_(.*)")
     
     if vars_modify==None:
@@ -802,8 +1143,8 @@ def remove_key(data, key, vars_modify=None):
     else:
         target_vars = vars_modify
     
-    # Generate names of obs variables without the obs key
-    # Also maps var names with obs keys to var names without the key
+    # Generate names of variables without the key
+    # Also maps var names with keys to var names without the key
     remove_key = {var:key_regex.search(var).groups()[0] 
                 for var in target_vars
                 if key_regex.search(var)
@@ -1207,3 +1548,403 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     
     return fetched_data
 
+def fetch_mudata(obj, fetch_vars, cells=None, layer=None):
+    """
+    Fetches the specified variables from an anndata object.
+    
+    Arguments
+    ----------
+    obj: an anndata object.
+    
+    fetch_vars: a list giving the variables to fetch from the object.
+    Variables entered should ideally have a key prepended with the 
+    location of the variable in the object, for example, if you have
+    a genes modality named GEX, and you are pulling the FIS1 gene 
+    from this modality, use "GEX_FIS1" insead of "FIS1". To pull 
+    metadata, use "obs_", and to pull data from a 
+    matrix in obsm, use the name of that matrix, not obsm. Variables 
+    that are entered without a key can still be found, as long as there 
+    is only one matrix in the object with that variable name. Variables 
+    that do not have a valid key (X_, obs_, and a key from obj.obsm_names()) 
+    will be ignored, as will duplicate variables.
+    
+    cells: Optional, a list of cells to return data for. If left as 
+    None, data will be returned for all cells in the object.
+    
+    layer: Optional, a string specifying the layer to return data from, 
+    provided the variable in question is from the X matrix. The layer 
+    argument is ignored for variables from all other locations, including 
+    alternate modalities.
+    """
+    # If target_vars was passed as a one-element vector from R, it will be
+    # a string now. This must be converted to a list to avoid issues during
+    # iteration. Multi-element character vectors are properly converted to a 
+    # list.
+    if isinstance(fetch_vars, str):
+        fetch_vars = [fetch_vars]
+    
+    # 1. Set default values
+    # Layer (assay): if null, data will be pulled from object$X
+
+    # Cells: if None (NULL), use all cells in the object
+    if cells == None:
+        cells = list(obj.obs_names)
+    
+    # 2. Check fetch_vars for duplicate entries
+    # First ensure fetch_vars is a list (otherwise fetch_anndata will attempt
+    # to pull data for each letter of a feature entered, instead of the 
+    # feature itself)
+    # if not isinstance("X_CATSPER4", list):
+    #     raise TypeError("fetch_vars must be a list.")
+    
+    # "fetch_vars" is used instead of "vars" since vars is a base 
+    # python function
+    
+    # Use collections.Counter to find duplicates
+    # Must iterate through the keys of the dictionary produced by counter
+    # If iterating through fetch_vars, duplicates will display twice (or as
+    # many times as they appear in fetch_vars)
+    duplicate_vars = [var
+        for var in Counter(fetch_vars).keys()
+        if Counter(fetch_vars)[var] > 1
+        ]
+    
+    # Report duplicates to the user and notify that only one entry 
+    # will be included 
+    if len(duplicate_vars) > 0:
+        r.warning(
+            ("Duplicate entries passed to vars: " +
+            ", ".join(duplicate_vars) +
+            ". Only one entry for each variable will be returned."),
+            # The call context for the warning prints as 
+            # do.call(fn, c(args, named_args)) 
+            # which is not useful for the end user. The call is suppressed by
+            # setting call. to FALSE. 
+            # The . in call. causes an error with Python syntax, so it is 
+            # specified using dictionary unpacking. "call." is passed as a 
+            # string in a dictionary, and tells warning() to accept a call. 
+            # argument and set it to False (FALSE in R)
+            **{'call.': False}
+            )
+
+    # Remove duplicates by creating a dictionary from the list, and converting
+    # back to a list
+    # https://stackoverflow.com/questions/480214/how-do-i-remove-duplicates-from-a-list-while-preserving-order
+    # Dictionaries automatically remove duplicate keys, while preserving the 
+    # order keys appear (sets do not)
+    fetch_vars = list(dict.fromkeys(fetch_vars))
+    
+    # 3. Pull data for keyed features in each key location
+    # (uses fetch_keyed_vars function)
+    fetched_data = fetch_keyed_vars_mudata(
+        obj = obj, 
+        target_vars = fetch_vars,
+        cells = cells, 
+        layer = layer
+        )
+    
+    # 4. Identify location of remaining vars
+    # Feature data can appear in object.obs (metadata), so ambiguous vars 
+    # should be checked to avoid returning incorrect data in the case of data 
+    # being found in multiple assays
+    
+    # Identify remaining variables via list comprehension
+    remaining_vars = [
+        var_i 
+        for var_i in fetch_vars 
+        if var_i not in list(fetched_data.columns)
+        ]
+    
+    # Determine the location of each remaining variable
+    remaining_locations = {}
+    
+    # For each variable, record the locations in the MuData object where 
+    # it is found
+    for var in remaining_vars:
+        # Begin with an empty list for the variable and append when found
+        remaining_locations[var] = []
+        
+        # Test for mod-vars
+        for mod in obj.mod_names:
+            # If the var is in the list of var names for the modality,
+            # add the modality as a location for the variable
+            if var in obj[mod].var_names:
+                remaining_locations[var].append(mod)
+        
+        # Test for presence in metadata
+        if var in obj.obs.columns:
+            # Vars present in just the obs slot can be pulled as obs variables
+            remaining_locations[var].append("obs")
+        else:
+            mods_present = [
+                mod 
+                for mod, adata in obj.mod.items() 
+                if var in obj[mod].obs_keys()
+                ]
+            
+            if (len(mods_present) == 0):
+                # If not present in any modalities, it is likely not an obs var
+                # continue iterating in this case
+                pass
+            elif (len(mods_present) == 1):
+                # If the obs variable is present in exactly one variable, 
+                # it is not ambiguous and can be pulled. 
+                # In this case, append the variable to the list of obs 
+                # variables in remaining locations
+                remaining_locations[var].append("obs")
+            else:
+                r.warning(
+                    ("The variable {0} was found in the obs slot of " +
+                    "multiple modalities. For MuData objects with an axis " +
+                    "of 0, it can't be assumed that the variable describes " +
+                    "the same property accross multiple modalities, so the " +
+                    "data can't be combined. To pull data for this " + 
+                    "variable, specify the modality to pull the obs variable " +
+                    "from using an underscore (for example, if you have a " +
+                    "modality called 'GEX' and you would like to pull {0} " +
+                    "from this modality, enter the varable " +
+                    "as GEX_{0}).").format(var)
+                    )
+        
+        # Test for unambiguous presence in obsm matrices
+        # For MuData objects, it's not clear what this would represent
+        # Unkeyed variables would be a column in an obsm matrix 
+        for mod in obj.mod_names:
+            for obsm_key in obj[mod].obsm_keys():
+                # Test only obsm matrices that are obsm dataframes 
+                # (all other matrices would involve index inputs, 
+                # which are not specific enough)
+                if isinstance(obj[mod].obsm[obsm_key], pd.DataFrame):
+                    # Look for var in the columns of the dataframe 
+                    if remaining_var in obj[mod].obsm[obsm_key].columns:
+                        # Create a mod-obsm key to define the location of the
+                        # variable
+                        remaining_locations[var].append(mod + "_" + obsm)
+                else:
+                    pass
+    
+    # 5. Warn the user if remaining vars are found in multiple locations
+    # Need a warning that does not interrupt the function (warnings behave 
+    # like errors when called with raise)
+    
+    # Identify remaining vars in multiple locations
+    ambiguous_vars = {key:value 
+                          for (key, value) in remaining_locations.items() 
+                          if len(value) > 1
+                          }
+                        
+    if len(ambiguous_vars) > 0:
+        # Display an example of how to remove ambiguous vars to the user
+        # Store an ambiguous var, and the possible keys that can be added
+        example_var = list(ambiguous_vars.keys())[0]
+        example_keys = ambiguous_vars[example_var]
+        
+        # Generate a list of the features to be en
+        example_entries = [key + "_" + example_var for key in example_keys]
+        
+        # Construct string from examples
+        if len(example_entries) == 2:
+            # If there are two possible entries, add "or" between the examples 
+            example_str = ", or ".join(example_entries)
+        elif len(example_entries) > 2:
+            # If there are more than two possibilities, add "or" before the 
+            # last entry and join all other entries with a comma.
+            example_entries[-1] = "or " + example_entries[-1]
+            example_str = ", ".join(example_entries)
+        
+        # Display warning message
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
+            ("The following variables were found in multiple locations: " +
+            ", ".join(list(ambiguous_vars.keys())) +
+            ". These variables will not be retrieved due to ambiguity. " +
+            "To pull data for these variables, please specify which " +
+            "location in the object to pull the variable from using an " + 
+            "underscore (for example: " +
+            example_str +
+            ")."
+            ),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
+            )
+            
+    # 6. Fetch data for remaining vars ####
+    # Keys will be added, and then data will be fetched for the new keyed vars
+    
+    ## 6.1. Add keys (for remaining vars where a key was identified) ####
+    # Identify vars to add key to (vars with exactly one location identified)
+    ambiguous_vars_in_one_location = {key:value 
+        for (key, value) in remaining_locations.items() 
+        if len(value) == 1
+        }
+    
+    # Create dictionary mapping the vars above to their keyed equivalents
+    # Add key with underscore to var name 
+    map_keyed_vars = {key:value[0] + "_" + key 
+        for (key, value) in ambiguous_vars_in_one_location.items()}
+    
+    # Identify ambiguous obsm vars (these will result in a warning while 
+    # ambiguous vars in X or obs will not)
+    # ambiguous_obsm_vars = {key:value 
+    #     for (key, value) in ambiguous_vars_in_one_location.items() 
+    #     # if value (checks that value exists, though it always should)
+    #     if value and value[0] not in {"X", "obs"}
+    #     }
+    
+    new_keyed_vars = list(map_keyed_vars.values())
+
+    ## 6.2. Catch duplicate vars ####
+    # Vars without keys may be the same as those entered with keys. For 
+    # example, FIS1 and X_FIS1 should describe the same variable. If 
+    # duplicates are added to the fetch_data dataframe, unexpected behavior
+    # will occur later on when the variables are sorted, and duplicate entries
+    # of the same variable do not add any value to the user. If variables 
+    # with keys added are the same as the keyed variables already fetched, the 
+    # variable should not be added again. 
+    
+    # Construct a dictionary with variables that match existing columns in 
+    # fetched_data after the key is added
+    duplicate_vars = {
+        var_entered:keyed_var 
+        for (var_entered, keyed_var) in map_keyed_vars.items() 
+        if keyed_var in fetched_data.columns
+        }
+
+    if len(duplicate_vars) > 0:
+        # Warn the user that a variable is duplicated and only one 
+        # copy will be returned
+        # For each key:value pair in duplicate vars, create a set of 
+        # human-readable strings describing the feature entered and its 
+        # equivalent duplicate
+        duplicate_description = [key + ", equivalent to " + value 
+            for (key, value) in duplicate_vars.items()]
+        duplicate_description = "; ".join(duplicate_description)
+        
+        # Example of the keyed variable(s) to be returned
+        will_be_returned = ", ".join(list(duplicate_vars.values()))
+        
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
+            ("The following entries describe the same variable: " +
+            duplicate_description + 
+            ". Only the copy of the variable with the key entered will be " +
+            "returned (" +
+            will_be_returned +
+            ")."),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
+            )
+        
+        # Remove the duplicate variable(s) before fetching data
+        new_keyed_vars = [var 
+            for var in new_keyed_vars 
+            if var not in duplicate_vars.values()]
+            
+        # Also remove duplicate vars from the list of X_vars 
+        # (X_vars is used to remove the modality key from features in X entered
+        # without a modality key. If this is not done, an entry of "X_GAPDH" 
+        # and "GAPDH" will result in a return of the column name "GAPDH" 
+        # instead of "X_GAPDH").
+       # X_vars = [var for var in X_vars if var not in duplicate_vars.keys()]
+        
+        # Also remove duplicates from fetch_vars (this variable is used later on 
+        # to sort the final dataframe, and duplicate entries in fetch_vars will
+        # cause duplication in the dataframe).
+        fetch_vars = [var 
+            for var in fetch_vars
+            if var not in duplicate_vars.values()]
+
+    ## 6.3. Fetch data for new keyed variables and append to fetched_data ####
+    new_data = fetch_keyed_vars_mudata(
+        obj = obj, 
+        target_vars = new_keyed_vars,
+        cells = cells, 
+        layer = layer
+        )
+        
+    fetched_data = pd.concat(
+        [fetched_data, new_data],
+        axis = 1
+        )
+
+    # 7. Determine which vars, if any, were not returned
+    vars_not_found = [var 
+      for var in fetch_vars 
+      if var not in fetched_data.columns
+      ]
+    
+    # Record the vars found in 6 (these will show up in vars_not_found 
+    # incorrectly since the vars in fetch_data contain the new key added)
+    new_keyed_vars_found = [var 
+        for var in map_keyed_vars.keys() 
+        if map_keyed_vars[var] in fetched_data.columns
+        ]
+        
+    # Remove any vars in new_keyed_vars_found from vars_not_found
+    vars_not_found = [var 
+        for var in vars_not_found 
+        if var not in new_keyed_vars_found
+        ]
+            
+    # 8. Warnings/errors for variables not found ####
+    # ten_plus_message: added to message if there are more than 10 
+    # missing variables
+    if (len(vars_not_found) > 10):
+        ten_plus_message = "(10 out of {} shown)".format(len(vars_not_found))
+    else:
+        ten_plus_message = ""
+    
+    # Show an error if all vars were not found, and a warning if at least 
+    # one var was not found
+    if len(vars_not_found) == len(fetch_vars):
+        raise ValueError(
+            "None of the requested variables were found " +
+            ten_plus_message +
+            ": " +
+            ", ".join(vars_not_found)
+            )
+    elif len(vars_not_found) > 0:
+        # Warn in R (better user experience, and can be detected by testthat)
+        r.warning(
+            "The following requested variables were not found " +
+            ten_plus_message +
+            ": " +
+            ", ".join(vars_not_found),
+            # Remove call context (not useful, see comment above)
+            **{'call.': False}
+            )
+    
+    # 9. Sort columns ####
+    # Order of columns in data should reflect the order entered, not the 
+    # order fetched
+    # Columns in dataframe use keys for all vars, including those entered 
+    # without a key. To sort properly, keys are added to var names using 
+    # the mapping produced in 6.
+    # Get method: if a mapped keyed variable exists for var, that variable is 
+    # returned. If not, the var is returned as-is.
+    var_order = [map_keyed_vars.get(var, var) for var in fetch_vars]
+    # Remove variables that are not in the column names of the dataframe
+    # to avoid errors
+    var_order = [var for var in var_order if var in fetched_data.columns]
+    
+    # Pass list to fetched_data to order columns accordingly
+    fetched_data = fetched_data[var_order]
+
+    # 10. Remove keys from ambiguous variables entered without a key
+    # Goal is to return var names exactly as they are entered, as is the 
+    # case with Seurat FetchData.
+    #
+    # Variables passed to fetch data are in fetch_keyed_vars
+    # fetch_keyed_vars is a mapping of entered vars to their keyed equivalents
+    # To re-name variables, a mapping of keyed equivalents to original vars
+    # is needed.
+    # To do this, map_keyed_vars is reversed.
+    keyed_to_original = {keyed_var: original_var 
+        for original_var, keyed_var in map_keyed_vars.items()
+        # Exclude vars that were not successfully fetched
+        if keyed_var in fetched_data.columns
+        }
+    
+    fetched_data = fetched_data.rename(keyed_to_original, axis=1)
+    
+    return fetched_data
