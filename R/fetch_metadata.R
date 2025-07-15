@@ -338,25 +338,43 @@ fetch_metadata.md._core.mudata.MuData <-
     full_table = FALSE,
     return_class = "dataframe"
   ){
-    # Subset for first modality (anndata object, assumed to be the default)]
-    # Python indexing is used for mod_names to select the first element
-    adata <- object[object$mod_names[[1]]]
+    # MuData objects
+    # Run fetch_metadata_mudata Python function from fetch_data Python script
+    library(reticulate)
     
-    lapply(
-      object$mod_names,
-      function(mod){
-        # Pull modality (as anndata object)
-        adata <- object[[mod]]
-        
-        # Run fetchdata on the anndata object
-        fetch_metadata(
-          adata,
-          vars,
-          cells,
-          full_table,
-          return_class 
-        )
-      }
-    )
+    if (!requireNamespace("reticulate", quietly = TRUE)) {
+      stop(
+        paste0(
+          'Package "reticulate" must be installed to use this ',
+          'function with anndata objects.'
+        ),
+        call. = FALSE
+      )
+    }
     
+    # Establish Python package dependencies
+    # Reticulate will automatically manage a Python environment with these 
+    # packages, installing each if they are not already present
+    py_require("anndata>=0.11.4")
+    py_require("pandas>=2.0.0")
+    py_require("numpy")
+    py_require("scipy>=1.14.0")
+    
+    # Source fetch_data python script 
+    # (contains functions for anndata and MuData)
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_data.py",
+        package = "SCUBA"
+      )
+    
+    py_objs <- reticulate::py_run_file(python_path)
+    
+    py_objs$fetch_mudata(
+      obj = object,
+      fetch_vars = vars,
+      cells = cells
+      )
   }

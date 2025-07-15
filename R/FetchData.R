@@ -483,7 +483,7 @@ FetchData.AnnDataR6 <-
       )
     }
 
-    # Source fetch_anndata python script
+    # Source fetch_data python script
     python_path =
       system.file(
         "extdata",

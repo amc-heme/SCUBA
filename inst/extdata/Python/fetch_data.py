@@ -442,7 +442,7 @@ def form_obsm_var_names(obsm_matrix):
     return var_names
 
 # This is used by fetch_keyed_vars_mudata so it must be in this script
-def fetch_metadata_mudata(obj, meta_vars):
+def fetch_metadata_mudata(obj, meta_vars, cells = None):
     """
     Fetches metadata vars in MuData objects.
     
@@ -468,6 +468,10 @@ def fetch_metadata_mudata(obj, meta_vars):
     meta_vars: a list of vars present in any of the obs matrices in the 
         modalities, or the obs matrix of the 
         MuData object.
+
+    cells: if None (the default), all cells in the MuData object are 
+        returned. If a list of cell IDs, only results for those IDs
+        will be returned.
     """
     # Initialize dataframe used to pull obs variables 
     obs_data = pd.DataFrame(index=obj.obs.index)
