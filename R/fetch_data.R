@@ -631,8 +631,6 @@ fetch_data.AnnDataR6 <-
     cells = NULL,
     ...
     ){
-    library(reticulate)
-    
     if (!requireNamespace("reticulate", quietly = TRUE)) {
       stop(
         paste0(
@@ -642,6 +640,8 @@ fetch_data.AnnDataR6 <-
         call. = FALSE
       )
     }
+    
+    library(reticulate)
     
     # Establish Python package dependencies
     # Reticulate will automatically manage a Python environment with these 
@@ -719,8 +719,6 @@ fetch_data.md._core.mudata.MuData <-
   ){
     # MuData objects
     # Run Python fetch_data scripts
-    library(reticulate)
-    
     if (!requireNamespace("reticulate", quietly = TRUE)) {
       stop(
         paste0(
@@ -730,6 +728,8 @@ fetch_data.md._core.mudata.MuData <-
         call. = FALSE
       )
     }
+    
+    library(reticulate)
     
     # Establish Python package dependencies
     # Reticulate will automatically manage a Python environment with these 

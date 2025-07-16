@@ -473,8 +473,10 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
         returned. If a list of cell IDs, only results for those IDs
         will be returned.
     """
-    # Initialize dataframe used to pull obs variables 
-    obs_data = pd.DataFrame(index=obj.obs.index)
+    # Convert single-variable entries to a list (avoids looping 
+    # through each letter)
+    if isinstance(meta_vars, str):
+        meta_vars = [meta_vars]
     
     # If any variables entered have a modality prefix with an underscore, 
     # convert to a MuData-style modality prefix (a colon)
@@ -516,6 +518,18 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
     # Pull metadata vars into MuData obs table
     obj.pull_obs(columns = meta_vars)
     
+    # If a subset of cells is defined, subset the main obs table 
+    # for those cells 
+    # Subset once at the beginning, and pull data from the subset
+    if cells is not None:
+        valid = obj.obs.index.intersection(cells)
+        obs_df = obj.obs.loc[valid]
+    else:
+        obs_df = obj.obs
+    
+    # Initialize dataframe used to pull obs variables 
+    return_df = pd.DataFrame(index=obs_df.index)
+    
     # Suggested code for aggregation of metadata accross modalities
     if obj.axis == 0:
         for var, orginal_var in transformed_vars.items():
@@ -525,12 +539,12 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
             # it will exactly match columns pulled
             # This will also match cases where a varible is only in the 
             # obs matrix of the MuData object
-            if var in obj.obs.columns:
+            if var in obs_df.columns:
                 # In this case, pull the variable that exactly matches the query
                 # Store the data in the return dataframe using the var name
                 # as it was entered to the function, rather than the 
                 # transformed machine-readable var
-                obs_data[orginal_var] = obj.obs[var]
+                return_df[orginal_var] = obs_df[var]
             else:
                 # Vars entered without a modality prefix
                 # Extract columns returned via regex
@@ -538,7 +552,7 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
                 # variable name with a modality prefix ending in ":"
                 # for example, "clusters" or "RNA:clusters" 
                 pattern = re.compile(rf'^(?:.*:)?{re.escape(var)}$')
-                matches = [col for col in obj.obs.columns if pattern.match(col)]
+                matches = [col for col in obs_df.columns if pattern.match(col)]
                 
                 if len(matches) == 0:
                     # No matches: the variable does not exist
@@ -554,7 +568,7 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
                     # either in just one modality (when axis = 0, obs_names 
                     # are shared)
                     # Copy the matching column to the metadata table output
-                    obs_data[orginal_var] = obj.obs[matches[0]]
+                    return_df[orginal_var] = obs_df[matches[0]]
                 else:
                     # Multiple entires found: variable is in more than one 
                     # modality, and may not be describing the same property 
@@ -587,7 +601,191 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
             )
     
     # Return constructed table of matching metadata vars
-    return obs_data
+    return return_df
+
+def fetch_reduction_mudata(obj, reduction, dims, cells = None):
+    """
+    Fetches reduction coordinates in MuData objects (other obsm 
+    matrix data can also be returned by this function).
+    
+    When axis = 0 (overlap in cells but not in vars):
+    If reductions are present in the obsm matrix of more than one 
+    modality, they will be considered "ambiguous" since it can't be 
+    verified that they describe the same observation. For example, a 
+    UMAP projection named "umap" constructed from RNA-seq data may 
+    be different than a umap projection named "umap" for ATAC-seq 
+    data, and it's it's not clear which should be returned.
+    In this case, users will need to enter the name of the modality 
+    with a "_" (for example, "RNA_umap").
+    
+    Arguments
+    ----------
+    obj: a MuData object.
+    
+    reduction: a string specifying an obsm matrix from which to 
+        pull data. May be the name of a reduction "X_umap", or a 
+        modality-specific reduction specified using the modality 
+        name, an underscore, and the reduction name (for example, 
+        to pull "X_umap" fron "GEX", use "GEX_X_umap")
+
+    dims: a list of string values giving the numeric indices of 
+        data to pull data from. For consistency with other 
+        SCUBA methods, dims should use a 1-based index instead
+        of a 0-based index. For example enter ["1","2"] to pull 
+        the first and second dimensions of the reduction.
+    
+    cells: if None (the default), all cells in the MuData object are 
+        returned. If a list of cell IDs, only results for those IDs
+        will be returned.
+    """
+    # If cells is None, set to all cells in the MuData object
+    if cells is None:
+        cells = obj.obs_names
+    
+    # Check that the reduction entered matches the name of an obsm matrix, 
+    # or a mod-obsm key (a key that specifies a modality to pull a 
+    # reduction matrix from)
+    obsm_keys = list(
+        {key 
+        for adata in obj.mod.values() 
+        for key in adata.obsm.keys()}
+        )
+    
+    mod_obsm_keys = [
+        f"{mod_name}_{obsm_var}"
+        for mod_name, adata in obj.mod.items()
+        for obsm_var in adata.obsm.keys()
+        ]
+
+    if not (reduction in obsm_keys or reduction in mod_obsm_keys):
+        raise ValueError(
+            f"The reduction {reduction!r} does not exist in the object."
+        )
+        
+    # Extract the modality from the key if it exists
+    mod_keys = list(obj.mod_names)
+    
+    # If the reduction does not contain a modality prefix, mod 
+    # and obsm_name will be None
+    mod, obsm_key = _match_key(reduction, mod_keys)
+    
+    if obj.axis == 0:
+        if mod is None:
+            # Reductions entered without a modality key
+            # Query which modalities the reduction key is present in
+            mods_present = [
+                mod for mod, adata in obj.mod.items() if reduction in adata.obsm
+                ]
+            
+            if len(mods_present) == 0:
+                # Obsm key not found in any modality
+                # This shouldn't happen
+                raise ValueError(
+                    f"The reduction {reduction!r} was not found in any modality of the object passed."
+                )
+            elif len(mods_present) == 1:
+                # Obsm key found in one modality: pull data
+                # Identify modality in which the key was found
+                mod = mods_present[0]
+                # Identify the obsm matrix at the modality found
+                obsm_matrix = obj[mod].obsm[reduction]
+                
+                # Filter dims for those in the matrix and then 
+                # pull via fetch_vars_from_matrix
+                dims_found = filter_obsm_vars(
+                    obsm_matrix = obsm_matrix, 
+                    obsm_vars = dims
+                    )
+                
+                var_names = form_obsm_var_names(
+                    obsm_matrix = obsm_matrix
+                    )
+                
+                # Filter cells for those in the current modality
+                # All cells must exist in the obsm_matrix to avoid an error
+                # from fetch_vars_from_matrix
+                cells_found = [cell 
+                        for cell in cells 
+                        if cell in obj[mod].obs_names
+                        ]
+                
+                # Fetch vars from matrix
+                data = fetch_vars_from_matrix(
+                    matrix = obsm_matrix,
+                    matrix_vars = dims_found,
+                    # Filter cells for those in the modality
+                    cells = cells_found,
+                    var_names = var_names,
+                    obs_names = obj[mod].obs_names
+                    )
+            else:
+                # Obsm key found in multiple modalites
+                # Throw an error due to ambiguity
+                raise ValueError(
+                    'The obsm key entered (' + key + ') was found in ' + 
+                    "more than one modality. This is considered an " +
+                    "ambiguous entry, since it can't be guaranteed that " +
+                    "the key entered describes the same information " +
+                    "accross the different modalities. To pull data for " + 
+                    "this variable, please specify which modality to " +
+                    "pull the obsm variable from (for example, if you have " +
+                    "a modality called mod1 and you wish to pull from the " +
+                    'X_umap matrix of this modality, enter "mod1_X_umap".'
+                )
+        else:
+            # Reductions entered as mod-obsm keys
+            # Pull the matrix for the modality and the obsm key (extracted
+            # from `reduction`)
+            obsm_matrix = obj[mod].obsm[obsm_key]
+            
+            # Filter dims for those in the matrix and then 
+            # pull via fetch_vars_from_matrix
+            dims_found = filter_obsm_vars(
+                obsm_matrix = obsm_matrix, 
+                obsm_vars = dims
+                )
+            
+            var_names = form_obsm_var_names(
+                obsm_matrix = obsm_matrix
+                )
+            
+            # Filter cells for those in the current modality
+            # All cells must exist in the obsm_matrix to avoid an error
+            # from fetch_vars_from_matrix
+            cells_found = [cell 
+                    for cell in cells 
+                    if cell in obj[mod].obs_names
+                    ]
+            
+            # Fetch vars from matrix
+            data = fetch_vars_from_matrix(
+                matrix = obsm_matrix,
+                matrix_vars = dims_found,
+                # Filter cells for those in the modality
+                cells = cells_found,
+                var_names = var_names,
+                obs_names = obj[mod].obs_names
+                )
+        
+        # Re-index data pulled to match the cells requested (or all cells
+        # in the MuData object if cells is None)
+        # The cells returned will only be those in the modality from which 
+        # the obsm matrix was retrieved
+        data = data.reindex(index=cells)
+        
+        return data
+    elif obj.axis == 1:
+        raise NotImplementedError(
+            "fetch_reduction_mudata is currently not implemented for MuData " +
+            "objects with axis of 1 (shared var_names, concatenated " +
+            "obs_names)."
+            )
+    elif obj.axis == -1:
+        raise NotImplementedError(
+            "fetch_reduction_mudata is currently not implemented for MuData " +
+            "objects with axis of -1 (shared var_names and " +
+            "obs_names)."
+            )
 
 def fetch_keyed_vars(obj, target_vars, cells, layer):
     """

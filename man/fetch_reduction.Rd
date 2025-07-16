@@ -47,7 +47,7 @@ See our GitHub.io website for additional information and examples.
 
 \item \code{fetch_reduction(AnnDataR6)}: AnnDataR6 objects
 
-\item \code{fetch_reduction(md._core.mudata.MuData)}: AnnDataR6 objects
+\item \code{fetch_reduction(md._core.mudata.MuData)}: MuData objects
 
 }}
 \examples{

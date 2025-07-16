@@ -372,9 +372,61 @@ fetch_metadata.md._core.mudata.MuData <-
     
     py_objs <- reticulate::py_run_file(python_path)
     
-    py_objs$fetch_mudata(
-      obj = object,
-      fetch_vars = vars,
-      cells = cells
-      )
+    # Error handling: vector return class is not possible when more than 
+    # one variable is requested
+    if (return_class == "vector" & length(vars) > 1){
+      stop(
+        'If more than one variable is requested via `vars`, ',
+        '`return_class` must be "dataframe".'
+        )
+    }
+    
+    # Fetch metadata for requested vars
+    data <- 
+      py_objs$fetch_metadata_mudata(
+        obj = object,
+        meta_vars = vars,
+        cells = cells
+        )
+    
+    if (return_class == "dataframe"){
+      # For data.frame returns, replace the Pandas index with rownames
+      if (!is.null(idx <- attr(data, "pandas.index"))){
+        # idx is the Pandas index, if it exists
+        rownames(data) <- 
+          idx$to_list() |> 
+          reticulate::py_to_r()
+        # drop Pandas index after setting rownames
+        attr(data, "pandas.index") <- NULL
+      }
+      
+      return(data)
+    } else if (return_class == "vector"){
+      # Return as a vector: extract column from one-column 
+      # dataframe and use row names as vector names
+      data_vec <- data[[1]]
+      names(data_vec) <- rownames(data)
+      
+      return(data_vec)
+    }
+  }
+
+#' @export
+fetch_metadata.mudata._core.mudata.MuData <-
+  function(
+    object,
+    vars = NULL,
+    cells = NULL,
+    full_table = FALSE,
+    return_class = "dataframe"
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to fetch_data.md._core.mudata.MuData method
+    fetch_metadata.md._core.mudata.MuData(
+      object = object,
+      vars = vars,
+      cells = cells,
+      full_table = full_table,
+      return_class = return_class
+    )
   }
