@@ -308,6 +308,8 @@ fetch_data.SingleCellExperiment <-
             # pull data from
             dims <- as.integer(keyless_vars)
             
+            reduction_matrix <- reducedDims(object)[[key]]
+            
             # Nonsensical dim inputs
             # It is possible to enter a dim that does not exist in the reduction
             # matrix, for example via a typo. These will cause an error 
@@ -315,10 +317,20 @@ fetch_data.SingleCellExperiment <-
             # are filtered out
             # Upper bound defined using the second element of dims (number of
             # columns)
-            dims <- dims[dims >= 1 & dims <= dim(reducedDims(object)[[key]])[2]]
+            dims <- dims[dims >= 1 & dims <= dim(reduction_matrix)[2]]
             
             data <-
-              reducedDims(object)[[key]][cells, dims]
+              reduction_matrix[cells, dims]
+            
+            # Special case: reduction does not have column names
+            # Data will be returned, but it will have no column names. 
+            # Downstream code will think the column names do not exist
+            if (is.null(colnames(reduction_matrix))){
+              # Append the dims found to the reduction name with an underscore
+              # to match input (i.e. if the reduction `key` is UMAP, this will
+              # be UMAP_1, UMAP_2, etc.)
+              colnames(data) <- paste(key, dims, sep = "_")
+            }
           }
           
           # Return as a list
