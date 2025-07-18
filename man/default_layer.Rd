@@ -5,6 +5,7 @@
 \alias{default_layer.Seurat}
 \alias{default_layer.SingleCellExperiment}
 \alias{default_layer.AnnDataR6}
+\alias{default_layer.md._core.mudata.MuData}
 \title{Return the default layer}
 \usage{
 default_layer(object)
@@ -14,6 +15,8 @@ default_layer(object)
 \method{default_layer}{SingleCellExperiment}(object)
 
 \method{default_layer}{AnnDataR6}(object)
+
+\method{default_layer}{md._core.mudata.MuData}(object)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
@@ -40,7 +43,13 @@ For SingleCellExperiment objects, the default layer is "logcounts".
 \item \code{default_layer(AnnDataR6)}: Anndata objects
 
 For Anndata objects, the default layer is \code{NULL}, which will direct
-FetchData to pull feature epxression data from the X matrix.
+FetchData to pull feature expression data from the X matrix.
+
+\item \code{default_layer(md._core.mudata.MuData)}: MuData objects
+
+Default layer is \code{NULL} for MuData objects, which will direct
+FetchData to pull feature expression data from the X matrix of the
+anndata object representing each modality.
 
 }}
 \examples{

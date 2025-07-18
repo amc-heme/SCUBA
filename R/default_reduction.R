@@ -130,42 +130,72 @@ default_reduction.md._core.mudata.MuData <-
   function(
     object
   ){
-    # All reductions should be stored in obsm. Obsm matrix names are fetched
-    # using obsm_keys().
-    reductions <- object$obsm_keys()
-    
-    # AnnData objects
-    # Conditional structure reflects priorities of reductions
+    # Priorities of reductions
     # 1. UMAP
     # 2. TSNE
     # 3. PCA
-    if ("X_umap" %in% reductions){
-      "X_umap"
-    } else if ("X_tsne" %in% reductions){
-      "X_tsne"
-    } else if ("X_pca" %in% reductions){
-      "X_pca"
-    } else {
-        # Construct list of modalities for which the reduction is found, if any
-        mod_reduction_matches <- list()
-        
-        # Cycle through each modality within the Mudata object to locate a default embedding, if any
-        for (modality in object$mod_names){
-          # Search for embeddings by order of preference and return one if found
-          for (embedding in c("X_umap", "X_tsne", "X_pca")){
-            # Return the embedding name if it is found in the modality .obsm
-            if (embedding %in% object$mod[modality]$obsm_keys()){
-              mod_reduction_matches <- c(mod_reduction_matches, modality)
-              return(embedding)
-            }
-          }
-        }
-      
-        # Inspect list of matches
-        # No matches: error, reduction not found
-        if (length(mod_reduction_matches) == 0){
-          # Ambiguous matches in more than one 
-          stop('Unable to find a reduction matching "X_umap", "X_tsne", or "X_pca" in Mudata or individual modalities. Please specify the reduction to use via the `reduction` parameter.')
+    # Construct list storing modalities for which the reduction is found, if any
+    mod_reduction_matches <- list()
+    
+    # For each of the "default" embeddings, record the modalities 
+    # in which it was found
+    for (embedding in c("X_umap", "X_tsne", "X_pca")){
+      # Initialize an empty vector before looping through modalities
+      mod_reduction_matches[[embedding]] <- c()
+      for (modality in object$mod_names){
+        if (embedding %in% object$mod[modality]$obsm_keys()){
+          # If the embedding is found, record the name of the modality
+          # where it was found
+          mod_reduction_matches[[embedding]] <- 
+            c(mod_reduction_matches[[embedding]], modality)
         }
       }
+    }
+    
+    # Process the mapping of reductions to modalities
+    # Look for each default reduction in order of priority
+    for (embedding in c("X_umap", "X_tsne", "X_pca")){
+      if (embedding %in% names(mod_reduction_matches)){
+        # When the preferred reduction is found, check if it is present in
+        # one modality or multiple modalities
+        if (length(mod_reduction_matches[[embedding]]) == 1){
+          # Stop iteration through matches when the first match is identified,
+          # and return the matching reduction
+          return(embedding)
+        } else {
+          # If the reduction is present in multiple modalities, throw an 
+          # error (user will need to say which modality to retrieve reduction
+          # from)
+          stop(
+            paste0(
+              "The reduction ", embedding, " was identified as the ",
+              "preferred reduction, but it is present in multiple ",
+              "modalities. It is not possible to determine which ",
+              "modality-reduction combo should be considered the default. ",
+              "Please specify the modality-reduction combo to use via the ",
+              "`reduction` parameter of the function from which ",
+              "default_reduction was called."
+              )
+          )
+        }
+      }
+    }
+    
+    # Return an error if iteration completes and no matches are found
+    stop(
+      'Unable to find a reduction matching "X_umap", "X_tsne", or "X_pca" ',
+      'in any modality of the MuData object. Please specify the reduction ',
+      'to use via the `reduction` parameter of the function from which ',
+      'default_reduction was called.'
+    )
+  }
+
+#' @export
+default_reduction.mudata._core.mudata.MuData <-
+  function(
+    object
+    ){
+    default_reduction.md._core.mudata.MuData(
+      object = object
+    )
   }
