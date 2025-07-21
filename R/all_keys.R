@@ -3,6 +3,8 @@
 #' Returns the "keys" of all reductions and modalities/assays/experiments in an object, which are used to fetch data via the `vars` parameter of `fetch_data`. To fetch features from an object, use the key representing the modality the feature was recorded in, plus an underscore and the feature name. To fetch reduction coordinates, use the key of the reduction, plus an underscore, and a number representing the dimension for which to retrieve coordinates. 
 #'
 #' @param object a single-cell object. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.
+#' 
+#' @param obsm_key_format For MuData objects, this determines the format in which keys are returned. If "obsm" (the default), this will return a set of the obsm keys from each modality. If "mod_obsm", the obsm keys will be formatted as modality-obsm pairs (i.e. a obsm matrix in "RNA" named "UMAP" will be returned as "RNA_UMAP"). Using keys in the "mod_obsm" format avoids issues with ambiguous obsm matrices, where an obsm matrix with the same name exists in multiple modalities. Ambiguous obsm entries will case an error in `fetch_data` and `fetch_reduction`
 #'
 #' @rdname all_keys
 #'

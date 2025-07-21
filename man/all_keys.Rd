@@ -20,6 +20,8 @@ all_keys(object, ...)
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.}
+
+\item{obsm_key_format}{For MuData objects, this determines the format in which keys are returned. If "obsm" (the default), this will return a set of the obsm keys from each modality. If "mod_obsm", the obsm keys will be formatted as modality-obsm pairs (i.e. a obsm matrix in "RNA" named "UMAP" will be returned as "RNA_UMAP"). Using keys in the "mod_obsm" format avoids issues with ambiguous obsm matrices, where an obsm matrix with the same name exists in multiple modalities. Ambiguous obsm entries will case an error in \code{fetch_data} and \code{fetch_reduction}}
 }
 \value{
 a named character vector. The names of the vector are names of the modalities and reductions in the object, and the values are the corresponding keys to be passed to fetch_data. For Seurat objects, a key for metadata will also be displayed.
