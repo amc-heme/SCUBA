@@ -8,7 +8,7 @@
 \alias{all_keys.md._core.mudata.MuData}
 \title{Get keys for all assays/reductions in an object}
 \usage{
-all_keys(object)
+all_keys(object, ...)
 
 \method{all_keys}{Seurat}(object)
 
@@ -16,7 +16,7 @@ all_keys(object)
 
 \method{all_keys}{AnnDataR6}(object)
 
-\method{all_keys}{md._core.mudata.MuData}(object)
+\method{all_keys}{md._core.mudata.MuData}(object, obsm_key_format = "obsm")
 }
 \arguments{
 \item{object}{a single-cell object. Currently, Seurat, SingleCellExperiment, and anndata objects are supported.}

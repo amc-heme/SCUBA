@@ -37,7 +37,8 @@
 #'   ) |> str()
 all_keys <-
   function(
-    object
+    object,
+    ...
   ){
     UseMethod("all_keys")
   }
@@ -49,7 +50,8 @@ all_keys <-
 #' @export
 all_keys.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(
@@ -118,16 +120,73 @@ all_keys.AnnDataR6 <-
 #' @export
 all_keys.md._core.mudata.MuData <-
   function(
-    object
-  ) {
+    object,
+    obsm_key_format = "obsm"
+  ){
+    # Form keys of different types
+    # Modality keys
+    mod_keys <- object$mod_names 
     
-     keys <- 
-       c("X",
-         object$obsm_keys()
-         )
-     
-     names(keys) <- keys
-     
-     keys
+    names(mod_keys) <- mod_keys 
+    
+    # Obsm keys
+    obsm_keys <- c()
+    
+    for (mod in object$mod_names){
+      mod_reductions <- object[[mod]]$obsm_keys()
+      
+      if (length(mod_reductions) > 0){
+        # Construct keys from each obsm key in the modality, 
+        # if there are keys for that modality
+        if (obsm_key_format == "obsm"){
+          # "obsm": return the obsm keys for each modality, as they
+          # appear in each modality
+          mod_obsm_keys <- mod_reductions
+          
+          obsm_keys <- c(obsm_keys, mod_obsm_keys)
+        } else if (obsm_key_format == "mod_obsm"){
+          # "mod_obsm": prepend the modality key to obsm keys. This 
+          # shows how to format the key to pull obsm data for the 
+          # specific modality when a obsm matrix with the same name
+          # appears in multiple modalities
+          mod_obsm_keys <- paste(mod, mod_reductions, sep = "_")
+          # For mod_obsm keys, show more descriptive names for obsm keys,
+          # indicating the modality and reduction specified by the key
+          names(mod_obsm_keys) <- 
+            paste0(mod_reductions, " matrix, from ", mod, " modality")
+          
+          obsm_keys <- c(obsm_keys, mod_obsm_keys)
+        }
+      }
+    }
+    
+    # When returning obsm key names without the modality prepended, 
+    # show the obsm keys as a set of unique values 
+    if (obsm_key_format == "obsm"){
+      obsm_keys <- unique(obsm_keys)
+      # Add names to unique keys (same as values)
+      # Names are added for consistency with other methods
+      names(obsm_keys) <- obsm_keys
+    }
+    
+    keys <- 
+      c(mod_keys,
+        obsm_keys
+        )
+    
+    keys
   }
-#all_keys(SCUBA:::AML_h5mu())
+
+#' @export
+all_keys.mudata._core.mudata.MuData <-
+  function(
+    object,
+    obsm_key_format = "obsm"
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to md._core.mudata.MuData method
+    all_keys.md._core.mudata.MuData(
+      object = object,
+      obsm_key_format = obsm_key_format
+    )
+  }
