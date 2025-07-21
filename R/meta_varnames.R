@@ -94,13 +94,18 @@ meta_varnames.md._core.mudata.MuData <-
   
     py$fetch_meta_varnames_mudata(
       obj = object, 
-      modal = modality
+      mod = modality
     )
   }
   
-#previous implementation for mudata (delete when additional logic is complete):
-  # function(
-  #   object
-  # ){
-  #   object$obs_keys()
-  # }
+#' @export
+meta_varnames.mudata._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to md._core.mudata.MuData method
+    meta_varnames.md._core.mudata.MuData(
+      object = object
+    )
+  }
