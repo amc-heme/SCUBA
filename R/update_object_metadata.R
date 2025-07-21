@@ -7,13 +7,17 @@
 #' @param object a single-cell object. Currently, Seurat, SingleCellExperiment
 #' and AnnData objects are supported.
 #' @param table a modified metadata table.
+#' @param mod For MuData objects, the obs table of a specific modality can be
+#' updated by supplying the mod parameter. If NULL (the default), the main obs 
+#' table will be updated.
 #'
 #' @return the object passed to \code{object} with the modified metadata table.
 #' @noRd
 update_object_metadata <-
   function(
     object,
-    table
+    table,
+    ...
   ){
     UseMethod("update_object_metadata")
   }
@@ -76,3 +80,37 @@ update_object_metadata.AnnDataR6 <-
     
     object
   }
+
+
+#' @describeIn update_object_metadata Anndata objects
+#' @export
+#' @noRd
+update_object_metadata.md._core.mudata.MuData <-
+  function(
+    object,
+    table,
+    mod = NULL
+  ){
+    if (is.null(mod)){
+      object$obs <- table
+    } else {
+      object[[mod]]$obs <- table
+    }
+    
+    object
+  }
+
+#' @export
+#' @noRd
+update_object_metadata.mudata._core.mudata.MuData <-
+  function(
+    object,
+    table,
+    mod = NULL
+    ){
+    update_object_metadata.md._core.mudata.MuData(
+      object = object,
+      table = table,
+      mod = mod
+      )
+    }
