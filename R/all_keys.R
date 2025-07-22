@@ -171,8 +171,12 @@ all_keys.md._core.mudata.MuData <-
       names(obsm_keys) <- obsm_keys
     }
     
+    # Add "obs" key for metadata
+    metadata_key <- c("Metadata" = "obs")
+    
     keys <- 
-      c(mod_keys,
+      c(metadata_key,
+        mod_keys,
         obsm_keys
         )
     

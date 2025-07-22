@@ -3,25 +3,62 @@
 \name{fetch_matrix}
 \alias{fetch_matrix}
 \alias{fetch_matrix.AnnDataR6}
-\title{Fetch matrix}
+\alias{fetch_matrix.md._core.mudata.MuData}
+\title{Fetch matrix or metadata from single-cell containers}
 \usage{
-fetch_matrix(object, matrix_location, ...)
+fetch_matrix(object, matrix_location, layer)
 
-\method{fetch_matrix}{AnnDataR6}(object, matrix_location, ...)
+\method{fetch_matrix}{AnnDataR6}(object, matrix_location, layer)
+
+\method{fetch_matrix}{md._core.mudata.MuData}(object, matrix_location, layer)
 }
 \arguments{
-\item{object}{a single-cell object (Seurat, SingleCellExperiment, Anndata).}
+\item{object}{A single-cell object. Supported classes include:
+\itemize{
+\item Seurat
+\item SingleCellExperiment
+\item Anndata
+\item MuData
+}}
 
-\item{matrix_location}{the}
+\item{matrix_location}{A string specifying what to fetch. For MuData, valid keys are:
+\itemize{
+\item \code{"obs"}: cell metadata of the main MuData object
+\item \code{"var"}: feature metadata of the main MuData object
+\item \code{"<modality>"}: the primary expression matrix \code{X} of a modality
+\item \code{"<modality>_<layer>"}: a named layer in a modality
+\item \code{"<modality>_obs"}: cell metadata of a modality
+\item \code{"<modality>_var"}: feature metadata of a modality
+\item \code{"<modality>_<obsm_key>"}: embedding or other \code{obsm} matrix for a modality
+}}
 
-\item{...}{Currently unused.}
+\item{layer}{Optional. If \code{NULL}, the matrix corresponding to the default layer (via \code{default_layer()}) is used. This is the matrix corresponding to normalized counts, or X in anndata and MuData objects.}
+}
+\value{
+Depending on the request:
+\itemize{
+\item For expression or embedding matrices: a dense or sparse matrix.
+\item For metadata queries: a \code{data.frame} or DataFrame of cell/feature metadata.
+}
 }
 \description{
-Returns object metadata for a specified set of cells.
+Generic function to retrieve a matrix (e.g. expression or embedding)
+or metadata (cells or features) from various single-cell containers:
+Seurat, SingleCellExperiment, Anndata, and MuData objects.
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{fetch_matrix(AnnDataR6)}: AnnDataR6 objects
 
+\item \code{fetch_matrix(md._core.mudata.MuData)}: MuData objects
+
 }}
-\keyword{internal}
+\examples{
+# Seurat objects:
+# expr <- fetch_matrix(seurat_obj, "counts")
+
+# MuData objects:
+# umap <- fetch_matrix(mudata_obj, "rna_umap")
+# genes <- fetch_matrix(mudata_obj, "rna_var")
+
+}
