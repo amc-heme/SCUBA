@@ -420,9 +420,11 @@ fetch_metadata.md._core.mudata.MuData <-
           }
         )
       
+      # Scrub "pandas.index" attribute from R data.frame
+      table <- remove_pandas_index(table)
+      
       return(table)
     }
-    
     
     # Fetch metadata for requested vars
     data <- 
@@ -433,15 +435,9 @@ fetch_metadata.md._core.mudata.MuData <-
         )
     
     if (return_class == "dataframe"){
-      # For data.frame returns, replace the Pandas index with rownames
-      if (!is.null(idx <- attr(data, "pandas.index"))){
-        # idx is the Pandas index, if it exists
-        rownames(data) <- 
-          idx$to_list() |> 
-          reticulate::py_to_r()
-        # drop Pandas index after setting rownames
-        attr(data, "pandas.index") <- NULL
-      }
+      # For data.frame returns, scrub "pandas.index" attribute from 
+      # R data.frame, and replace with rownames if they do not already exist
+      data <- remove_pandas_index(data)
       
       return(data)
     } else if (return_class == "vector"){
