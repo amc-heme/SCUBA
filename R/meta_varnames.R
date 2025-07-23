@@ -79,23 +79,14 @@ meta_varnames.md._core.mudata.MuData <-
     object,
     modality = NULL
   ){
-    library(reticulate)
-    
-    # Source fetch_reduction python script for mudata
-    python_path =
-      system.file(
-        "extdata",
-        "Python",
-        "fetch_meta_varnames_mudata.py",
-        package = "SCUBA"
-      )
-    
-    reticulate::source_python(python_path)
-  
-    py$fetch_meta_varnames_mudata(
-      obj = object, 
-      mod = modality
-    )
+    # MuData: simply report column names of full table from fetch_metadata
+    # Columns returned have an underscore between the modality and the 
+    # metadata variable name instead of a ":", following MuData conventions.
+    fetch_metadata(
+      object,
+      full_table = TRUE
+      ) |> 
+      colnames()
   }
   
 #' @export

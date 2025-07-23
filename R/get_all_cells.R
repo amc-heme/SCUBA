@@ -73,14 +73,8 @@ get_all_cells.md._core.mudata.MuData <-
   function(
     object
   ){
-    # Use obs_names method from anndata
-    # Output is a Python Index. Convert to an R vector
-    py_idx <- object$obs_names
-    
-    # Convert to Python list, then unlist in R to get a vector
-    r_cells <- unlist(py_idx$tolist(), use.names = FALSE)
-    
-    as.character(r_cells)
+    # Use obs_names on the full MuData object to get all cell IDs
+    object$obs_names
   }
 
 #' @export
