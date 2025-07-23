@@ -4,12 +4,16 @@
 \alias{match_key}
 \title{Match a string against a set of keys and extract the suffix}
 \usage{
-match_key(var, keys)
+match_key(var, keys, sep = "_")
 }
 \arguments{
 \item{var}{A single character string to test.}
 
 \item{keys}{A character vector of possible keys.}
+
+\item{sep}{The separator between each key and the following content. This is
+usually "_", but for MuData objects, this may be ":", as the colon is the
+convention with MuData objects.}
 }
 \value{
 A list with two elements:

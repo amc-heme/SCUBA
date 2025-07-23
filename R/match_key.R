@@ -7,6 +7,10 @@
 #'
 #' @param var A single character string to test.
 #' @param keys A character vector of possible keys.
+#' @param sep The separator between each key and the following content. This is 
+#' usually "_", but for MuData objects, this may be ":", as the colon is the 
+#' convention with MuData objects.
+#' 
 #' @return A list with two elements:
 #'   \describe{
 #'     \item{key}{The matched key, or NULL if no match was found.}
@@ -18,7 +22,7 @@
 #'
 #' @keywords internal
 #' @export
-match_key <- function(var, keys){
+match_key <- function(var, keys, sep = "_"){
   # Ensure keys is a character vector (single string remains length 1)
   if (!is.character(keys)) {
     stop("`keys` must be a character vector")
@@ -32,8 +36,9 @@ match_key <- function(var, keys){
     if (identical(var, k)) {
       return(list(key = k, suffix = NULL))
     }
-    # Match with underscore and trailing content
-    prefix <- paste0(k, "_")
+    # Define prefix to match var against
+    # Prefix is constructed with a separator (usually an underscore)
+    prefix <- paste0(k, sep)
     if (startsWith(var, prefix)) {
       # Extract content after key and underscore
       suffix <- substring(var, nchar(prefix) + 1)

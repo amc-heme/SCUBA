@@ -738,6 +738,7 @@ fetch_data.md._core.mudata.MuData <-
     py_require("pandas>=2.0.0")
     py_require("numpy")
     py_require("scipy>=1.14.0")
+    py_require("mudata>=0.3.1")
     
     # Check vars input
     # If more than 1000 features are requested, warn the user of potential 

@@ -359,6 +359,7 @@ fetch_metadata.md._core.mudata.MuData <-
     py_require("pandas>=2.0.0")
     py_require("numpy")
     py_require("scipy>=1.14.0")
+    py_require("mudata>=0.3.1")
     
     # Source fetch_data python script 
     # (contains functions for anndata and MuData)
@@ -380,6 +381,48 @@ fetch_metadata.md._core.mudata.MuData <-
         '`return_class` must be "dataframe".'
         )
     }
+    
+    # Check vars for valid entries (may be undefined only if full_table or FALSE)
+    if (full_table == FALSE && is.null(vars)){
+      stop("`vars` must be defined, unless `full_table` is TRUE.")
+    }
+    # Also warn if vars is defined when full_table is TRUE
+    if (full_table == TRUE && !is.null(vars)){
+      warning("`full_table` is TRUE, ignoring entries in `vars`.")
+    }
+    
+    # When full_table is TRUE,
+    # Pull_obs, return main obs table
+    if (full_table == TRUE){
+      object$pull_obs()
+      
+      table <- object$obs
+      
+      # Transform separator for modality-metadata combinations for column names
+      # from Mudata format (":") to "_" for consistency with the format returned
+      # by other SCUBA methods
+      colnames(table) <-
+        sapply(
+          colnames(table),
+          function(colname){
+            key_match <- 
+              SCUBA::match_key(
+                colname, 
+                keys = object$mod_names, 
+                sep = ":"
+                )
+            
+            if (!is.null(key_match$key) & !is.null(key_match$suffix)){
+              paste0(key_match$key, "_", key_match$suffix)
+            } else {
+              colname
+            }
+          }
+        )
+      
+      return(table)
+    }
+    
     
     # Fetch metadata for requested vars
     data <- 
