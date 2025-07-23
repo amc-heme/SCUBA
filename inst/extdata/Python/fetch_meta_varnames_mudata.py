@@ -42,7 +42,7 @@ def fetch_meta_varnames_mudata(obj, mod):
     # If not found, set to use the main object obsm slot
     if mod in obj.mod_names:
         use_mudata_obs = False
-    elif modal == None:
+    elif mod == None:
         # Set use_mudata_obs to True to pull from the main object obsm slot
         use_mudata_obs = True
     else:
