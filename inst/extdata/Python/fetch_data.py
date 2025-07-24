@@ -773,6 +773,12 @@ def fetch_reduction_mudata(obj, reduction, dims, cells = None):
         # the obsm matrix was retrieved
         data = data.reindex(index=cells)
         
+        # Rename columns by prepending the reduction name to the dims returned,
+        # for consistency with the return format from fetch_data
+        mapping = { dim: f"{reduction}_{dim}" for dim in data.columns }
+        
+        data = data.rename(columns=mapping)
+        
         return data
     elif obj.axis == 1:
         raise NotImplementedError(
