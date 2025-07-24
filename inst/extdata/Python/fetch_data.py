@@ -1141,7 +1141,7 @@ def fetch_keyed_vars_mudata(obj, target_vars, cells, layer):
                 var for var in keyless_vars if var in obj[key].var_names
                 ]
                     
-            # Form input to var_names argument of fetch_matrix,
+            # Form input to var_names argument of fetch_vars_from_matrix,
             # to properly index matrices for features
             # Uses the var names for the modality corresponding to the key
             var_names = obj[key].var_names

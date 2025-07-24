@@ -745,12 +745,19 @@ fetch_data.AnnDataR6 <-
     py_objs <- reticulate::py_run_file(python_path)
     
     # Runs python fetch_anndata function
-    py_objs$fetch_anndata(
-      obj = object,
-      fetch_vars = vars,
-      cells = cells,
-      layer = layer
-    )
+    data <-
+      py_objs$fetch_anndata(
+        obj = object,
+        fetch_vars = vars,
+        cells = cells,
+        layer = layer
+      )
+    
+    # Scrub "pandas.index" attribute from R data.frame for full equivalence
+    # with returns from R classes
+    data <- remove_pandas_index(data)
+    
+    return(data)
   }
 
 #' @export
@@ -835,10 +842,17 @@ fetch_data.md._core.mudata.MuData <-
     py_objs <- reticulate::py_run_file(python_path)
     
     # Runs python fetch_anndata function
-    py_objs$fetch_mudata(
-      obj = object,
-      fetch_vars = vars,
-      cells = cells,
-      layer = layer
-    )
+    data <- 
+      py_objs$fetch_mudata(
+        obj = object,
+        fetch_vars = vars,
+        cells = cells,
+        layer = layer
+      )
+    
+    # Scrub "pandas.index" attribute from R data.frame for full equivalence
+    # with returns from R classes
+    data <- remove_pandas_index(data)
+    
+    return(data)
   }
