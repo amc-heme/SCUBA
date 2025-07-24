@@ -1191,15 +1191,18 @@ def fetch_keyed_vars_mudata(obj, target_vars, cells, layer):
                 # Identify modality in which the key was found
                 mod = mods_present[0]
                 
+                # Identify matrix from which to retrieve data
+                obsm_matrix = obj[mod].obsm[key]
+                
                 # Filter keyless_vars for those in the matrix and then 
                 # pull via fetch_vars_from_matrix
                 keyless_vars = filter_obsm_vars(
-                    obsm_matrix = obj[mod].obsm[key], 
+                    obsm_matrix = obsm_matrix, 
                     obsm_vars = keyless_vars
                     )
                 
                 var_names = form_obsm_var_names(
-                    obsm_matrix = obj[mod].obsm[key]
+                    obsm_matrix = obsm_matrix
                     )
                 
                 # Fetch vars from matrix
@@ -1212,6 +1215,12 @@ def fetch_keyed_vars_mudata(obj, target_vars, cells, layer):
                     obs_names = obj[mod].obs_names
                     )
                 
+                # Re-index matrix to cells requested
+                # It is possible for the obsm matrix to be a subset of the 
+                # full object, in which case there will be cells missing from 
+                # the output and it may not combine properly with data from
+                # other vars
+                data = data.reindex(index=cells)
             else:
                 # Obsm key found in multiple modalites: warn
                 r.warning(
