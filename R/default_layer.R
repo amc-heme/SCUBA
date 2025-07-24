@@ -76,7 +76,7 @@ default_layer.SingleCellExperiment <-
 #' @describeIn default_layer Anndata objects 
 #' 
 #' For Anndata objects, the default layer is \code{NULL}, which will direct 
-#' FetchData to pull feature epxression data from the X matrix.
+#' FetchData to pull feature expression data from the X matrix.
 #' 
 #' @export
 default_layer.AnnDataR6 <-
@@ -84,4 +84,30 @@ default_layer.AnnDataR6 <-
     object
   ){
     NULL
+  }
+
+#' @describeIn default_layer MuData objects 
+#' 
+#' Default layer is \code{NULL} for MuData objects, which will direct 
+#' FetchData to pull feature expression data from the X matrix of the 
+#' anndata object representing each modality.
+#' 
+#' @export
+default_layer.md._core.mudata.MuData <-
+  function(
+    object
+  ){
+    NULL
+  }
+
+#' @export
+default_layer.mudata._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to fetch_data.md._core.mudata.MuData method
+    default_layer.md._core.mudata.MuData(
+      object
+      )
   }

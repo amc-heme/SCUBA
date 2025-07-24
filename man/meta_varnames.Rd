@@ -5,22 +5,26 @@
 \alias{meta_varnames.Seurat}
 \alias{meta_varnames.SingleCellExperiment}
 \alias{meta_varnames.AnnDataR6}
+\alias{meta_varnames.md._core.mudata.MuData}
 \title{Summarize object metadata}
 \usage{
-meta_varnames(object)
+meta_varnames(object, ...)
 
 \method{meta_varnames}{Seurat}(object)
 
 \method{meta_varnames}{SingleCellExperiment}(object)
 
 \method{meta_varnames}{AnnDataR6}(object)
+
+\method{meta_varnames}{md._core.mudata.MuData}(object, modality = NULL)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
 and anndata objects are supported.}
 }
 \description{
-Returns the names of all metadata variables in an object.
+Returns the names of all metadata variables in an object, or a single
+modality of a mudata object.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -29,6 +33,8 @@ Returns the names of all metadata variables in an object.
 \item \code{meta_varnames(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{meta_varnames(AnnDataR6)}: Anndata objects
+
+\item \code{meta_varnames(md._core.mudata.MuData)}: Mudata objects
 
 }}
 \examples{

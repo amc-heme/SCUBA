@@ -5,6 +5,8 @@
 \alias{reduction_dimnames.Seurat}
 \alias{reduction_dimnames.SingleCellExperiment}
 \alias{reduction_dimnames.AnnDataR6}
+\alias{reduction_dimnames.md._core.mudata.MuData}
+\alias{reduction_dimnames.mudata._core.mudata.MuData}
 \title{From names of reduction keys for fetch_data}
 \usage{
 reduction_dimnames(object, reduction, dims)
@@ -14,6 +16,10 @@ reduction_dimnames(object, reduction, dims)
 \method{reduction_dimnames}{SingleCellExperiment}(object, reduction, dims)
 
 \method{reduction_dimnames}{AnnDataR6}(object, reduction, dims)
+
+\method{reduction_dimnames}{md._core.mudata.MuData}(object, reduction, dims)
+
+\method{reduction_dimnames}{mudata._core.mudata.MuData}(object, reduction, dims)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
@@ -38,6 +44,10 @@ return from this function.
 \item \code{reduction_dimnames(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{reduction_dimnames(AnnDataR6)}: AnnDataR6 objects
+
+\item \code{reduction_dimnames(md._core.mudata.MuData)}: MuData objects
+
+\item \code{reduction_dimnames(mudata._core.mudata.MuData)}: MuData objects
 
 }}
 \examples{

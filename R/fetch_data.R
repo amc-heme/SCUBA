@@ -72,7 +72,7 @@ fetch_data.default <-
   ){
     warning(
       paste0(
-        "fetch_metadata does not know how to handle object of class ",
+        "fetch_data does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
         ". Currently supported classes: Seurat and SingleCellExperiment."
       )
@@ -696,8 +696,6 @@ fetch_data.AnnDataR6 <-
     cells = NULL,
     ...
     ){
-    library(reticulate)
-    
     if (!requireNamespace("reticulate", quietly = TRUE)) {
       stop(
         paste0(
@@ -707,6 +705,8 @@ fetch_data.AnnDataR6 <-
         call. = FALSE
       )
     }
+    
+    library(reticulate)
     
     # Establish Python package dependencies
     # Reticulate will automatically manage a Python environment with these 
@@ -733,58 +733,112 @@ fetch_data.AnnDataR6 <-
       )
     }
     
-    # Source fetch_anndata python script
+    # Source fetch_data python script
     python_path =
       system.file(
         "extdata",
         "Python",
-        "fetch_anndata.py",
+        "fetch_data.py",
         package = "SCUBA"
         )
     
     py_objs <- reticulate::py_run_file(python_path)
     
     # Runs python fetch_anndata function
-    # fetch_anndata has multiple outputs, which are stored in a list
     py_objs$fetch_anndata(
       obj = object,
       fetch_vars = vars,
       cells = cells,
       layer = layer
     )
-      
+  }
+
+#' @export
+fetch_data.mudata._core.mudata.MuData <-
+  function(
+    object,
+    vars,
+    layer = NULL,
+    cells = NULL,
+    ...
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to fetch_data.md._core.mudata.MuData method
+    fetch_data.md._core.mudata.MuData(
+      object = object,
+      vars = vars,
+      layer = layer,
+      cells = cells
+    )
+  }
+
+#' @describeIn fetch_data MuData Objects
+#' @export
+fetch_data.md._core.mudata.MuData <-
+  function(
+    object,
+    vars,
+    layer = NULL,
+    cells = NULL,
+    ...
+  ){
+    # MuData objects
+    # Run Python fetch_data scripts
+    if (!requireNamespace("reticulate", quietly = TRUE)) {
+      stop(
+        paste0(
+          'Package "reticulate" must be installed to use this ',
+          'function with anndata objects.'
+        ),
+        call. = FALSE
+      )
+    }
     
-    # First return value: data
-    # data <- fetch_anndata_output[[1]]
-    # # Second value: variables not found
-    # vars_not_found <- fetch_anndata_output[[2]]
-    # 
-    # # Display R warnings or errors for variables not found
-    # # (using R for these warnings simplifies both UX and 
-    # # testthat script execution)
-    # ten_plus_message <-
-    #   if (length(x = vars_not_found) > 10) {
-    #     paste0(' (10 out of ', length(x = vars_not_found), ' shown)')
-    #   } else {
-    #     ''
-    #   }
-    # 
-    # if (length(x = vars_not_found) == length(x = vars)) {
-    #   stop(
-    #     "None of the requested variables were found",
-    #     ten_plus_message,
-    #     ': ',
-    #     paste(head(x = vars_not_found, n = 10L), collapse = ', ')
-    #   )
-    # } else if (length(x = vars_not_found) > 0) {
-    #   warning(
-    #     "The following requested variables were not found",
-    #     ten_plus_message,
-    #     ': ',
-    #     paste(head(x = vars_not_found, n = 10L), collapse = ', ')
-    #     )
-    # }
-    # 
-    # # Return data
-    # data
+    library(reticulate)
+    
+    # Establish Python package dependencies
+    # Reticulate will automatically manage a Python environment with these 
+    # packages, installing each if they are not already present
+    py_require("anndata>=0.11.4")
+    py_require("pandas>=2.0.0")
+    py_require("numpy")
+    py_require("scipy>=1.14.0")
+    py_require("mudata>=0.3.1")
+    
+    # Check vars input
+    # If more than 1000 features are requested, warn the user of potential 
+    # performance issues
+    if (length(vars) >= 1000){
+      warning(
+        paste0(
+          "A very large number of features was requested (", 
+          length(vars), 
+          " features). fetch_data is not intended to be used with feature ",
+          "queries of this length. Data is returned in a dense format, so ",
+          "the memory usage of the output may be very large. Also, this ",
+          "query may take a while to complete."
+        ),
+        immediate. = TRUE
+      )
+    }
+    
+    # Source fetch_data python script 
+    # (contains functions for anndata and MuData)
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_data.py",
+        package = "SCUBA"
+      )
+    
+    py_objs <- reticulate::py_run_file(python_path)
+    
+    # Runs python fetch_anndata function
+    py_objs$fetch_mudata(
+      obj = object,
+      fetch_vars = vars,
+      cells = cells,
+      layer = layer
+    )
   }

@@ -483,12 +483,12 @@ FetchData.AnnDataR6 <-
       )
     }
 
-    # Source fetch_anndata python script
+    # Source fetch_data python script
     python_path =
       system.file(
         "extdata",
         "Python",
-        "fetch_anndata.py",
+        "fetch_data.py",
         package = "SCUBA"
         )
 

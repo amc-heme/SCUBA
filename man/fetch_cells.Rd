@@ -5,6 +5,7 @@
 \alias{fetch_cells.Seurat}
 \alias{fetch_cells.SingleCellExperiment}
 \alias{fetch_cells.AnnDataR6}
+\alias{fetch_cells.md._core.mudata.MuData}
 \title{Return cell IDs for a subset based on metadata}
 \usage{
 fetch_cells(object, meta_var, meta_levels)
@@ -14,6 +15,8 @@ fetch_cells(object, meta_var, meta_levels)
 \method{fetch_cells}{SingleCellExperiment}(object, meta_var, meta_levels)
 
 \method{fetch_cells}{AnnDataR6}(object, meta_var, meta_levels)
+
+\method{fetch_cells}{md._core.mudata.MuData}(object, meta_var, meta_levels)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
@@ -35,5 +38,7 @@ of a specified metadata variable.
 \item \code{fetch_cells(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{fetch_cells(AnnDataR6)}: Anndata objects
+
+\item \code{fetch_cells(md._core.mudata.MuData)}: MuData objects
 
 }}

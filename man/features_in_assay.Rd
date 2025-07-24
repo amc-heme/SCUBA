@@ -5,6 +5,7 @@
 \alias{features_in_assay.Seurat}
 \alias{features_in_assay.SingleCellExperiment}
 \alias{features_in_assay.AnnDataR6}
+\alias{features_in_assay.md._core.mudata.MuData}
 \title{Get names of all features in an assay/experiment/modality}
 \usage{
 features_in_assay(object, assay)
@@ -14,6 +15,8 @@ features_in_assay(object, assay)
 \method{features_in_assay}{SingleCellExperiment}(object, assay)
 
 \method{features_in_assay}{AnnDataR6}(object, assay)
+
+\method{features_in_assay}{md._core.mudata.MuData}(object, assay)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
@@ -35,6 +38,8 @@ Returns the names of all features in a modality. This utility function can be us
 \item \code{features_in_assay(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{features_in_assay(AnnDataR6)}: Anndata objects
+
+\item \code{features_in_assay(md._core.mudata.MuData)}: MuData objects
 
 }}
 \examples{

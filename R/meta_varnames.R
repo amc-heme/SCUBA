@@ -1,6 +1,7 @@
 #' Summarize object metadata
 #'
-#' Returns the names of all metadata variables in an object.
+#' Returns the names of all metadata variables in an object, or a single
+#' modality of a mudata object.
 #'
 #' @inheritParams object_param
 #' 
@@ -20,7 +21,8 @@
 #' 
 meta_varnames <-
   function(
-    object
+    object,
+    ...
   ){
     UseMethod("meta_varnames")
   }
@@ -38,7 +40,7 @@ meta_varnames.default <-
       paste0(
         "meta_varnames does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment and Anndata (AnnDataR6)."
       )
     )
   }
@@ -68,4 +70,33 @@ meta_varnames.AnnDataR6 <-
     object
   ){
     object$obs_keys()
+  }
+
+#' @describeIn meta_varnames Mudata objects
+#' @export
+meta_varnames.md._core.mudata.MuData <-
+  function(
+    object,
+    modality = NULL
+  ){
+    # MuData: simply report column names of full table from fetch_metadata
+    # Columns returned have an underscore between the modality and the 
+    # metadata variable name instead of a ":", following MuData conventions.
+    fetch_metadata(
+      object,
+      full_table = TRUE
+      ) |> 
+      colnames()
+  }
+  
+#' @export
+meta_varnames.mudata._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to md._core.mudata.MuData method
+    meta_varnames.md._core.mudata.MuData(
+      object = object
+    )
   }

@@ -191,3 +191,88 @@ fetch_reduction.AnnDataR6 <-
         )
   }
 
+#' @describeIn fetch_reduction MuData objects
+#' @export
+fetch_reduction.md._core.mudata.MuData <-
+  function(
+    object,
+    reduction,
+    cells = NULL,
+    dims = c(1, 2)
+    ){
+    if (!requireNamespace("reticulate", quietly = TRUE)) {
+      stop(
+        paste0(
+          'Package "reticulate" must be installed to use this ',
+          'function with anndata objects.'
+        ),
+        call. = FALSE
+      )
+    }
+    
+    library(reticulate)
+    
+    # Establish Python package dependencies
+    # Reticulate will automatically manage a Python environment with these 
+    # packages, installing each if they are not already present
+    py_require("anndata>=0.11.4")
+    py_require("pandas>=2.0.0")
+    py_require("numpy")
+    py_require("scipy>=1.14.0")
+    py_require("mudata>=0.3.1")
+    
+    # Source fetch_reduction python script for mudata
+    python_path =
+      system.file(
+        "extdata",
+        "Python",
+        "fetch_data.py",
+        package = "SCUBA"
+        )
+    
+    py_objs <- reticulate::py_run_file(python_path)
+    
+    # Cells: if NULL, use all cells in the object
+    cells <- cells %||% get_all_cells(object)
+    
+    # Convert dims to a character vector if it isn't already
+    dims <- as.character(dims)
+    
+    # Pull reduction info via python function
+    data <- py_objs$fetch_reduction_mudata(
+      obj = object, 
+      reduction = reduction, 
+      cells = cells, 
+      dims = dims
+      )
+    
+    # Remove Pandas index artifact from return data.frame
+    if (!is.null(idx <- attr(data, "pandas.index"))){
+      # idx is the Pandas index, if it exists
+      rownames(data) <- 
+        idx$to_list() |> 
+        reticulate::py_to_r()
+      # drop Pandas index after setting rownames
+      attr(data, "pandas.index") <- NULL
+    }
+    
+    data
+  }
+
+#' @export
+fetch_reduction.mudata._core.mudata.MuData <-
+  function(
+    object,
+    reduction,
+    cells = NULL,
+    dims = c(1, 2)
+    ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to fetch_data.md._core.mudata.MuData method
+    fetch_reduction.md._core.mudata.MuData(
+      object = object,
+      reduction = reduction,
+      cells = cells,
+      dims = dims
+      )
+    }

@@ -67,3 +67,24 @@ get_all_cells.AnnDataR6 <-
     object$obs_names
   }
 
+#' @describeIn get_all_cells MuData objects
+#' @export
+get_all_cells.md._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # Use obs_names on the full MuData object to get all cell IDs
+    object$obs_names
+  }
+
+#' @export
+get_all_cells.mudata._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect md._core.mudata.MuData method
+    get_all_cells.md._core.mudata.MuData(
+      object = object
+    )
+  }
