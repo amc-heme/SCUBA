@@ -129,9 +129,22 @@ fetch_reduction.SingleCellExperiment <-
 
     # SingleCellExperiment objects: pull reduction matrix, then subset for
     # cells and dims
-    as.data.frame(
+    data <- as.data.frame(
       reducedDims(object)[[reduction]][cells, dims]
     )
+    
+    # Special case: reduction does not have column names
+    # Data will be returned, but it will have no column names. 
+    # This will not cause an error with fetch_reduction, but behavior will 
+    # be inconsistent with fetch_data
+    if (is.null(colnames(reducedDims(object)[[reduction]]))){
+      # Append the dims found to the reduction name with an underscore
+      # to match input (i.e. if the reduction `key` is UMAP, this will
+      # be UMAP_1, UMAP_2, etc.)
+      colnames(data) <- paste(reduction, dims, sep = "_")
+    }
+    
+    data
   }
 
 

@@ -235,8 +235,20 @@ fetch_data.SingleCellExperiment <-
               fixed = FALSE
             )
           
+          # Special case: mainExpName is not defined
+          # Code below will test each key against expected keys, the 
+          # mainExpName being one of them. A simple test of the key against
+          # key == mainExpName(object) will not work because mainExpName(object)
+          # is NULL.
+          # Instead, the boolean below is created, which tests if the key is
+          # the mainExpName if it exists, and is FALSE otherwise.
+          key_is_main_exp_name <- 
+            if (!is.null(mainExpName(object))){
+              key == mainExpName(object)
+            } else FALSE
+          
           # Retrieve data
-          if (key == mainExpName(object)){
+          if (key_is_main_exp_name){
             # For main experiment
             # Subset to variables that are included in the experiment,
             # to avoid errors
@@ -308,6 +320,8 @@ fetch_data.SingleCellExperiment <-
             # pull data from
             dims <- as.integer(keyless_vars)
             
+            reduction_matrix <- reducedDims(object)[[key]]
+            
             # Nonsensical dim inputs
             # It is possible to enter a dim that does not exist in the reduction
             # matrix, for example via a typo. These will cause an error 
@@ -315,10 +329,20 @@ fetch_data.SingleCellExperiment <-
             # are filtered out
             # Upper bound defined using the second element of dims (number of
             # columns)
-            dims <- dims[dims >= 1 & dims <= dim(reducedDims(object)[[key]])[2]]
+            dims <- dims[dims >= 1 & dims <= dim(reduction_matrix)[2]]
             
             data <-
-              reducedDims(object)[[key]][cells, dims]
+              reduction_matrix[cells, dims]
+            
+            # Special case: reduction does not have column names
+            # Data will be returned, but it will have no column names. 
+            # Downstream code will think the column names do not exist
+            if (is.null(colnames(reduction_matrix))){
+              # Append the dims found to the reduction name with an underscore
+              # to match input (i.e. if the reduction `key` is UMAP, this will
+              # be UMAP_1, UMAP_2, etc.)
+              colnames(data) <- paste(key, dims, sep = "_")
+            }
           }
           
           # Return as a list
@@ -349,15 +373,37 @@ fetch_data.SingleCellExperiment <-
     # main experiment (warn users that only metadata will be returned)
     ambiguous_meta_vars <- metadata_vars[metadata_vars %in% rownames(object)]
     if (length(ambiguous_meta_vars) > 0){
-      warning(
-        "The following variables were found in both object metadata and the main experiment: ",
-        paste0(ambiguous_meta_vars, collapse = ", "),
-        '\nOnly the metadata will be returned. To get feature data from the main experiment, please add the "key" of the main experiment to the feature (eg. ',
-        paste0(mainExpName(object), "_", ambiguous_meta_vars[1]),
-        ")",
-        call. = FALSE,
-        immediate. = TRUE
-      )
+      if (!is.null(mainExpName(object))){
+        warning(
+          "The following variables were found in both object metadata and the main experiment: ",
+          paste0(ambiguous_meta_vars, collapse = ", "),
+          '\nOnly the metadata will be returned. To get feature data from the main experiment, please add the "key" of the main experiment to the feature (eg. ',
+          paste0(mainExpName(object), "_", ambiguous_meta_vars[1]),
+          ")",
+          call. = FALSE,
+          immediate. = TRUE
+        )
+      } else {
+        # Special case: object does not have a mainExpName
+        # Pulling featues unambiguously is not possible unless the user adds 
+        # a mainExpName
+        warning(
+          "The following variables were found in both object metadata and the main experiment: ",
+          paste0(ambiguous_meta_vars, collapse = ", "),
+          '\nOnly the metadata will be returned. ',
+          'Since this object does not have a mainExpName, it is not possible ',
+          'to pull these variables from the main experiment without setting ',
+          'a mainExpName due to the presence of the variables in both ',
+          'locations. To get feature data from the main experiment, plase set ',
+          'a mainExpName for your object (for example, via ',
+          '`mainExpName(object) <- "RNA"`), and then add the "key" of the ',
+          'main experiment to the query to `vars`, (for example ',
+          paste0("RNA_", ambiguous_meta_vars[1]),
+          ")",
+          call. = FALSE,
+          immediate. = TRUE
+        )
+      }
     }
     
     # 5. Fetch data for vars in the main experiment that were not specified
@@ -371,40 +417,57 @@ fetch_data.SingleCellExperiment <-
     # this case. 
     # To test, add the key of the main experiment to the variables to test 
     # if these variables were already fetched above
-    keyed_main_exp_vars <- paste0(mainExpName(object), "_", main_exp_vars)
-    # Construct relationship of keyed vars to the vars as entered for error
-    # message reporting
-    names(keyed_main_exp_vars) <- main_exp_vars
-    
-    duplicate_main_exp_vars <- 
-      keyed_main_exp_vars[keyed_main_exp_vars %in% names(fetched_data)]
-    
-    if (length(duplicate_main_exp_vars) > 0){
-      warning(
-        paste0(
-          "The entries to `vars` '", 
-          paste(names(duplicate_main_exp_vars), collapse = "', '"),
-          "' are the same as the entries '", 
-          paste(duplicate_main_exp_vars, collapse = "', '"), 
-          "'. Only one entry for each of these variables will be returned."
-          ),
-        call. = FALSE, 
-        immediate. = TRUE
-        )
+    # Only test this if there is a mainExpName in the object, however.
+    # If there isn't, this code will cause fetch_data to crash, and duplicates
+    # aren't possible in this case
+    if (!is.null(mainExpName(object))){
+      keyed_main_exp_vars <- paste0(mainExpName(object), "_", main_exp_vars)
+      # Construct relationship of keyed vars to the vars as entered for error
+      # message reporting
+      names(keyed_main_exp_vars) <- main_exp_vars
       
-      main_exp_vars <- 
-        main_exp_vars[!main_exp_vars %in% names(duplicate_main_exp_vars)]
+      duplicate_main_exp_vars <- 
+        keyed_main_exp_vars[keyed_main_exp_vars %in% names(fetched_data)]
+      
+      if (length(duplicate_main_exp_vars) > 0){
+        warning(
+          paste0(
+            "The entries to `vars` '", 
+            paste(names(duplicate_main_exp_vars), collapse = "', '"),
+            "' are the same as the entries '", 
+            paste(duplicate_main_exp_vars, collapse = "', '"), 
+            "'. Only one entry for each of these variables will be returned."
+          ),
+          call. = FALSE, 
+          immediate. = TRUE
+        )
+        
+        main_exp_vars <- 
+          main_exp_vars[!main_exp_vars %in% names(duplicate_main_exp_vars)]
+      }
     }
     
     if (!layer %in% names(assays(object))){
       stop(
-        "Error for vars",
-        main_exp_vars,
-        ": layer ",
-        layer,
-        " does not exist in the indicated experiment (",
-        mainExpName(object),
-        ")"
+        paste0(
+          "Error for vars",
+          main_exp_vars,
+          ": layer ",
+          layer,
+          if (!is.null(mainExpName(object))){
+            paste0(
+              " does not exist in the indicated experiment (",
+              mainExpName(object),
+              ")"
+              )
+          } else {
+            # Modify error message in special case where mainExpName does
+            # not exist
+            paste0(
+              " does not exist in the main experiment of this object ."
+            )
+          }
+        )
       )
     }
     
@@ -433,9 +496,11 @@ fetch_data.SingleCellExperiment <-
     missing_vars <- vars[!vars %in% names(fetched_data)]
     # If there were any entries found to be duplicated in 5, remove them from
     # the list of missing vars
-    missing_vars <- 
-      missing_vars[!missing_vars %in% names(duplicate_main_exp_vars)]
-    
+    if (!is.null(mainExpName(object))){
+      # duplicates will only be possible if the object has a mainExpName
+      missing_vars <- 
+        missing_vars[!missing_vars %in% names(duplicate_main_exp_vars)]
+    }
     
     if (length(missing_vars) > 0){
       # 6.1. Create a list to store the experiment(s) each missing feature is in
