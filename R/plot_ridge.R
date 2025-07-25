@@ -55,6 +55,16 @@ plot_ridge <- function(
     combine = TRUE,
     fill_by = 'feature'
     ){
+  lifecycle::deprecate_warn(
+    when = "1.3.0",
+    what = "plot_ridge()",
+    details = 
+      paste0(
+        "plot_ridge() has been moved to the scExploreR package. ",
+        "It will be removed from SCUBA in v1.4.0."
+      )
+  )
+  
   return(
     expr_plot(
       object = object,

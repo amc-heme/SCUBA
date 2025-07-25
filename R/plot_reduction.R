@@ -103,6 +103,16 @@ plot_reduction <- function(
     raster = NULL,
     raster_dpi = c(512, 512)
 ) {
+  lifecycle::deprecate_warn(
+    when = "1.3.0",
+    what = "plot_reduction()",
+    details = 
+      paste0(
+        "plot_reduction() has been moved to the scExploreR package. ",
+        "It will be removed from SCUBA in v1.4.0."
+      )
+  )
+  
   if (length(x = dims) != 2) {
     stop("'dims' must be a two-length vector")
   }

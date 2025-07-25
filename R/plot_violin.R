@@ -52,6 +52,16 @@ plot_violin <- function(
     add_noise = TRUE,
     raster = NULL
     ){
+  lifecycle::deprecate_warn(
+    when = "1.3.0",
+    what = "plot_violin()",
+    details = 
+      paste0(
+        "plot_violin() will be removed from SCUBA in v1.4.0. It will be ",
+        "moved to the scExploreR package."
+      )
+  )
+  
   return(
     expr_plot(
       object = object,

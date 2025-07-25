@@ -65,6 +65,16 @@ expr_plot <-
     add_noise = TRUE,
     raster = NULL
     ){
+    lifecycle::deprecate_warn(
+      when = "1.3.0",
+      what = "plot_violin()",
+      details = 
+        paste0(
+          "plot_violin() will be removed from SCUBA in v1.4.0. It will be ",
+          "moved to the scExploreR package."
+        )
+    )
+    
     # 1. Set defaults
     ## 1.1. Set default number of columns if undefined, and if stack is FALSE
     if (stack == TRUE) {

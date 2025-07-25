@@ -33,6 +33,16 @@ relabel_axis <-
     feature,
     ...
   ){
+    lifecycle::deprecate_warn(
+      when = "1.3.0",
+      what = "plot_dot()",
+      details = 
+        paste0(
+          "relabel_axis() has been moved to the scExploreR package. ",
+          "It will be removed from SCUBA in v1.4.0."
+        )
+    )
+    
     UseMethod("relabel_axis")
   }
 

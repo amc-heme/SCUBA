@@ -61,6 +61,16 @@ plot_scatter <-
     raster_dpi = c(512, 512),
     jitter = FALSE
   ){
+    lifecycle::deprecate_warn(
+      when = "1.3.0",
+      what = "plot_scatter()",
+      details = 
+        paste0(
+          "plot_scatter() has been moved to the scExploreR package. ",
+          "It will be removed from SCUBA in v1.4.0."
+        )
+    )
+    
     # 1. Process parameters and define defaults
     ## 1.1. cells to use: if unspecified, plot all cells
     cells <- cells %||% get_all_cells(object)

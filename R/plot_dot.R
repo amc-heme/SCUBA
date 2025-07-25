@@ -76,6 +76,16 @@ plot_dot <-
     scale_min = NA,
     scale_max = NA
     ){
+    lifecycle::deprecate_warn(
+      when = "1.3.0",
+      what = "plot_dot()",
+      details = 
+        paste0(
+          "plot_dot() has been moved to the scExploreR package. ",
+          "It will be removed from SCUBA in v1.4.0."
+        )
+    )
+    
     # 1. Process Input Parameters
     ## 1.1. split_colors based on split_by, cols entry
     # colors each split separately (only works for categorical
