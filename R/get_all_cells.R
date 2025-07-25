@@ -74,7 +74,9 @@ get_all_cells.md._core.mudata.MuData <-
     object
   ){
     # Use obs_names on the full MuData object to get all cell IDs
-    object$obs_names
+    # A Pandas index will be returned, which must be converted to a Python
+    # list first so it can be properly converted to an R character vector
+    convert_pandas_index(object$obs_names)
   }
 
 #' @export

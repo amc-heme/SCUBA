@@ -120,13 +120,7 @@ features_in_assay.md._core.mudata.MuData <-
     # Return var_names of the modality passed to `assay`
     # Ensure data is returned as an R character vector 
     # instead of a Python index
-    if (inherits(object[[assay]]$var_names, "pandas.core.indexes.base.Index")){
-      # If var_names is a Pandas Index, convert it to a list in Python first 
-      # so it can be properly returned as a character vector in R
-      object[[assay]]$var_names$to_list()
-    } else {
-      object[[assay]]$var_names
-    }
+    convert_pandas_index(object[[assay]]$var_names)
   }
 
 #' @export
