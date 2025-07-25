@@ -59,7 +59,7 @@ objects. A metadata column name must be passed.}
 objects. A metadata column name must be passed, or \code{NULL} to disable split plots.}
 
 \item{shape_by}{If NULL, all points are circles (default). You can specify any
-cell attribute (that can be pulled with FetchData) allowing for both
+cell attribute (that can be pulled with fetch_data) allowing for both
 different colors and different shapes on cells.  Only applicable if \code{raster = FALSE}.}
 
 \item{order}{Specify the order of plotting for the idents. This can be
