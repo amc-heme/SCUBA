@@ -541,7 +541,6 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
     # Suggested code for aggregation of metadata accross modalities
     if obj.axis == 0:
         for var, original_var in transformed_vars.items():
-            print(f"Pulling {var} (originally {original_var})")
             # When axis = 0, columns pulled will always contain the modality 
             # prefix with a ":" (i.e. "mod1:qc")
             # In the case a user enters a variable with a modality prefix, 
