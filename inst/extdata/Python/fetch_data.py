@@ -516,7 +516,9 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
             transformed_vars[pattern.sub(r"\1:\2", var)] = var
     
     # Pull metadata vars into MuData obs table
-    obj.pull_obs(columns = meta_vars)
+    # Use the keys to pull items (keys use the translated variable name with 
+    # the ":" separator, which is how variables will appear in MuData objects)
+    obj.pull_obs(columns = transformed_vars.keys())
     
     # If a subset of cells is defined, subset the main obs table 
     # for those cells 
