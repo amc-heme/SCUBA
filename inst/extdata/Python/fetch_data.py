@@ -121,11 +121,17 @@ def match_vars(
     
     # Record mod-obs var matches in a special entry
     if len(mod_obs_keys) > 0:
-        key_matches["mod_obs"] = [
+        mod_obs_matches = [
             var 
             for var in match_vars 
             if any(_match_key(var, key)[0] is not None for key in mod_obs_keys)
             ]
+        
+        # Add mod_obs entry only if there are matches with mod_obs keys
+        # unexpected behavior may result downstream if there are no matches,
+        # and mod_obs is initialized as an empty list
+        if len(mod_obs_matches) > 0:
+            key_matches["mod_obs"] = mod_obs_matches
     
     # Iterate through keys
     for key in keys:
@@ -534,7 +540,8 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
     
     # Suggested code for aggregation of metadata accross modalities
     if obj.axis == 0:
-        for var, orginal_var in transformed_vars.items():
+        for var, original_var in transformed_vars.items():
+            print(f"Pulling {var} (originally {original_var})")
             # When axis = 0, columns pulled will always contain the modality 
             # prefix with a ":" (i.e. "mod1:qc")
             # In the case a user enters a variable with a modality prefix, 
@@ -546,7 +553,7 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
                 # Store the data in the return dataframe using the var name
                 # as it was entered to the function, rather than the 
                 # transformed machine-readable var
-                return_df[orginal_var] = obs_df[var]
+                return_df[original_var] = obs_df[var]
             else:
                 # Vars entered without a modality prefix
                 # Extract columns returned via regex
@@ -570,7 +577,7 @@ def fetch_metadata_mudata(obj, meta_vars, cells = None):
                     # either in just one modality (when axis = 0, obs_names 
                     # are shared)
                     # Copy the matching column to the metadata table output
-                    return_df[orginal_var] = obs_df[matches[0]]
+                    return_df[original_var] = obs_df[matches[0]]
                 else:
                     # Multiple entires found: variable is in more than one 
                     # modality, and may not be describing the same property 
