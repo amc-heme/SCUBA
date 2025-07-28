@@ -95,6 +95,28 @@ h5ad_backed_data <-
     )
   )
 
+h5mu_data <-
+  suppressWarnings(
+    fetch_data(
+      AML_h5mu(),
+      vars =
+        c("AB_CD117-AB",
+          "AB_CD123-AB",
+          "AB_CD11c-AB",
+          "RNA_GAPDH",
+          "RNA_MEIS1",
+          # Reductions
+          "X_umap_1",
+          "X_umap_2",
+          # Metadata
+          "nCount_RNA",
+          "nFeature_RNA",
+          # "Ambiguous" feature not in RNA assay
+          "CD11a-AB"
+        )
+    )
+  )
+
 test_that("All fetch_data methods return the same data.", {
   # Check rowSums and colSums of data
   expect_equal(
@@ -121,6 +143,28 @@ test_that("All fetch_data methods return the same data.", {
   expect_equal(
     object = colSums(sce_data),
     expected = colSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  # Mudata
+  expect_equal(
+    object = colSums(h5mu_data),
+    expected = colSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  expect_equal(
+    object = colSums(h5mu_data),
+    expected = colSums(sce_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  
+  expect_equal(
+    object = colSums(h5mu_data),
+    expected = colSums(seurat_data),
     tolerance = 1e-6,
     ignore_attr = TRUE
   )
@@ -186,6 +230,8 @@ test_that(
         )
     )
   )
+  
+  # MuData
 })
 
 test_that(
