@@ -93,9 +93,7 @@ AML_h5ad_backed <- function(){
 AML_h5mu <- function(){
   path <- system.file("extdata", "AML_mudata.h5mu", package = "SCUBA")
   
-  try(
-    py_require("mudata>=0.3.1")
-  )
+  reticulate::py_require("mudata>=0.3.1")
   
   md <- reticulate::import("mudata", as = "md", convert = TRUE)
   
