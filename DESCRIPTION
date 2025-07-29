@@ -57,6 +57,7 @@ Imports:
     HDF5Array,
     patchwork,
     RColorBrewer,
+    reticulate (>= 1.41.0),
     scales,
     scattermore,
     SeuratObject,
@@ -66,7 +67,6 @@ Imports:
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
-    reticulate (>= 1.41.0),
     anndata,
     knitr,
     rmarkdown

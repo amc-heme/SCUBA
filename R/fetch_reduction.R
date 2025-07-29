@@ -209,14 +209,6 @@ fetch_reduction.md._core.mudata.MuData <-
         call. = FALSE
       )
     }
-    # Establish Python package dependencies
-    # Reticulate will automatically manage a Python environment with these 
-    # packages, installing each if they are not already present
-    reticulate::py_require("anndata>=0.11.4")
-    reticulate::py_require("pandas>=2.0.0")
-    reticulate::py_require("numpy")
-    reticulate::py_require("scipy>=1.14.0")
-    reticulate::py_require("mudata>=0.3.1")
     
     # Source fetch_reduction python script for mudata
     python_path =
