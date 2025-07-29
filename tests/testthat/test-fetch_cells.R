@@ -21,6 +21,13 @@ test_that("fetch_cells returns the same results for Anndata R6, SingleCellExperi
       meta_levels = unique_values(AML_h5ad(), var="seurat_clusters")
     )
   
+  h5mu_cells <-
+    fetch_cells(
+      AML_h5mu(),  
+      meta_var = "seurat_clusters",
+      meta_levels = unique_values(AML_h5ad(), var="seurat_clusters")
+    )
+  
   #Check rowSums and colSums of data
   expect_equal(
     object = h5ad_cells,
@@ -31,6 +38,12 @@ test_that("fetch_cells returns the same results for Anndata R6, SingleCellExperi
   expect_equal(
     object = seurat_cells,
     expected = sce_cells,
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    object = h5mu_cells,
+    expected = seurat_cells,
     tolerance = 1e-6,
     ignore_attr = TRUE
   )

@@ -147,7 +147,26 @@ test_that("All fetch_data methods return the same data.", {
     ignore_attr = TRUE
   )
   
-  # Mudata
+  # MuData: compare both row and column sums against other formats
+  expect_equal(
+    object = rowSums(h5mu_data),
+    expected = rowSums(h5ad_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    object = rowSums(h5mu_data),
+    expected = rowSums(sce_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    object = rowSums(h5mu_data),
+    expected = rowSums(seurat_data),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  # MuData: column sums
   expect_equal(
     object = colSums(h5mu_data),
     expected = colSums(h5ad_data),
@@ -232,6 +251,15 @@ test_that(
   )
   
   # MuData
+  # expect_warning(
+  #   fetch_data(
+  #     AML_h5mu(),
+  #     vars = c(
+  #       # Ambiguously entered feature not in the main modality
+  #       "CD11a-AB"
+  #     )
+  #   )
+  # )
 })
 
 test_that(
@@ -255,7 +283,10 @@ test_that(
     
     expect_no_warning(
       fetch_data(AML_h5ad_backed(), vars = c("GAPDH", "nCount_RNA"))
-      )
+    )
+    expect_no_warning(
+      fetch_data(AML_h5mu(), vars = c("GAPDH", "nCount_RNA"))
+    )
   })
 
 test_that("fetch_data returns a warning, but no errors, for mixed feature inputs", {
@@ -350,6 +381,22 @@ test_that("fetch_data returns a warning, but no errors, for mixed feature inputs
           # Reduction from nonsensical index (due to a typo)
           "X_umap_11"
         )
+    )
+  )
+  # MuData: mixed feature inputs
+  expect_warning(
+    fetch_data(
+      AML_h5mu(),
+      vars = c(
+        "AB_CD110-AB",
+        "RNA_GAPDH",
+        "RNA_MEIS1",
+        "X_umap_1",
+        "nonsense",
+        "RNA_MESS1",
+        "AB_CD1110-AB",
+        "X_umap_11"
+      )
     )
   )
 })
@@ -546,8 +593,47 @@ test_that(
       # Is the same as...
       c("X_GAPDH", "X_MEIS1"),
       ignore_attr = TRUE
-      ) |> 
+  ) |> 
       expect_warning()
+  
+  # 5. MuData
+  ## 5.a. Proper return of duplicate features, but with a warning
+  expect_equal(
+    fetch_data(
+      AML_h5mu(),
+      vars = c("RNA_GAPDH", "RNA_GAPDH", "RNA_MEIS1", "RNA_MEIS1")
+    ),
+    fetch_data(
+      AML_h5mu(),
+      vars = c("RNA_GAPDH", "RNA_MEIS1")
+    ),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  ) |> expect_warning()
+
+  ## 5.b. Duplicate features caused by entering a key with one but not the other
+  expect_equal(
+    fetch_data(
+      AML_h5mu(),
+      vars = c("RNA_GAPDH", "GAPDH", "RNA_MEIS1", "MEIS1")
+    ),
+    fetch_data(
+      AML_h5mu(),
+      vars = c("RNA_GAPDH", "RNA_MEIS1")
+    ),
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  ) |> expect_warning()
+
+  ## 5.c. Column names of return in 5.c. should be equal to the feature specified with the key
+  # expect_equal(
+  #   fetch_data(
+  #     AML_h5mu(),
+  #     vars = c("RNA_GAPDH", "GAPDH", "RNA_MEIS1", "MEIS1")
+  #   ) |> colnames(),
+  #   c("RNA_GAPDH", "RNA_MEIS1"),
+  #   ignore_attr = TRUE
+  # ) |> expect_warning()
   })
 
 test_that("fetch_data returns an error when a nonsensical feature is entered", {
@@ -587,6 +673,16 @@ test_that("fetch_data returns an error when a nonsensical feature is entered", {
   expect_error(
     fetch_data(
       AML_h5ad_backed(),
+      vars =
+        # Nonexistent feature
+        c("ab_CD900")
+    )
+  )
+  
+  # MuData
+  expect_error(
+    fetch_data(
+      AML_h5mu(),
       vars =
         # Nonexistent feature
         c("ab_CD900")
