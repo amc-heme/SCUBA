@@ -62,3 +62,4 @@ Seurat, SingleCellExperiment, Anndata, and MuData objects.
 # genes <- fetch_matrix(mudata_obj, "rna_var")
 
 }
+\keyword{internal}
