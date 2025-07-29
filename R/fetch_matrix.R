@@ -37,6 +37,8 @@
 #' # umap <- fetch_matrix(mudata_obj, "rna_umap")
 #' # genes <- fetch_matrix(mudata_obj, "rna_var")
 #'
+#' @keywords internal
+#'
 #' @export
 #' @rdname fetch_matrix
 fetch_matrix <-
