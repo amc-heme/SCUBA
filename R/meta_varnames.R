@@ -5,6 +5,8 @@
 #'
 #' @inheritParams object_param
 #' 
+#' @param ... Additional arguments passed to S3 methods
+#' 
 #' @rdname meta_varnames
 #'
 #' @export
@@ -34,7 +36,8 @@ meta_varnames <-
 #' @export
 meta_varnames.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(
@@ -49,7 +52,8 @@ meta_varnames.default <-
 #' @export
 meta_varnames.Seurat <-
   function(
-    object
+    object,
+    ...
   ){
     colnames(object@meta.data)
   }
@@ -58,7 +62,8 @@ meta_varnames.Seurat <-
 #' @export
 meta_varnames.SingleCellExperiment <-
   function(
-    object
+    object,
+    ...
   ){
     colnames(colData(object))
   }
@@ -67,7 +72,8 @@ meta_varnames.SingleCellExperiment <-
 #' @export
 meta_varnames.AnnDataR6 <-
   function(
-    object
+    object,
+    ...
   ){
     object$obs_keys()
   }
@@ -77,7 +83,8 @@ meta_varnames.AnnDataR6 <-
 meta_varnames.md._core.mudata.MuData <-
   function(
     object,
-    modality = NULL
+    # mod = NULL,
+    ...
   ){
     # MuData: simply report column names of full table from fetch_metadata
     # Columns returned have an underscore between the modality and the 
@@ -92,7 +99,8 @@ meta_varnames.md._core.mudata.MuData <-
 #' @export
 meta_varnames.mudata._core.mudata.MuData <-
   function(
-    object
+    object,
+    ...
   ){
     # mudata._core.mudata.MuData: possible class when loading 
     # Redirect to md._core.mudata.MuData method

@@ -10,17 +10,19 @@
 \usage{
 meta_varnames(object, ...)
 
-\method{meta_varnames}{Seurat}(object)
+\method{meta_varnames}{Seurat}(object, ...)
 
-\method{meta_varnames}{SingleCellExperiment}(object)
+\method{meta_varnames}{SingleCellExperiment}(object, ...)
 
-\method{meta_varnames}{AnnDataR6}(object)
+\method{meta_varnames}{AnnDataR6}(object, ...)
 
-\method{meta_varnames}{md._core.mudata.MuData}(object, modality = NULL)
+\method{meta_varnames}{md._core.mudata.MuData}(object, ...)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
 and anndata objects are supported.}
+
+\item{...}{Additional arguments passed to S3 methods}
 }
 \description{
 Returns the names of all metadata variables in an object, or a single

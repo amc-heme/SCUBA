@@ -30,7 +30,8 @@ update_object_metadata <-
 update_object_metadata.default <-
   function(
     object,
-    table
+    table,
+    ...
   ){
     warning(
       paste0(
@@ -47,7 +48,8 @@ update_object_metadata.default <-
 update_object_metadata.Seurat <-
   function(
     object,
-    table
+    table,
+    ...
   ){
     object@meta.data <- table
     
@@ -61,7 +63,8 @@ update_object_metadata.Seurat <-
 update_object_metadata.SingleCellExperiment <-
   function(
     object,
-    table
+    table,
+    ...
   ){
     colData(object) <- table
     
@@ -74,7 +77,8 @@ update_object_metadata.SingleCellExperiment <-
 update_object_metadata.AnnDataR6 <-
   function(
     object,
-    table
+    table,
+    ...
   ){
     object$obs <- table
     
@@ -89,7 +93,8 @@ update_object_metadata.md._core.mudata.MuData <-
   function(
     object,
     table,
-    mod = NULL
+    mod = NULL,
+    ...
   ){
     if (is.null(mod)){
       object$obs <- table
@@ -106,7 +111,8 @@ update_object_metadata.mudata._core.mudata.MuData <-
   function(
     object,
     table,
-    mod = NULL
+    mod = NULL,
+    ...
     ){
     update_object_metadata.md._core.mudata.MuData(
       object = object,
