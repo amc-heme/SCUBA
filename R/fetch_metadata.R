@@ -7,8 +7,8 @@
 #' @inheritParams object_param
 #' @param vars metadata variables to pull from object. This must be defined,
 #' unless "full_table" is set to `TRUE`.
-#' @param cells cell IDs for which to pull metadata. If `NULL`, 
-#' coordinates will be returned from all cells in the object. Cell IDs can be 
+#' @param cells cell IDs for which to pull metadata. If `NULL`,
+#' coordinates will be returned from all cells in the object. Cell IDs can be
 #' generated with [fetch_cells()].
 #' @param full_table if `TRUE`, return the entire metadata table. This is `FALSE` by
 #' default.
@@ -19,27 +19,27 @@
 #' @rdname fetch_metadata
 #'
 #' @export
-#' 
+#'
 #' @examples
 #' # Return several metadata variables as a data.frame
 #' fetch_metadata(
-#'   AML_Seurat, 
+#'   AML_Seurat,
 #'   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
 #'   ) |> str()
-#'   
+#'
 #' # Return data for a single metadata variable as a vector
 #' fetch_metadata(
-#'   AML_Seurat, 
+#'   AML_Seurat,
 #'   vars = "condensed_cell_type",
 #'   return_class = "vector"
 #'   ) |> str()
-#' 
-#' # Return all metadata 
+#'
+#' # Return all metadata
 #' fetch_metadata(
 #'   AML_Seurat,
 #'   full_table = TRUE
 #'   ) |> str()
-#' 
+#'
 fetch_metadata <-
   function(
     object,
@@ -47,7 +47,7 @@ fetch_metadata <-
     cells = NULL,
     full_table = FALSE,
     return_class = "dataframe"
-  ){
+  ) {
     UseMethod("fetch_metadata")
   }
 
@@ -63,7 +63,7 @@ fetch_metadata.default <-
     cells = NULL,
     full_table = FALSE,
     return_class = "dataframe"
-  ){
+  ) {
     warning(
       paste0(
         "fetch_metadata does not know how to handle object of class ",
@@ -82,23 +82,23 @@ fetch_metadata.Seurat <-
     cells = NULL,
     full_table = FALSE,
     return_class = "dataframe"
-  ){
+  ) {
     # Check return_class for valid entries
-    if (!return_class %in% c("dataframe", "vector")){
+    if (!return_class %in% c("dataframe", "vector")) {
       stop('return_class must be either "dataframe" or "vector".')
     }
 
     # Check vars for valid entries (may be undefined only if full_table or FALSE)
-    if (full_table == FALSE && is.null(vars)){
+    if (full_table == FALSE && is.null(vars)) {
       stop("`vars` must be defined, unless `full_table` is TRUE.")
     }
     # Also warn if vars is defined when full_table is TRUE
-    if (full_table == TRUE && !is.null(vars)){
+    if (full_table == TRUE && !is.null(vars)) {
       warning("`full_table` is TRUE, ignoring entries in `vars`.")
     }
 
     # Return full table if enabled
-    if (full_table == TRUE){
+    if (full_table == TRUE) {
       return(object@meta.data)
     }
 
@@ -106,31 +106,37 @@ fetch_metadata.Seurat <-
     vars_present <- meta_varnames(object)
     # not_found: TRUE if a var exists in the object, FALSE if not
     not_found <- !vars %in% vars_present
-    
+
     # Return an error if any or all variables entered are not found
-    if (any(not_found)){
-      if (all(not_found)){
+    if (any(not_found)) {
+      if (all(not_found)) {
         stop(
           paste0(
-            "\nNone of the variables entered in `vars` were not found\n",
-            "in the object. To view available entries for your object,\n",
+            "\nNone of the variables entered in `vars` were found\n",
+            "in the object. ",
+            "Variables entered: ",
+            '"',
+            paste(vars, collapse = '", "'),
+            '". ',
+            "To view available entries for your object,\n",
             "run SCUBA::meta_varnames()."
-            )
           )
+        )
       } else {
-        # If some but not all variables entered are not found, report the 
+        # If some but not all variables entered are not found, report the
         # variables that are not found
         stop(
           paste0(
             "\nThe following variables entered in `vars` were not found in \n",
             "the object: ",
-            paste(vars[not_found]), ". \n\n",
+            paste(vars[not_found]),
+            ". \n\n",
             "To view available entries for your object, run SCUBA::meta_varnames()."
           )
         )
       }
     }
-    
+
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
@@ -139,7 +145,7 @@ fetch_metadata.Seurat <-
 
     # Use as.data.frame() if return_class is equal to "dataframe"
     # (if "vector", no additional operations necessary)
-    if (return_class == "dataframe"){
+    if (return_class == "dataframe") {
       data <-
         as.data.frame(
           data
@@ -148,7 +154,7 @@ fetch_metadata.Seurat <-
       # Add cell names to rownames, and metadata names to colnames
       rownames(data) <- cells
       colnames(data) <- vars
-    } else if (return_class == "vector"){
+    } else if (return_class == "vector") {
       # Return named vector with cell names
       names(data) <- cells
     }
@@ -165,49 +171,54 @@ fetch_metadata.SingleCellExperiment <-
     cells = NULL,
     full_table = FALSE,
     return_class = "dataframe"
-  ){
+  ) {
     # Check return_class for valid entries
-    if (!return_class %in% c("dataframe", "vector")){
+    if (!return_class %in% c("dataframe", "vector")) {
       stop('return_class must be either "dataframe" or "vector".')
     }
 
     # Check vars for valid entries (may be undefined only if full_table or FALSE)
-    if (full_table == FALSE && is.null(vars)){
+    if (full_table == FALSE && is.null(vars)) {
       stop("`vars` must be defined, unless `full_table` is TRUE.")
     }
     # Also warn if vars is defined when full_table is TRUE
-    if (full_table == TRUE && !is.null(vars)){
+    if (full_table == TRUE && !is.null(vars)) {
       warning("`full_table` is TRUE, ignoring entries in `vars`.")
     }
 
     # Return full table if enabled
-    if (full_table == TRUE){
+    if (full_table == TRUE) {
       return(colData(object))
     }
-    
+
     # Return an error if the variable name is not in the object metadata
     vars_present <- meta_varnames(object)
     # not_found: TRUE if a var exists in the object, FALSE if not
     not_found <- !vars %in% vars_present
-    
+
     # Return an error if any or all variables entered are not found
-    if (any(not_found)){
-      if (all(not_found)){
+    if (any(not_found)) {
+      if (all(not_found)) {
         stop(
           paste0(
-            "\nNone of the variables entered in `vars` were not found\n",
-            "in the object. To view available entries for your object,\n",
+            "\nNone of the variables entered in `vars` were found\n",
+            "in the object. ",
+            "Variables entered: ",
+            paste(vars, collapse = ","),
+            ". ",
+            "To view available entries for your object,\n",
             "run SCUBA::meta_varnames()."
           )
         )
       } else {
-        # If some but not all variables entered are not found, report the 
+        # If some but not all variables entered are not found, report the
         # variables that are not found
         stop(
           paste0(
             "\nThe following variables entered in `vars` were not found in \n",
             "the object: ",
-            paste(vars[not_found]), ". \n\n",
+            paste(vars[not_found]),
+            ". \n\n",
             "To view available entries for your object, run SCUBA::meta_varnames()."
           )
         )
@@ -223,7 +234,7 @@ fetch_metadata.SingleCellExperiment <-
 
     # Use as.data.frame() if return_class is equal to "dataframe"
     # (if "vector", no additional operations necessary)
-    if (return_class == "dataframe"){
+    if (return_class == "dataframe") {
       data <-
         as.data.frame(
           data
@@ -232,14 +243,13 @@ fetch_metadata.SingleCellExperiment <-
       # Add cell names to rownames, and metadata names to colnames
       rownames(data) <- cells
       colnames(data) <- vars
-    } else if (return_class == "vector"){
+    } else if (return_class == "vector") {
       # Return named vector with cell names
       names(data) <- cells
     }
 
     data
   }
-
 
 
 #' @describeIn fetch_metadata AnnDataR6 objects
@@ -251,23 +261,23 @@ fetch_metadata.AnnDataR6 <-
     cells = NULL,
     full_table = FALSE,
     return_class = "dataframe"
-  ){
+  ) {
     # Check return_class for valid entries
-    if (!return_class %in% c("dataframe", "vector")){
+    if (!return_class %in% c("dataframe", "vector")) {
       stop('return_class must be either "dataframe" or "vector".')
     }
 
     # Check vars for valid entries (may be undefined only if full_table or FALSE)
-    if (full_table == FALSE && is.null(vars)){
+    if (full_table == FALSE && is.null(vars)) {
       stop("`vars` must be defined, unless `full_table` is TRUE.")
     }
     # Also warn if vars is defined when full_table is TRUE
-    if (full_table == TRUE && !is.null(vars)){
+    if (full_table == TRUE && !is.null(vars)) {
       warning("`full_table` is TRUE, ignoring entries in `vars`.")
     }
 
     # Return full table if enabled
-    if (full_table == TRUE){
+    if (full_table == TRUE) {
       return(object$obs)
     }
 
@@ -275,31 +285,36 @@ fetch_metadata.AnnDataR6 <-
     vars_present <- meta_varnames(object)
     # not_found: TRUE if a var exists in the object, FALSE if not
     not_found <- !vars %in% vars_present
-    
+
     # Return an error if any or all variables entered were not found
-    if (any(not_found)){
-      if (all(not_found)){
+    if (any(not_found)) {
+      if (all(not_found)) {
         stop(
           paste0(
-            "\nNone of the variables entered in `vars` were not found\n",
-            "in the object. To view available entries for your object,\n",
+            "\nNone of the variables entered in `vars` were found\n",
+            "in the object. ",
+            "Variables entered: ",
+            paste(vars, collapse = ","),
+            ". ",
+            "To view available entries for your object,\n",
             "run SCUBA::meta_varnames()."
           )
         )
       } else {
-        # If some but not all variables entered were not found, report the 
+        # If some but not all variables entered were not found, report the
         # variables that are not found
         stop(
           paste0(
             "\nThe following variables entered in `vars` were not found in \n",
             "the object: ",
-            paste(vars[not_found]), ". \n\n",
+            paste(vars[not_found]),
+            ". \n\n",
             "To view available entries for your object, run SCUBA::meta_varnames()."
           )
         )
       }
     }
-    
+
     # Cells: if undefined, pull data for all cells
     cells <- cells %||% get_all_cells(object)
 
@@ -310,7 +325,7 @@ fetch_metadata.AnnDataR6 <-
 
     # Use as.data.frame() if return_class is equal to "dataframe"
     # (if "vector", no additional operations necessary)
-    if (return_class == "dataframe"){
+    if (return_class == "dataframe") {
       data <-
         as.data.frame(
           data
@@ -319,7 +334,7 @@ fetch_metadata.AnnDataR6 <-
       # Add cell names to rownames, and metadata names to colnames
       rownames(data) <- cells
       colnames(data) <- vars
-    } else if (return_class == "vector"){
+    } else if (return_class == "vector") {
       # Return named vector with cell names
       names(data) <- cells
     }
