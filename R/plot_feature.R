@@ -232,16 +232,25 @@ plot_feature <- function(
   }
 
   ## 2.3. Fetch expression data for the requested features
-  data <-
-    cbind(
-      data,
+  expr_df <-
+    if (inherits(object, "Seurat") && is_bp_cells_seurat(object, assay = DefaultAssay(object), layer = slot)){
+      bp_cells_fetch_features(
+        object = object,
+        features = features,
+        assay = DefaultAssay(object),
+        layer = slot,
+        cells = cells
+      )
+    } else {
       FetchData(
         object = object,
         vars = features,
         layer = slot,
         cells = cells
       )
-    )
+    }
+
+  data <- cbind(data, expr_df)
 
   ## 2.4. Check that at least one of the features was properly
   # fetched from the object.

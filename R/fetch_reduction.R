@@ -191,3 +191,66 @@ fetch_reduction.AnnDataR6 <-
         )
   }
 
+
+#' @describeIn fetch_reduction BPCells objects
+#' @export
+fetch_reduction.BPCells <-
+  function(
+    object,
+    reduction,
+    cells = NULL,
+    dims = c(1, 2)
+  ){
+    if (length(x = dims) != 2) {
+      stop("'dims' must be a two-length vector")
+    }
+
+    # Validate reductions list structure
+    if (is.null(object$reductions) || !is.list(object$reductions)){
+      stop("BPCells object must have a list element 'reductions' containing named matrices.")
+    }
+
+    # Throw an error if the reduction entered does not exist
+    if (!reduction %in% names(object$reductions)){
+      reductions_str <- paste(names(object$reductions), collapse = ", ")
+      stop(
+        paste0(
+          '\nThe reduction "', reduction,
+          '" was not found in the BPCells object passed. \n',
+          'Reductions present in object: ',
+          reductions_str, '.'
+        )
+      )
+    }
+
+    # Cells: if NULL, use helper or rownames of reduction matrix
+    cells <- cells %||% (
+      if (!is.null(object$cells)) {
+        object$cells
+      } else {
+        if (is.null(rownames(object$reductions[[reduction]]))){
+          stop("Reduction matrix lacks rownames; cannot infer cell IDs.")
+        }
+        rownames(object$reductions[[reduction]])
+      }
+    )
+
+    # Subset reduction matrix
+    red_mat <- object$reductions[[reduction]]
+
+    # Guard against out-of-range dims (silently filter like SCE method does)
+    dims <- dims[dims >= 1 & dims <= ncol(red_mat)]
+    if (length(dims) != 2){
+      stop("Requested dimensions not found in reduction matrix.")
+    }
+
+    data <- as.data.frame(red_mat[cells, dims, drop = FALSE])
+
+    # If column names absent, synthesize them for consistency
+    if (is.null(colnames(red_mat))){
+      colnames(data) <- paste(reduction, dims, sep = "_")
+    }
+
+    data
+  }
+

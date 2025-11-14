@@ -67,3 +67,22 @@ get_all_cells.AnnDataR6 <-
     object$obs_names
   }
 
+#' @describeIn get_all_cells BPCells objects
+#' @export
+get_all_cells.BPCells <-
+  function(
+    object
+  ){
+    if (!is.null(object$cells)){
+      return(object$cells)
+    }
+    # Attempt to infer from first reduction matrix
+    if (!is.null(object$reductions) && length(object$reductions) >= 1){
+      first_red <- object$reductions[[1]]
+      if (!is.null(rownames(first_red))){
+        return(rownames(first_red))
+      }
+    }
+    stop("Unable to determine cell IDs for BPCells object (no 'cells' vector and reduction matrices lack rownames).")
+  }
+

@@ -112,3 +112,14 @@ reduction_dimnames.AnnDataR6 <-
     #AnnData: same as for SingleCellExperiment objects
     paste0(reduction, "_", dims)
   }
+
+#' @describeIn reduction_dimnames BPCells objects
+#' @export
+reduction_dimnames.BPCells <-
+  function(
+    object,
+    reduction,
+    dims
+  ){
+    paste0(reduction, "_", dims)
+  }
