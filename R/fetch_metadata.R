@@ -112,8 +112,13 @@ fetch_metadata.Seurat <-
       if (all(not_found)) {
         stop(
           paste0(
-            "\nNone of the variables entered in `vars` were not found\n",
-            "in the object. To view available entries for your object,\n",
+            "\nNone of the variables entered in `vars` were found\n",
+            "in the object. ",
+            "Variables entered: ",
+            '"',
+            paste(vars, collapse = '", "'),
+            '". ',
+            "To view available entries for your object,\n",
             "run SCUBA::meta_varnames()."
           )
         )
@@ -196,8 +201,12 @@ fetch_metadata.SingleCellExperiment <-
       if (all(not_found)) {
         stop(
           paste0(
-            "\nNone of the variables entered in `vars` were not found\n",
-            "in the object. To view available entries for your object,\n",
+            "\nNone of the variables entered in `vars` were found\n",
+            "in the object. ",
+            "Variables entered: ",
+            paste(vars, collapse = ","),
+            ". ",
+            "To view available entries for your object,\n",
             "run SCUBA::meta_varnames()."
           )
         )
@@ -282,8 +291,12 @@ fetch_metadata.AnnDataR6 <-
       if (all(not_found)) {
         stop(
           paste0(
-            "\nNone of the variables entered in `vars` were not found\n",
-            "in the object. To view available entries for your object,\n",
+            "\nNone of the variables entered in `vars` were found\n",
+            "in the object. ",
+            "Variables entered: ",
+            paste(vars, collapse = ","),
+            ". ",
+            "To view available entries for your object,\n",
             "run SCUBA::meta_varnames()."
           )
         )
