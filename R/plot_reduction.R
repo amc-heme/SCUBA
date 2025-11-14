@@ -30,7 +30,7 @@
 #' "ident" may not be passed since the ident functionality is not supported by SingleCellExperiment
 #' objects. A metadata column name must be passed, or \code{NULL} to disable split plots.
 #' @param shape_by If NULL, all points are circles (default). You can specify any
-#' cell attribute (that can be pulled with FetchData) allowing for both
+#' cell attribute (that can be pulled with fetch_data) allowing for both
 #' different colors and different shapes on cells.  Only applicable if \code{raster = FALSE}.
 #' @param order Specify the order of plotting for the idents. This can be
 #' useful for crowded plots if points of interest are being buried. Provide
@@ -103,6 +103,16 @@ plot_reduction <- function(
     raster = NULL,
     raster_dpi = c(512, 512)
 ) {
+  lifecycle::deprecate_warn(
+    when = "1.3.0",
+    what = "plot_reduction()",
+    details = 
+      paste0(
+        "plot_reduction() has been moved to the scExploreR package. ",
+        "It will be removed from SCUBA in v1.4.0."
+      )
+  )
+  
   if (length(x = dims) != 2) {
     stop("'dims' must be a two-length vector")
   }
@@ -122,7 +132,7 @@ plot_reduction <- function(
   cells <- cells %||% get_all_cells(object)
 
   # Fetch dimensional reduction data from object
-  # 3. Convert dims to format readable by FetchData (<reduction>_<dim>)
+  # 3. Convert dims to format readable by fetch_data (<reduction>_<dim>)
   dim_names <-
     reduction_dimnames(
       object,

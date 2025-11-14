@@ -104,3 +104,33 @@ features_in_assay.AnnDataR6 <-
       colnames(object$obsm[[assay]])
     }
   }
+
+#' @describeIn features_in_assay MuData objects
+#' @export
+features_in_assay.md._core.mudata.MuData <-
+  function(
+    object,
+    assay
+  ){
+    # Check "assay" for valid inputs (must be a modality key)
+    if (!assay %in% object$mod_names){
+      stop("Assay ", assay, " not found in the obsm slot of the current object.")
+    }
+    
+    # Return var_names of the modality passed to `assay`
+    # Ensure data is returned as an R character vector 
+    # instead of a Python index
+    convert_pandas_index(object[[assay]]$var_names)
+  }
+
+#' @export
+features_in_assay.mudata._core.mudata.MuData <-
+  function(
+    object,
+    assay
+  ){
+    features_in_assay.md._core.mudata.MuData(
+      object = object,
+      assay = assay
+    )
+  }

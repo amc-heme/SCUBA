@@ -88,3 +88,58 @@ AML_h5ad_backed <- function(){
         backed = "r"
     )
 }
+
+#' Reference dataset used for testing and demonstration (MuData)
+#'
+#' @inherit AML_Seurat description source
+#'
+#' @details
+#' - `AML_h5mu()`: Loads the reference dataset in-memory.
+#' - `AML_h5mu_backed()`: Loads the reference dataset on-disk (via `backed=r` in `read_h5mu`).
+#' 
+#' `AML_h5mu()` and `AML_h5mu_backed()` are called as functions, with parentheses. 
+#' This is because the dataset is in Python, and can't be loaded using the 
+#' typical process of loading data included with R packages.
+#'
+#' @rdname mudata_example
+#'
+#' @export
+#'
+#' @usage 
+#' AML_h5mu()
+#'
+#' @examples
+#' # These examples require a functional Python installation with prerequisite
+#' # packages installed to work
+#' # Please see our website for more details
+#' # https://amc-heme.github.io/SCUBA/index.html#installation
+#' # 
+#' # The examples may take a while (about 10 seconds) to run the first 
+#' # time they are executed in a session due to the time required to 
+#' # initialize a Python environment. 
+#' # R Studio does not display a spinner while these run, so the "run_examples"
+#' # link may not appear to do anything until the examples are finished. 
+#' AML_h5mu()
+#' 
+#' # Summary of metadata variables in object
+#' meta_varnames(AML_h5mu())
+AML_h5mu <- function(){
+  path <- system.file("extdata", "AML_mudata.h5mu", package = "SCUBA")
+  
+  #md <- reticulate::import("mudata", as = "md", convert = TRUE)
+  
+  md$set_options(pull_on_update = FALSE)
+  
+  md$read_h5mu(path)
+}
+
+#' @rdname mudata_example
+#' @usage AML_h5mu_backed()
+#' @export
+AML_h5mu_backed <- function(){
+  path <- system.file("extdata", "AML_mudata.h5mu", package = "SCUBA")
+  
+  md$set_options(pull_on_update = FALSE)
+  
+  md$read_h5mu(path, backed = "r")
+}

@@ -18,7 +18,13 @@ test_that("fetch_reduction returns the same results for Anndata R6, SingleCellEx
       AML_h5ad(), 
       reduction = default_reduction(AML_h5ad()),
       cells = get_all_cells(AML_h5ad())
-      
+    )
+  
+  h5mu_reduction <-
+    fetch_reduction(
+      AML_h5mu(),
+      reduction = default_reduction(AML_h5mu()),
+      cells = get_all_cells(AML_h5mu())
     )
   
   #Check rowSums and colSums of data
@@ -37,6 +43,12 @@ test_that("fetch_reduction returns the same results for Anndata R6, SingleCellEx
   expect_equal(
     object = h5ad_reduction,
     expected = sce_reduction,
+    tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    object = h5mu_reduction,
+    expected = seurat_reduction,
     tolerance = 1e-6,
     ignore_attr = TRUE
   )

@@ -5,6 +5,7 @@
 \alias{fetch_metadata.Seurat}
 \alias{fetch_metadata.SingleCellExperiment}
 \alias{fetch_metadata.AnnDataR6}
+\alias{fetch_metadata.md._core.mudata.MuData}
 \title{Fetch metadata from single-cell objects}
 \usage{
 fetch_metadata(
@@ -32,6 +33,14 @@ fetch_metadata(
 )
 
 \method{fetch_metadata}{AnnDataR6}(
+  object,
+  vars = NULL,
+  cells = NULL,
+  full_table = FALSE,
+  return_class = "dataframe"
+)
+
+\method{fetch_metadata}{md._core.mudata.MuData}(
   object,
   vars = NULL,
   cells = NULL,
@@ -70,6 +79,8 @@ See our GitHub.io website for additional information and examples.
 \item \code{fetch_metadata(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{fetch_metadata(AnnDataR6)}: AnnDataR6 objects
+
+\item \code{fetch_metadata(md._core.mudata.MuData)}: Mudata objects
 
 }}
 \examples{

@@ -5,7 +5,7 @@
 #'
 #' @param object A Seurat or SingleCellExperiment object
 #' @param features Features to plot (gene expression, metrics, PC scores,
-#' anything that can be retreived by FetchData).
+#' anything that can be retreived by fetch_data).
 #' @param group_by Group (color) cells in different ways. Unlike
 #' \code{Seurat::RidgePlot()} or \code{Seurat::VlnPlot()}, this must be defined
 #' (SingleCellExperiment objects don't have \code{Idents()} functionality).
@@ -55,6 +55,16 @@ plot_ridge <- function(
     combine = TRUE,
     fill_by = 'feature'
     ){
+  lifecycle::deprecate_warn(
+    when = "1.3.0",
+    what = "plot_ridge()",
+    details = 
+      paste0(
+        "plot_ridge() has been moved to the scExploreR package. ",
+        "It will be removed from SCUBA in v1.4.0."
+      )
+  )
+  
   return(
     expr_plot(
       object = object,

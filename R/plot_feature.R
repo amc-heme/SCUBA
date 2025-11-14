@@ -107,6 +107,16 @@ plot_feature <- function(
     raster = NULL,
     raster_dpi = c(512, 512)
 ) {
+  lifecycle::deprecate_warn(
+    when = "1.3.0",
+    what = "plot_feature()",
+    details = 
+      paste0(
+        "plot_feature() has been moved to the scExploreR package. ",
+        "It will be removed from SCUBA in v1.4.0."
+      )
+  )
+  
   # 1. Check arguments, set defaults
   # Check keep_scale param for valid entries
   if (!(is.null(x = keep_scale)) && !(keep_scale %in% c("feature", "all"))) {
@@ -235,7 +245,7 @@ plot_feature <- function(
   data <-
     cbind(
       data,
-      FetchData(
+      fetch_data(
         object = object,
         vars = features,
         layer = slot,

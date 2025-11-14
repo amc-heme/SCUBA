@@ -126,3 +126,53 @@ fetch_cells.AnnDataR6 <-
     object$obs[object$obs[[meta_var]] %in% meta_levels, ] |>
       rownames()
   }
+
+#' @describeIn fetch_cells MuData objects
+#' @export
+fetch_cells.md._core.mudata.MuData <-
+  function(
+    object,
+    meta_var,
+    meta_levels
+  ){
+    # Use fetch_data to retrieve metadata, and return the cell IDs that
+    # are contained within meta_levels
+    data <- 
+      fetch_metadata(
+        object = object,
+        vars = meta_var
+        )
+    
+    # Test if meta_var is a categorical variable. Numeric variables are not
+    # supported
+    if (
+      !inherits(
+        data[[meta_var]],
+        c("character", "factor", "logical")
+      )
+    ){
+      stop(
+        meta_var, " is not a categorical variable. Only categorical variables ",
+        "are supported by fetch_cells at this time."
+      )
+    }
+    
+    data[data[[meta_var]] %in% meta_levels, ,drop = FALSE] |> 
+      rownames()
+  }
+
+#' @export
+fetch_cells.mudata._core.mudata.MuData <-
+  function(
+    object,
+    meta_var,
+    meta_levels
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to fetch_data.md._core.mudata.MuData method
+    fetch_cells.md._core.mudata.MuData(
+      object,
+      meta_var,
+      meta_levels
+      )
+  }

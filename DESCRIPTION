@@ -1,7 +1,7 @@
 Package: SCUBA
 Type: Package
 Title: Common data accession for single cell object formats
-Version: 1.2.1
+Version: 1.3.0
 Authors@R: c(
     person(
         "William", 
@@ -47,7 +47,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr, rmarkdown
 Depends: 
-    R (>= 3.5)
+    R (>= 4.1)
 Imports: 
     cowplot,
     ggplot2,
@@ -57,6 +57,7 @@ Imports:
     HDF5Array,
     patchwork,
     RColorBrewer,
+    reticulate (>= 1.41.0),
     scales,
     scattermore,
     SeuratObject,
@@ -66,7 +67,6 @@ Imports:
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
-    reticulate (>= 1.41.0),
     anndata,
     knitr,
     rmarkdown

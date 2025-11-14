@@ -1,8 +1,11 @@
 #' Summarize object metadata
 #'
-#' Returns the names of all metadata variables in an object.
+#' Returns the names of all metadata variables in an object, or a single
+#' modality of a mudata object.
 #'
 #' @inheritParams object_param
+#' 
+#' @param ... Additional arguments passed to S3 methods
 #' 
 #' @rdname meta_varnames
 #'
@@ -20,7 +23,8 @@
 #' 
 meta_varnames <-
   function(
-    object
+    object,
+    ...
   ){
     UseMethod("meta_varnames")
   }
@@ -32,13 +36,14 @@ meta_varnames <-
 #' @export
 meta_varnames.default <-
   function(
-    object
+    object,
+    ...
   ){
     warning(
       paste0(
         "meta_varnames does not know how to handle object of class ",
         paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
+        ". Currently supported classes: Seurat, SingleCellExperiment and Anndata (AnnDataR6)."
       )
     )
   }
@@ -47,7 +52,8 @@ meta_varnames.default <-
 #' @export
 meta_varnames.Seurat <-
   function(
-    object
+    object,
+    ...
   ){
     colnames(object@meta.data)
   }
@@ -56,7 +62,8 @@ meta_varnames.Seurat <-
 #' @export
 meta_varnames.SingleCellExperiment <-
   function(
-    object
+    object,
+    ...
   ){
     colnames(colData(object))
   }
@@ -65,7 +72,39 @@ meta_varnames.SingleCellExperiment <-
 #' @export
 meta_varnames.AnnDataR6 <-
   function(
-    object
+    object,
+    ...
   ){
     object$obs_keys()
+  }
+
+#' @describeIn meta_varnames Mudata objects
+#' @export
+meta_varnames.md._core.mudata.MuData <-
+  function(
+    object,
+    # mod = NULL,
+    ...
+  ){
+    # MuData: simply report column names of full table from fetch_metadata
+    # Columns returned have an underscore between the modality and the 
+    # metadata variable name instead of a ":", following MuData conventions.
+    fetch_metadata(
+      object,
+      full_table = TRUE
+      ) |> 
+      colnames()
+  }
+  
+#' @export
+meta_varnames.mudata._core.mudata.MuData <-
+  function(
+    object,
+    ...
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to md._core.mudata.MuData method
+    meta_varnames.md._core.mudata.MuData(
+      object = object
+    )
   }

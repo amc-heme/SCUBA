@@ -26,7 +26,7 @@ plot_ridge(
 \item{object}{A Seurat or SingleCellExperiment object}
 
 \item{features}{Features to plot (gene expression, metrics, PC scores,
-anything that can be retreived by FetchData).}
+anything that can be retreived by fetch_data).}
 
 \item{group_by}{Group (color) cells in different ways. Unlike
 \code{Seurat::RidgePlot()} or \code{Seurat::VlnPlot()}, this must be defined

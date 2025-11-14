@@ -112,3 +112,33 @@ reduction_dimnames.AnnDataR6 <-
     #AnnData: same as for SingleCellExperiment objects
     paste0(reduction, "_", dims)
   }
+
+#' @describeIn reduction_dimnames MuData objects
+#' @export
+reduction_dimnames.md._core.mudata.MuData <-
+  function(
+    object,
+    reduction,
+    dims
+  ){
+    # Simply the reduction and dimensions with an underscore
+    paste0(reduction, "_", dims)
+  }
+
+
+#' @describeIn reduction_dimnames MuData objects
+#' @export
+reduction_dimnames.mudata._core.mudata.MuData <-
+  function(
+    object,
+    reduction,
+    dims
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect to md._core.mudata.MuData method
+    reduction_dimnames.md._core.mudata.MuData(
+      object = object,
+      reduction = reduction,
+      dims = dims
+    )
+  }

@@ -67,3 +67,26 @@ get_all_cells.AnnDataR6 <-
     object$obs_names
   }
 
+#' @describeIn get_all_cells MuData objects
+#' @export
+get_all_cells.md._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # Use obs_names on the full MuData object to get all cell IDs
+    # A Pandas index will be returned, which must be converted to a Python
+    # list first so it can be properly converted to an R character vector
+    convert_pandas_index(object$obs_names)
+  }
+
+#' @export
+get_all_cells.mudata._core.mudata.MuData <-
+  function(
+    object
+  ){
+    # mudata._core.mudata.MuData: possible class when loading 
+    # Redirect md._core.mudata.MuData method
+    get_all_cells.md._core.mudata.MuData(
+      object = object
+    )
+  }
