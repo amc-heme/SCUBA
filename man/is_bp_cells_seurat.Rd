@@ -6,8 +6,21 @@
 \usage{
 is_bp_cells_seurat(object, assay = NULL, layer = NULL)
 }
+\arguments{
+\item{object}{A Seurat object to check.}
+
+\item{assay}{The assay to check. If \code{NULL}, the default assay will be used.}
+
+\item{layer}{The layer to check within the assay. If \code{NULL}, the "data" layer
+will be checked.}
+}
+\value{
+A logical scalar: \code{TRUE} if the specified assay/layer is backed by
+a BPCells IterableMatrix, \code{FALSE} otherwise.
+}
 \description{
 Internal helper: returns TRUE if the indicated assay/layer appears to be
-backed by a BPCells on-disk matrix (heuristic: presence of @matrix@dir slot).
+backed by a BPCells on-disk matrix (heuristic: matrix for the layer is
+an IterableMatrix).
 }
 \keyword{internal}
