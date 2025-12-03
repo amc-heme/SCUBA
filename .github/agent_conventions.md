@@ -22,3 +22,4 @@
 - When changing the name of a parameter of a function, or when adding or removing a parameter, and modify the calls to that function as well. Please update parameter names in the roxygen docs for that function to reflect the change. Modify the parameter description if the description no longer matches the code, and leave the description unchanged if not.
 - If you end up designing the same process in two different files, please extract the process into a helper function instead of duplicating the logic.
 - Never make tryCatch statements that do nothing on error. Always log or re-throw the error.
+  Exception: For predicate functions (functions that return TRUE/FALSE), it is acceptable to silently return FALSE on error if this is the intended behavior. In all other cases, errors should be logged or re-thrown.
