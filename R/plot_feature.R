@@ -238,7 +238,8 @@ plot_feature <- function(
     fetch_feature(
       object = object,
       features = features,
-      cells = cells
+      cells = cells,
+      layer = slot
     )
 
   data <- cbind(data, expr_df)
