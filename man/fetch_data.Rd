@@ -7,9 +7,9 @@
 \alias{fetch_data.AnnDataR6}
 \title{Fetch feature expression data, reduction coordinates, or metadata from single-cell objects}
 \usage{
-fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
+fetch_data(object, vars, layer = NULL, cells = NULL, ...)
 
-\method{fetch_data}{Seurat}(object, vars = NULL, layer = NULL, cells = NULL, slot = NULL, ...)
+\method{fetch_data}{Seurat}(object, vars, layer = NULL, cells = NULL, slot = NULL, ...)
 
 \method{fetch_data}{SingleCellExperiment}(object, vars, layer = NULL, cells = NULL, ...)
 

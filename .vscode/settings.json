@@ -1,0 +1,42 @@
+{
+  // Workspace settings: enforce word wrapping at 80 columns
+  "[python]": {
+    // Wrap long lines in Python files
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 80,
+    "editor.rulers": [
+      80
+    ],
+    // Ensure consistent tab size in Python files
+    "editor.tabSize": 4
+  },
+  "[javascript]": {
+    // Wrap long lines in JavaScript files
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 80,
+    "editor.rulers": [
+      80
+    ]
+  },
+  "[r]": {
+    // For R files, show a ruler at 80 columns
+    "editor.rulers": [
+      80
+    ]
+  },
+  // Workspace VS Code settings: align R / radian with user settings
+  // so Quarto preview uses the same R environment as the terminal.
+  "r.rterm.option": [
+    "--no-save",
+    "--no-restore",
+    "--quiet"
+  ],
+  // Tab size: 2 spaces for all files except Python
+  "editor.tabSize": 2,
+  "editor.largeFileOptimizations": false,
+  "editor.formatOnSave": true,
+  "r.alwaysUseActiveTerminal": true,
+  "r.bracketedPaste": true,
+  // Quarto preview in external browser (matches user preference)
+  "quarto.render.previewType": "external"
+}
