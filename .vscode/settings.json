@@ -38,5 +38,7 @@
   "r.alwaysUseActiveTerminal": true,
   "r.bracketedPaste": true,
   // Quarto preview in external browser (matches user preference)
-  "quarto.render.previewType": "external"
+  "quarto.render.previewType": "external",
+  // Set default build task
+  "task.quickOpen.skip": false
 }

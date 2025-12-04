@@ -2,13 +2,24 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "R",
-			"code": [
-				"devtools::build()"
+			"type": "shell",
+			"command": "R",
+			"args": [
+				"--quiet",
+				"--no-restore",
+				"--no-save",
+				"-e",
+				"\"devtools::install()\""
 			],
-			"group": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"problemMatcher": [],
-			"label": "R: Build"
+			"label": "R: Build and Install",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
 		}
 	]
 }
