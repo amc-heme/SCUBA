@@ -53,6 +53,7 @@ Imports:
     ggplot2,
     rlang,
     Seurat,
+    BPCells,
     SingleCellExperiment,
     HDF5Array,
     patchwork,
