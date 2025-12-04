@@ -16,7 +16,7 @@ features_in_assay(object, assay)
 \method{features_in_assay}{AnnDataR6}(object, assay)
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{assay}{the name of an assay/modality for which to view features.}

@@ -64,6 +64,7 @@ Imports:
     SummarizedExperiment,
     lifecycle,
     methods
+Remotes: bnprks/BPCells@r
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),

@@ -19,7 +19,7 @@ get_all_cells(object)
 \method{get_all_cells}{BPCells}(object)
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 }
 \description{

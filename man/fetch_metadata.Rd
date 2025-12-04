@@ -40,7 +40,7 @@ fetch_metadata(
 )
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{vars}{metadata variables to pull from object. This must be defined,

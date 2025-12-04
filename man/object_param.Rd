@@ -4,7 +4,7 @@
 \alias{object_param}
 \title{Object Parameter}
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 }
 \description{

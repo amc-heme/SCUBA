@@ -7,7 +7,7 @@
 n_unique(object, meta_var)
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{meta_var}{Name of a metadata variable.}

@@ -16,7 +16,7 @@ fetch_cells(object, meta_var, meta_levels)
 \method{fetch_cells}{AnnDataR6}(object, meta_var, meta_levels)
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{meta_var}{a metadata variable used as the basis for subsetting cells.}

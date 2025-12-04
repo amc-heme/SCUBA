@@ -19,7 +19,7 @@ reduction_dimnames(object, reduction, dims)
 \method{reduction_dimnames}{BPCells}(object, reduction, dims)
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{reduction}{the name of the reduction.}

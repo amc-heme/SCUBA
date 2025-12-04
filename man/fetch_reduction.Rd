@@ -19,7 +19,7 @@ fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2))
 \method{fetch_reduction}{BPCells}(object, reduction, cells = NULL, dims = c(1, 2))
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{reduction}{the name of the reduction to pull coordinates from.}
