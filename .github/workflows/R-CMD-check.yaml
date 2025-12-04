@@ -30,9 +30,9 @@ jobs:
           #- { os: ubuntu-latest, r: 'release', python: '3.8'  }
           #- { os: ubuntu-latest, r: 'release', python: '3.10' }
           #- { os: ubuntu-latest, r: 'release', python: '3.11' }
-          - { os: macOS-latest  , r: 'release', python: '3.13' }
-          - { os: windows-latest, r: 'release', python: '3.13' }
-          - { os: ubuntu-latest, r: 'release', python: '3.13' }
+          - { os: macOS-latest, r: "release", python: "3.13" }
+          - { os: windows-latest, r: "release", python:  "3.13" }
+          - { os: ubuntu-latest, r: "release", python: "3.13" }
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -59,14 +59,21 @@ jobs:
           extra-packages: |
             any::rcmdcheck
             any::remotes
+            any::devtools
           needs: check
-          
+
       # Install BPCells from GitHub
       - name: Install BPCells
         shell: Rscript {0}
         run: |
           remotes::install_github("bnprks/BPCells/r")
-      
+
+      # Check installed packages
+      - name: Check installed packages
+        shell: Rscript {0}
+        run: |
+          devtools::session_info()
+
       - name: setup r-reticulate venv
         shell: Rscript {0}
         run: |
@@ -86,7 +93,7 @@ jobs:
           writeLines(
             paste0("RETICULATE_PYTHON=", virtualenv_python(path_to_venv)),
             Sys.getenv("GITHUB_ENV"))
-            
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true

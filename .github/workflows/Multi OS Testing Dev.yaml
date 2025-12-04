@@ -1,6 +1,6 @@
 # Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
-on:  [workflow_dispatch]
+on: [workflow_dispatch]
 
 name: Multi OS Testing Dev
 
@@ -27,9 +27,9 @@ jobs:
           #- { os: ubuntu-latest, r: 'release', python: '3.8'  }
           #- { os: ubuntu-latest, r: 'release', python: '3.10' }
           #- { os: ubuntu-latest, r: 'release', python: '3.11' }
-          - { os: ubuntu-latest, r: 'release', python: '3.12' }
-          - { os: macOS-latest, r: 'release', python: '3.12' }
-          - { os: windows-latest, r: 'release', python: '3.12' }
+          - { os: ubuntu-latest, r: "release", python: "3.12" }
+          - { os: macOS-latest, r: "release", python: "3.12" }
+          - { os: windows-latest, r: "release", python: "3.12" }
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          
+
       - uses: actions/setup-python@v4
         if: matrix.config.python != 'debug'
         with:
@@ -75,7 +75,7 @@ jobs:
           writeLines(
             paste0("RETICULATE_PYTHON=", virtualenv_python(path_to_venv)),
             Sys.getenv("GITHUB_ENV"))
-            
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true

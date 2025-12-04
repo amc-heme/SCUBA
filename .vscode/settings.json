@@ -18,6 +18,12 @@
       80
     ]
   },
+  "[yaml]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "editor.formatOnSave": true
+  },
   "[r]": {
     // For R files, show a ruler at 80 columns
     "editor.rulers": [
