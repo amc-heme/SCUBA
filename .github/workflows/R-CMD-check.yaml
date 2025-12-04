@@ -31,7 +31,7 @@ jobs:
           #- { os: ubuntu-latest, r: 'release', python: '3.10' }
           #- { os: ubuntu-latest, r: 'release', python: '3.11' }
           - { os: macOS-latest, r: "release", python: "3.13" }
-          - { os: windows-latest, r: "release", python:  "3.13" }
+          - { os: windows-latest, r: "release", python: "3.13" }
           - { os: ubuntu-latest, r: "release", python: "3.13" }
 
     env:
@@ -61,6 +61,29 @@ jobs:
             any::remotes
             any::devtools
           needs: check
+
+      # Install BPCells
+      # Must first install HDF5 dependencies on each OS
+
+      # Install HDF5 dependencies (macOS)
+      - name: Install HDF5 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install hdf5
+
+      # Install HDF5 dependencies (Ubuntu)
+      - name: Install HDF5 (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libhdf5-dev
+
+      # Install HDF5 dependencies (Windows)
+      - name: Install HDF5 (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          choco install hdf5 -y
 
       # Install BPCells from GitHub
       - name: Install BPCells
