@@ -56,9 +56,16 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages: |
+            any::rcmdcheck
+            any::remotes
           needs: check
           
+      # Install BPCells from GitHub
+      - name: Install BPCells
+        shell: Rscript {0}
+        run: |
+          remotes::install_github("bnprks/BPCells/r")
       
       - name: setup r-reticulate venv
         shell: Rscript {0}
