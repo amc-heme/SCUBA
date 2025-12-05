@@ -55,28 +55,42 @@ jobs:
           python-version: ${{ matrix.config.python }}
 
       # BPCells depends on HDF5. This is installed on each OS below.
-      - name: Install HDF5 (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install hdf5
+      # - name: Install HDF5 (macOS)
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     brew install hdf5
 
-      - name: Install HDF5 (Ubuntu)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libhdf5-dev
+      # - name: Install HDF5 (Ubuntu)
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libhdf5-dev
 
-      # Powershell script for windows
-      - name: Install HDF5 (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
+      # # Powershell script for windows
+      # - name: Install HDF5 (Windows)
+      #   if: runner.os == 'Windows'
+      #   shell: powershell
+      #   run: |
+      #     # Install vcpkg HDF5
+      #     vcpkg install hdf5:x64-windows
+      #     # Set environment variables for BPCells compilation
+      #     echo "HDF5_ROOT=C:\vcpkg\installed\x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      #     echo "HDF5_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      #     echo "HDF5_LIBRARY_DIR=C:\vcpkg\installed\x64-windows\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      # Install HDF5 system dependencies
+      - name: Install system dependencies
         run: |
-          # Install vcpkg HDF5
-          vcpkg install hdf5:x64-windows
-          # Set environment variables for BPCells compilation
-          echo "HDF5_ROOT=C:\vcpkg\installed\x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "HDF5_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "HDF5_LIBRARY_DIR=C:\vcpkg\installed\x64-windows\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y libhdf5-dev
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install hdf5
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            vcpkg install hdf5:x64-windows
+            echo "HDF5_ROOT=C:\vcpkg\installed\x64-windows" >> $GITHUB_ENV
+          fi
+        shell: bash
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
