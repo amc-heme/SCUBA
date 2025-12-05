@@ -87,6 +87,7 @@ jobs:
             any::rcmdcheck
             any::remotes
             any::devtools
+            github::bnprks/BPCells/r
           needs: check
 
       # # Install BPCells from GitHub
