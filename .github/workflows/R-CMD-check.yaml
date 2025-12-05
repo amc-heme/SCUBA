@@ -88,6 +88,9 @@ jobs:
             any::remotes
             any::devtools
           needs: check
+          # Use pre-built binary for BPCells from R Universe instead of
+          # attempting to install via pak
+          extra-repositories: "https://bnprks.r-universe.dev"
 
       # # Install BPCells from GitHub
       # - name: Install BPCells

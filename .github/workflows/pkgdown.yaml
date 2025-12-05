@@ -48,12 +48,9 @@ jobs:
             any::sass
             any::remotes
           needs: website
-
-      # Install BPCells from GitHub
-      - name: Install BPCells
-        shell: Rscript {0}
-        run: |
-          remotes::install_github("bnprks/BPCells/r")
+          # Use pre-built binary for BPCells from R Universe instead of
+          # attempting to install via pak
+          extra-repositories: "https://bnprks.r-universe.dev"
 
       # Set up Python environment to run anndata examples on website
       - uses: actions/setup-python@v4
