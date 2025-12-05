@@ -48,6 +48,9 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+          # BPCells is not avaliable on CRAN
+          # Must specify location to pull from via extra-repositories
+          extra-repositories: "https://bnprks.r-universe.dev"
 
       - uses: actions/setup-python@v5
         if: matrix.config.python != 'debug'
