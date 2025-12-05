@@ -71,5 +71,7 @@ Suggests:
     knitr,
     BPCells,
     rmarkdown
+Remotes: 
+    bnprks/BPCells/r
 Config/testthat/edition: 3
 URL: https://amc-heme.github.io/SCUBA/
