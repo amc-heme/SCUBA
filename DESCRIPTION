@@ -72,6 +72,6 @@ Suggests:
     BPCells,
     rmarkdown
 Additional_repositories: 
-  https://bnprks.r-universe.dev
+    https://bnprks.r-universe.dev
 Config/testthat/edition: 3
 URL: https://amc-heme.github.io/SCUBA/
