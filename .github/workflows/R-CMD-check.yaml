@@ -64,26 +64,28 @@ jobs:
 
       # Install BPCells
       # Must first install HDF5 dependencies on each OS
-      # Install HDF5 dependencies needed by BPCells
-      # Install HDF5 dependencies (macOS)
       - name: Install HDF5 (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install hdf5
 
-      # Install HDF5 dependencies (Ubuntu)
       - name: Install HDF5 (Ubuntu)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libhdf5-dev
 
-      # Install HDF5 dependencies (Windows)
+      # Powershell script for windows
       - name: Install HDF5 (Windows)
         if: runner.os == 'Windows'
-        shell: bash
+        shell: powershell
         run: |
-          choco install hdf5 -y
+          # Install vcpkg HDF5
+          vcpkg install hdf5:x64-windows
+          # Set environment variables for BPCells compilation
+          echo "HDF5_ROOT=C:\vcpkg\installed\x64-windows" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "HDF5_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "HDF5_LIBRARY_DIR=C:\vcpkg\installed\x64-windows\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       # Install BPCells from GitHub
       - name: Install BPCells

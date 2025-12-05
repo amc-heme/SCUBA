@@ -69,6 +69,7 @@ Suggests:
     reticulate (>= 1.41.0),
     anndata,
     knitr,
+    BPCells,
     rmarkdown
 Config/testthat/edition: 3
 URL: https://amc-heme.github.io/SCUBA/
