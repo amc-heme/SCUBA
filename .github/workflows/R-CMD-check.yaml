@@ -81,16 +81,29 @@ jobs:
           echo "HDF5_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "HDF5_LIBRARY_DIR=C:\vcpkg\installed\x64-windows\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            any::rcmdcheck
-            any::remotes
-            any::devtools
-          needs: check
-          # Use pre-built binary for BPCells from R Universe instead of
-          # attempting to install via pak
-          extra-repositories: "https://bnprks.r-universe.dev"
+      # Custom R dependency install process suggested by Claude
+      # I can't get the R-lib action to install BPCells
+      - name: Install pak
+        run: |
+          install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
+        shell: Rscript {0}
+
+      - name: Install dependencies
+        shell: Rscript {0}
+        run: |
+          pak::repo_add(bnprks = "https://bnprks.r-universe.dev")
+          pak::pkg_install("any::rcmdcheck")
+          pak::pkg_install("any::remotes")
+          pak::pkg_install("any::devtools")
+          pak::pkg_install("deps::.", dependencies = TRUE)
+
+      # - uses: r-lib/actions/setup-r-dependencies@v2
+      #   with:
+      #     extra-packages: |
+      #       any::rcmdcheck
+      #       any::remotes
+      #       any::devtools
+      #     needs: check
 
       # # Install BPCells from GitHub
       # - name: Install BPCells

@@ -34,23 +34,36 @@ jobs:
           # Must specify location to pull from via extra-repositories
           extra-repositories: "https://bnprks.r-universe.dev"
 
+      # Custom R dependency install process suggested by Claude
+      # I can't get the R-lib action to install BPCells
+      - name: Install pak
+        run: |
+          install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
+        shell: Rscript {0}
+
+      - name: Install dependencies
+        shell: Rscript {0}
+        run: |
+          pak::repo_add(bnprks = "https://bnprks.r-universe.dev")
+          pak::pkg_install("any::rcmdcheck")
+          pak::pkg_install("any::remotes")
+          pak::pkg_install("any::devtools")
+          pak::pkg_install("deps::.", dependencies = TRUE)
+
       # Install all R dependencies
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          # local::. runs devtools::install_local to install all dependencies
-          # in the DESCRIPTION file of SCUBA
-          # Additional packages:
-          # pkgdown (part of standard workflow)
-          # SASS CSS is used in user guide vignette
-          extra-packages: |
-            local::.
-            any::pkgdown
-            any::sass
-            any::remotes
-          needs: website
-          # Use pre-built binary for BPCells from R Universe instead of
-          # attempting to install via pak
-          extra-repositories: "https://bnprks.r-universe.dev"
+      # - uses: r-lib/actions/setup-r-dependencies@v2
+      #   with:
+      #     # local::. runs devtools::install_local to install all dependencies
+      #     # in the DESCRIPTION file of SCUBA
+      #     # Additional packages:
+      #     # pkgdown (part of standard workflow)
+      #     # SASS CSS is used in user guide vignette
+      #     extra-packages: |
+      #       local::.
+      #       any::pkgdown
+      #       any::sass
+      #       any::remotes
+      #     needs: website
 
       # Set up Python environment to run anndata examples on website
       - uses: actions/setup-python@v4
