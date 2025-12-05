@@ -87,19 +87,19 @@ jobs:
           echo "HDF5_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "HDF5_LIBRARY_DIR=C:\vcpkg\installed\x64-windows\lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      # Install BPCells from GitHub
-      - name: Install BPCells
-        shell: Rscript {0}
-        run: |
-          remotes::install_github("bnprks/BPCells/r")
+      # # Install BPCells from GitHub
+      # - name: Install BPCells
+      #   shell: Rscript {0}
+      #   run: |
+      #     remotes::install_github("bnprks/BPCells/r")
 
-      - name: Verify BPCells installation
-        shell: Rscript {0}
-        run: |
-          if (!requireNamespace("BPCells", quietly = TRUE)) {
-            stop("BPCells package not found")
-          }
-          cat("BPCells version:", as.character(packageVersion("BPCells")), "\n")
+      # - name: Verify BPCells installation
+      #   shell: Rscript {0}
+      #   run: |
+      #     if (!requireNamespace("BPCells", quietly = TRUE)) {
+      #       stop("BPCells package not found")
+      #     }
+      #     cat("BPCells version:", as.character(packageVersion("BPCells")), "\n")
 
       # Check installed packages
       - name: Check installed packages
