@@ -49,6 +49,21 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      - uses: actions/setup-python@v5
+        if: matrix.config.python != 'debug'
+        with:
+          python-version: ${{ matrix.config.python }}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::remotes
+            any::devtools
+          needs: check
+
+      # Install BPCells
+      # Must first install HDF5 dependencies on each OS
       # Install HDF5 dependencies needed by BPCells
       # Install HDF5 dependencies (macOS)
       - name: Install HDF5 (macOS)
@@ -70,28 +85,19 @@ jobs:
         run: |
           choco install hdf5 -y
 
-      - uses: actions/setup-python@v5
-        if: matrix.config.python != 'debug'
-        with:
-          python-version: ${{ matrix.config.python }}
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            any::rcmdcheck
-            any::remotes
-            any::devtools
-            github::bnprks/BPCells/r
-          needs: check
-
-      # Install BPCells
-      # Must first install HDF5 dependencies on each OS
-
       # Install BPCells from GitHub
-      # - name: Install BPCells
-      #   shell: Rscript {0}
-      #   run: |
-      #     remotes::install_github("bnprks/BPCells/r")
+      - name: Install BPCells
+        shell: Rscript {0}
+        run: |
+          remotes::install_github("bnprks/BPCells/r")
+
+      - name: Verify BPCells installation
+        shell: Rscript {0}
+        run: |
+          if (!requireNamespace("BPCells", quietly = TRUE)) {
+            stop("BPCells package not found")
+          }
+          cat("BPCells version:", as.character(packageVersion("BPCells")), "\n")
 
       # Check installed packages
       - name: Check installed packages
