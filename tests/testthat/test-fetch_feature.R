@@ -4,54 +4,58 @@
 BPCells_object <- AML_BPCells
 
 # Set BPCells directory paths for RNA assay (counts and data layers)
-SCUBA::set_bpcells_dir(
-  object = BPCells_object,
-  assay = "RNA",
-  layer = "counts",
-  dirname = system.file(
-    "extdata",
-    "AML_BPCells",
-    "RNA_counts",
-    package = "SCUBA"
+BPCells_object <-
+  SCUBA::set_bpcells_dir(
+    object = BPCells_object,
+    assay = "RNA",
+    layer = "counts",
+    dirname = system.file(
+      "extdata",
+      "AML_BPCells",
+      "RNA_counts",
+      package = "SCUBA"
+    )
   )
-)
 
-SCUBA::set_bpcells_dir(
-  object = BPCells_object,
-  assay = "RNA",
-  layer = "data",
-  dirname = system.file(
-    "extdata",
-    "AML_BPCells",
-    "RNA_data",
-    package = "SCUBA"
+BPCells_object <-
+  SCUBA::set_bpcells_dir(
+    object = BPCells_object,
+    assay = "RNA",
+    layer = "data",
+    dirname = system.file(
+      "extdata",
+      "AML_BPCells",
+      "RNA_data",
+      package = "SCUBA"
+    )
   )
-)
 
 # Set BPCells directory paths for AB assay (counts and data layers)
-SCUBA::set_bpcells_dir(
-  object = BPCells_object,
-  assay = "AB",
-  layer = "counts",
-  dirname = system.file(
-    "extdata",
-    "AML_BPCells",
-    "AB_counts",
-    package = "SCUBA"
+BPCells_object <-
+  SCUBA::set_bpcells_dir(
+    object = BPCells_object,
+    assay = "AB",
+    layer = "counts",
+    dirname = system.file(
+      "extdata",
+      "AML_BPCells",
+      "AB_counts",
+      package = "SCUBA"
+    )
   )
-)
 
-SCUBA::set_bpcells_dir(
-  object = BPCells_object,
-  assay = "AB",
-  layer = "data",
-  dirname = system.file(
-    "extdata",
-    "AML_BPCells",
-    "AB_data",
-    package = "SCUBA"
+BPCells_object <-
+  SCUBA::set_bpcells_dir(
+    object = BPCells_object,
+    assay = "AB",
+    layer = "data",
+    dirname = system.file(
+      "extdata",
+      "AML_BPCells",
+      "AB_data",
+      package = "SCUBA"
+    )
   )
-)
 
 seurat_keyed_features <-
   c(

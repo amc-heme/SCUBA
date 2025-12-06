@@ -110,9 +110,11 @@ get_bpcells_dir <- function(
 #' @param dirname The target directory path to set for the BPCells matrix.
 #'
 #' @return The modified Seurat object (invisibly). The object is returned
-#'   invisibly so it will not print when called interactively, but can still
-#'   be assigned or piped to subsequent operations (e.g.,
-#'   `obj <- set_bpcells_dir(obj, "RNA", "data", "/path")`).
+#'   invisibly so it will not print when called interactively. To apply
+#'   the changes, you must assign the output back to the object:
+#'   `obj <- set_bpcells_dir(obj, "RNA", "data", "/path")`.
+#'   Alternatively, use the pipe operator:
+#'   `obj <- obj |> set_bpcells_dir("RNA", "data", "/path")`.
 #'
 #' @keywords internal
 #' @export
