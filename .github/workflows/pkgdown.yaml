@@ -49,6 +49,8 @@ jobs:
           pak::pkg_install("any::remotes")
           pak::pkg_install("any::devtools")
           pak::pkg_install("deps::.", dependencies = TRUE)
+          # This line is required to install SCUBA
+          pak::pkg_install("local::.", dependencies = TRUE)
 
       # Install all R dependencies
       # - uses: r-lib/actions/setup-r-dependencies@v2

@@ -1,4 +1,58 @@
-# Setup: Load test objects once for use in multiple tests
+# Setup: Load BPCells test object and set paths to the correct context
+# (BPCells matrix paths are absolute and must be set to the path to the test
+# dataset matrices in whatever context the tests are being run)
+BPCells_object <- AML_BPCells
+
+# Set BPCells directory paths for RNA assay (counts and data layers)
+SCUBA::set_bpcells_dir(
+  object = BPCells_object,
+  assay = "RNA",
+  layer = "counts",
+  dirname = system.file(
+    "extdata",
+    "AML_BPCells",
+    "RNA_counts",
+    package = "SCUBA"
+  )
+)
+
+SCUBA::set_bpcells_dir(
+  object = BPCells_object,
+  assay = "RNA",
+  layer = "data",
+  dirname = system.file(
+    "extdata",
+    "AML_BPCells",
+    "RNA_data",
+    package = "SCUBA"
+  )
+)
+
+# Set BPCells directory paths for AB assay (counts and data layers)
+SCUBA::set_bpcells_dir(
+  object = BPCells_object,
+  assay = "AB",
+  layer = "counts",
+  dirname = system.file(
+    "extdata",
+    "AML_BPCells",
+    "AB_counts",
+    package = "SCUBA"
+  )
+)
+
+SCUBA::set_bpcells_dir(
+  object = BPCells_object,
+  assay = "AB",
+  layer = "data",
+  dirname = system.file(
+    "extdata",
+    "AML_BPCells",
+    "AB_data",
+    package = "SCUBA"
+  )
+)
+
 seurat_keyed_features <-
   c(
     "rna_GAPDH",
@@ -160,7 +214,7 @@ test_that("fetch_feature returns same data for BPCells and standard Seurat", {
   # Check that both objects have the same dimensions
   expect_equal(
     object = dim(AML_Seurat),
-    expected = dim(AML_BPCells)
+    expected = dim(BPCells_object)
   )
 
   data_from_standard <-
@@ -172,7 +226,7 @@ test_that("fetch_feature returns same data for BPCells and standard Seurat", {
 
   data_from_bpcells <-
     SCUBA::fetch_feature(
-      object = AML_BPCells,
+      object = BPCells_object,
       features = seurat_unkeyed_features,
       layer = "data"
     )
