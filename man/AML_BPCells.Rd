@@ -27,9 +27,6 @@ compatibility with SCUBA's data retrieval functions. The on-disk matrices are st
 # Object summary
 AML_BPCells
 
-# Fetch features from BPCells-backed object
-fetch_data(AML_BPCells, vars = c("rna_GAPDH", "UMAP_1"))
-
 # Summary of metadata variables in object
 meta_varnames(AML_BPCells)
 }

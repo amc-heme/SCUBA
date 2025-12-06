@@ -16,7 +16,12 @@ set_bpcells_dir(object, assay, layer, dirname)
 \item{dirname}{The target directory path to set for the BPCells matrix.}
 }
 \value{
-The modified Seurat object (invisibly).
+The modified Seurat object (invisibly). The object is returned
+invisibly so it will not print when called interactively. To apply
+the changes, you must assign the output back to the object:
+\code{obj <- set_bpcells_dir(obj, "RNA", "data", "/path")}.
+Alternatively, use the pipe operator:
+\code{obj <- obj |> set_bpcells_dir("RNA", "data", "/path")}.
 }
 \description{
 Internal helper: sets the directory path for a BPCells-backed matrix in a
