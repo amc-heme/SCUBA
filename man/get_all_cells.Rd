@@ -5,7 +5,6 @@
 \alias{get_all_cells.Seurat}
 \alias{get_all_cells.SingleCellExperiment}
 \alias{get_all_cells.AnnDataR6}
-\alias{get_all_cells.BPCells}
 \title{Plotting utility function to return all cell IDs}
 \usage{
 get_all_cells(object)
@@ -15,8 +14,6 @@ get_all_cells(object)
 \method{get_all_cells}{SingleCellExperiment}(object)
 
 \method{get_all_cells}{AnnDataR6}(object)
-
-\method{get_all_cells}{BPCells}(object)
 }
 \arguments{
 \item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
@@ -35,8 +32,6 @@ For additional information, see our GitHub.io website ("User Guide" article, "Da
 \item \code{get_all_cells(SingleCellExperiment)}: SingleCellExperiment objects
 
 \item \code{get_all_cells(AnnDataR6)}: SingleCellExperiment objects
-
-\item \code{get_all_cells(BPCells)}: BPCells objects
 
 }}
 \examples{

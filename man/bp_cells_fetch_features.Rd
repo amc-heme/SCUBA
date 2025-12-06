@@ -27,9 +27,9 @@ default assay will be used.}
 cells in the object will be included.}
 }
 \value{
-A data.frame with cells as rows and features as columns, with feature
-values extracted from the BPCells-backed matrix. Missing features (those
-not present in the matrix) are included as columns of \code{NA} values.
+A data.frame with cells as rows and features as columns, with
+feature values extracted from the BPCells-backed matrix. Only features
+that are present in the matrix are included in the output.
 }
 \description{
 Internal helper: subset BPCells-backed matrix directly by accessing the

@@ -13,7 +13,9 @@ set_bpcells_dir(object, assay, layer, dirname)
 
 \item{layer}{The name of the layer within the assay to modify.}
 
-\item{dirname}{The target directory path to set for the BPCells matrix.}
+\item{dirname}{The target directory path to set for the BPCells matrix.
+Can be specified as either an absolute or relative path; the path will
+be normalized to an absolute path before storage.}
 }
 \value{
 The modified Seurat object (invisibly). The object is returned

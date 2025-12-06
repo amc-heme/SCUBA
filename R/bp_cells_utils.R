@@ -108,6 +108,8 @@ get_bpcells_dir <- function(
 #' @param assay The name of the assay containing the BPCells-backed layer.
 #' @param layer The name of the layer within the assay to modify.
 #' @param dirname The target directory path to set for the BPCells matrix.
+#'   Can be specified as either an absolute or relative path; the path will
+#'   be normalized to an absolute path before storage.
 #'
 #' @return The modified Seurat object (invisibly). The object is returned
 #'   invisibly so it will not print when called interactively. To apply
@@ -149,7 +151,9 @@ set_bpcells_dir <- function(
   # Set the directory path
   tryCatch(
     {
-      object[[assay]]@layers[[layer]]@matrix@dir <- dirname
+      # Use normalizePath to ensure an absolute path is always set regardless
+      # of whether dirname was passed as relative or absolute
+      object[[assay]]@layers[[layer]]@matrix@dir <- normalizePath(dirname)
       invisible(object)
     },
     error = function(e) {
@@ -178,9 +182,9 @@ set_bpcells_dir <- function(
 #' @param cells A character vector of cell names to include. If `NULL`, all
 #'   cells in the object will be included.
 #'
-#' @return A data.frame with cells as rows and features as columns, with feature
-#'   values extracted from the BPCells-backed matrix. Missing features (those
-#'   not present in the matrix) are included as columns of `NA` values.
+#' @return A data.frame with cells as rows and features as columns, with
+#'   feature values extracted from the BPCells-backed matrix. Only features
+#'   that are present in the matrix are included in the output.
 #'
 #' @keywords internal
 #' @export
@@ -196,41 +200,34 @@ bp_cells_fetch_features <- function(
   cells <- cells %||% colnames(object)
 
   # Try direct matrix access, fall back to fetch_data on error
-  expr_df <-
-    tryCatch(
-      {
-        matrix <- object@assays[[assay]]@layers[[layer]]@matrix
-        # Filter feature list to those present
-        features_present <- intersect(features, rownames(matrix))
-        if (length(features_present) == 0) {
-          stop("No requested features present in BPCells-backed matrix.")
-        }
-        sub_mat <- matrix[features_present, cells, drop = FALSE]
-        # Ensure dense for downstream operations
-        df <- as.data.frame(t(as.matrix(sub_mat)))
-        # Reintroduce any missing (non-present) features as NA
-        # columns to match request
-        missing <- setdiff(features, features_present)
-        for (m in missing) {
-          df[[m]] <- NA_real_
-        }
-        # Order columns to requested order
-        df[, features, drop = FALSE]
-      },
-      error = function(e) {
-        message(
-          "BPCells direct access failed: ",
-          conditionMessage(e),
-          "\n",
-          "Falling back to fetch_data."
-        )
-        SCUBA::fetch_data(
-          object = object,
-          vars = features,
-          layer = layer,
-          cells = cells
-        )
+  tryCatch(
+    {
+      matrix <- object@assays[[assay]]@layers[[layer]]@matrix
+      # Filter feature list to those present
+      features_present <- intersect(features, rownames(matrix))
+      if (length(features_present) == 0) {
+        stop("No requested features present in BPCells-backed matrix.")
       }
-    )
-  expr_df
+      # Subset BPCells matrix for requested features
+      sub_mat <- matrix[features_present, cells, drop = FALSE]
+      # Convert to dense data.frame
+      df <- as.data.frame(t(as.matrix(sub_mat)))
+      # Order columns to requested order
+      df[, features_present, drop = FALSE]
+    },
+    error = function(e) {
+      message(
+        "BPCells direct access failed: ",
+        conditionMessage(e),
+        "\n",
+        "Falling back to fetch_data."
+      )
+      SCUBA::fetch_data(
+        object = object,
+        vars = features,
+        layer = layer,
+        cells = cells
+      )
+    }
+  )
 }
