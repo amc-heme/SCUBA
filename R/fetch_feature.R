@@ -149,7 +149,7 @@ fetch_feature.Seurat <- function(
           )
 
         # Check if this assay's layer is BPCells-backed
-        if (is_bp_cells_seurat(object, assay = assay_name, layer = layer)) {
+        if (is_bpcells(object, assay = assay_name, layer = layer)) {
           # Use optimized BPCells direct matrix access
           assay_data <-
             bp_cells_fetch_features(

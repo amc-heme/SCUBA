@@ -22,7 +22,7 @@
 #'
 #' @keywords internal
 #' @export
-is_bp_cells_seurat <- function(
+is_bpcells <- function(
   object,
   assay = NULL,
   layer = NULL
@@ -71,7 +71,7 @@ get_bpcells_dir <- function(
   layer <- layer %||% "data"
 
   # Validate that this is a BPCells-backed layer
-  if (!is_bp_cells_seurat(object, assay = assay, layer = layer)) {
+  if (!is_bpcells(object, assay = assay, layer = layer)) {
     stop(
       "The specified assay/layer combination ('",
       assay,
@@ -127,7 +127,7 @@ set_bpcells_dir <- function(
   dirname
 ) {
   # Validate that this is a BPCells-backed layer
-  if (!is_bp_cells_seurat(object, assay = assay, layer = layer)) {
+  if (!is_bpcells(object, assay = assay, layer = layer)) {
     stop(
       "The specified assay/layer combination ('",
       assay,
