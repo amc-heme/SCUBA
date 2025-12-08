@@ -6,39 +6,39 @@
 #' @inheritParams plot_reduction
 #' @param order Boolean determining whether to plot cells in order of expression. Can be useful if
 #' cells expressing given feature are getting buried.
-#' @param features Vector of features to plot. Features can come from:  
-#'     - An `Assay` feature (e.g. a gene name - "MS4A1")  
-#'     - A column name from meta.data (e.g. mitochondrial percentage - "percent.mito")  
+#' @param features Vector of features to plot. Features can come from:
+#'     - An `Assay` feature (e.g. a gene name - "MS4A1")
+#'     - A column name from meta.data (e.g. mitochondrial percentage - "percent.mito")
 #'     - A column name from a `DimReduc` object corresponding to the cell embedding values
-#'     (e.g. the PC 1 scores - "PC_1")  
+#'     (e.g. the PC 1 scores - "PC_1")
 #' @param label_by A metadata column used for labeling groups on the featute plot,
 #' if label is \code{TRUE}.
 #' @param cols The two colors to form the gradient over. Provide as string vector with
 #' the first color corresponding to low values, the second to high. Also accepts a Brewer
 #' color scale or vector of colors. Note: this will bin the data into number of colors provided.
-#' When blend is \code{TRUE}, takes anywhere from 1-3 colors:  
-#' 
-#'   - 1 color:  
-#'     + Treated as color for double-negatives, will use default colors 2 and 3 for per-feature expression  
-#'   - 2 colors:  
-#'     + Treated as colors for per-feature expression, will use default color 1 for double-negatives  
-#'   - 3+ colors:  
-#'     + First color used for double-negatives, colors 2 and 3 used for per-feature expression, all others ignored  
+#' When blend is \code{TRUE}, takes anywhere from 1-3 colors:
+#'
+#'   - 1 color:
+#'     + Treated as color for double-negatives, will use default colors 2 and 3 for per-feature expression
+#'   - 2 colors:
+#'     + Treated as colors for per-feature expression, will use default color 1 for double-negatives
+#'   - 3+ colors:
+#'     + First color used for double-negatives, colors 2 and 3 used for per-feature expression, all others ignored
 #'
 #' @param min_cutoff,max_cutoff Vector of minimum and maximum cutoff values for each feature,
 #'  may specify quantile in the form of 'q##' where '##' is the quantile (eg, 'q1', 'q10')
 #' @param split_by A metadata column to split the feature plot by. Unlike \code{Seurat::FeaturePlot},
 #' "ident" may not be passed since the ident functionality is not supported by SingleCellExperiment
 #' objects. A metadata column name must be passed, or \code{NULL} to disable split plots.
-#' @param keep_scale How to handle the color scale across multiple plots. Options are:  
-#' 
-#'   - `feature` (default; by row/feature scaling):  
-#'     + The plots for each individual feature are scaled to the maximum expression of the feature across the conditions provided to 'split_by'.  
-#'   - `all` (universal scaling):  
-#'     +  The plots for all features and conditions are scaled to the maximum expression value for the feature with the highest overall expression.  
-#'   - `NULL` (no scaling):  
-#'     + Each individual plot is scaled to the maximum expression value of the feature in the condition provided to 'split_by'. Be aware setting NULL will result in color scales that are not comparable between plots.  
-#' 
+#' @param keep_scale How to handle the color scale across multiple plots. Options are:
+#'
+#'   - `feature` (default; by row/feature scaling):
+#'     + The plots for each individual feature are scaled to the maximum expression of the feature across the conditions provided to 'split_by'.
+#'   - `all` (universal scaling):
+#'     +  The plots for all features and conditions are scaled to the maximum expression value for the feature with the highest overall expression.
+#'   - `NULL` (no scaling):
+#'     + Each individual plot is scaled to the maximum expression value of the feature in the condition provided to 'split_by'. Be aware setting NULL will result in color scales that are not comparable between plots.
+#'
 #' @param slot Which slot to pull expression data from? If \code{NULL}, defaults to "data" for Seurat objects, and "logcounts" for SingleCellExperiment objects.
 #' @param blend Scale and blend expression values to visualize co-expression of two features
 #' @param blend_threshold The color cutoff from weak signal to strong signal; ranges from 0 to 1.
@@ -68,44 +68,44 @@
 #' @aliases FeatureHeatmap
 #' @seealso \code{\link{DimPlot}} \code{\link{HoverLocator}}
 #' \code{\link{CellSelector}}
-#' 
+#'
 #' @keywords internal
-#' 
+#'
 #' @examples
 #' plot_feature(AML_Seurat, features = "PC_1")
 #'
 plot_feature <- function(
-    object,
-    features,
-    label_by = NULL,
-    dims = c(1, 2),
-    cells = NULL,
-    cols = if (blend) {
-      c('lightgrey', '#ff0000', '#00ff00')
-    } else {
-      c('lightgrey', 'blue')
-    },
-    pt_size = NULL,
-    order = FALSE,
-    min_cutoff = NA,
-    max_cutoff = NA,
-    reduction = NULL,
-    split_by = NULL,
-    keep_scale = "feature",
-    shape_by = NULL,
-    slot = NULL,
-    blend = FALSE,
-    blend_threshold = 0.5,
-    label = FALSE,
-    label_size = 4,
-    label_color = "black",
-    repel = FALSE,
-    ncol = NULL,
-    coord_fixed = FALSE,
-    by_col = TRUE,
-    combine = TRUE,
-    raster = NULL,
-    raster_dpi = c(512, 512)
+  object,
+  features,
+  label_by = NULL,
+  dims = c(1, 2),
+  cells = NULL,
+  cols = if (blend) {
+    c('lightgrey', '#ff0000', '#00ff00')
+  } else {
+    c('lightgrey', 'blue')
+  },
+  pt_size = NULL,
+  order = FALSE,
+  min_cutoff = NA,
+  max_cutoff = NA,
+  reduction = NULL,
+  split_by = NULL,
+  keep_scale = "feature",
+  shape_by = NULL,
+  slot = NULL,
+  blend = FALSE,
+  blend_threshold = 0.5,
+  label = FALSE,
+  label_size = 4,
+  label_color = "black",
+  repel = FALSE,
+  ncol = NULL,
+  coord_fixed = FALSE,
+  by_col = TRUE,
+  combine = TRUE,
+  raster = NULL,
+  raster_dpi = c(512, 512)
 ) {
   # 1. Check arguments, set defaults
   # Check keep_scale param for valid entries
@@ -114,7 +114,7 @@ plot_feature <- function(
   }
 
   # Throw an error if label is TRUE, but no label_by metadata is provided
-  if (label == TRUE && is.null(label_by)){
+  if (label == TRUE && is.null(label_by)) {
     stop("if `label` is TRUE, `label_by` must be defined.")
   }
 
@@ -192,7 +192,9 @@ plot_feature <- function(
     )
   }
   if (blend && length(x = cols) != 3) {
-    stop("Blending feature plots only works with three colors; first one for negative cells")
+    stop(
+      "Blending feature plots only works with three colors; first one for negative cells"
+    )
   }
 
   # Define names for reductions, for plotting
@@ -201,7 +203,7 @@ plot_feature <- function(
       object,
       reduction = reduction,
       dims = dims
-      )
+    )
 
   # 2. Get plotting data
   ## 2.1. Fetch reduction coordinates
@@ -214,7 +216,7 @@ plot_feature <- function(
     )
 
   ## 2.2. Fetch metadata for label_by column, if provided
-  if (!is.null(label_by)){
+  if (!is.null(label_by)) {
     data <-
       cbind(
         data,
@@ -232,20 +234,19 @@ plot_feature <- function(
   }
 
   ## 2.3. Fetch expression data for the requested features
-  data <-
-    cbind(
-      data,
-      FetchData(
-        object = object,
-        vars = features,
-        layer = slot,
-        cells = cells
-      )
+  expr_df <-
+    fetch_feature(
+      object = object,
+      features = features,
+      cells = cells,
+      layer = slot
     )
+
+  data <- cbind(data, expr_df)
 
   ## 2.4. Check that at least one of the features was properly
   # fetched from the object.
-  if (!is.null(label_by)){
+  if (!is.null(label_by)) {
     # If label_by is provided and at least one feature is found, data will have
     # at least 4 columns.
     if (ncol(x = data) < 4) {
@@ -280,7 +281,7 @@ plot_feature <- function(
   # Feature_idx: index of first feature in data. If label_by is defined, this
   # is equal to 4, otherwise it is equal to 3.
   feature_idx <-
-    if (!is.null(label_by)){
+    if (!is.null(label_by)) {
       4
     } else {
       3
@@ -330,10 +331,12 @@ plot_feature <- function(
         X = list(features, min_cutoff, max_cutoff),
         FUN = length,
         FUN.VALUE = numeric(length = 1)
-        )
       )
+    )
   if (length(x = check_lengths) != 1) {
-    stop("There must be the same number of minimum and maximum cuttoffs as there are features")
+    stop(
+      "There must be the same number of minimum and maximum cuttoffs as there are features"
+    )
   }
 
   ## 3.3. brewer_gran
@@ -344,7 +347,7 @@ plot_feature <- function(
       test = length(x = cols) == 1,
       yes = brewer.pal.info[cols, ]$maxcolors,
       no = length(x = cols)
-      )
+    )
 
   ## 3.4. Apply cutoffs to feature data
   data[, feature_idx:ncol(x = data)] <-
@@ -362,12 +365,12 @@ plot_feature <- function(
           Seurat::SetQuantile(
             cutoff = min_cutoff[index - feature_idx + 1],
             data_feature
-            )
+          )
         max_use <-
           Seurat::SetQuantile(
             cutoff = max_cutoff[index - feature_idx + 1],
             data_feature
-            )
+          )
         data_feature[data_feature < min_use] <- min_use
         data_feature[data_feature > max_use] <- max_use
         if (brewer_gran == 2) {
@@ -375,12 +378,15 @@ plot_feature <- function(
         }
         data_cut <- if (all(data_feature == 0)) {
           0
-        }
-        else {
-          as.numeric(x = as.factor(x = cut(
-            x = as.numeric(x = data_feature),
-            breaks = brewer_gran
-          )))
+        } else {
+          as.numeric(
+            x = as.factor(
+              x = cut(
+                x = as.numeric(x = data_feature),
+                breaks = brewer_gran
+              )
+            )
+          )
         }
         return(data_cut)
       }
@@ -392,14 +398,14 @@ plot_feature <- function(
   data$split <-
     if (is.null(x = split_by)) {
       SeuratObject::RandomName()
-      } else {
-        fetch_metadata(
-          object = object,
-          vars = split_by,
-          cells = cells,
-          return_class = "vector"
-          )
-        }
+    } else {
+      fetch_metadata(
+        object = object,
+        vars = split_by,
+        cells = cells,
+        return_class = "vector"
+      )
+    }
 
   # Convert split_by metadata to a factor if it is not one already
   if (!is.factor(x = data$split)) {
@@ -422,23 +428,23 @@ plot_feature <- function(
   plots <-
     vector(
       mode = "list",
-      length =
-        # Number of elements: 4 for blended feature plots, features * split_by
-        # levels for regular plots
-        ifelse(
-          test = blend,
-          yes = 4,
-          no = length(x = features) * length(x = levels(x = data$split))
-          )
+      # Number of elements: 4 for blended feature plots, features * split_by
+      # levels for regular plots
+      length = ifelse(
+        test = blend,
+        yes = 4,
+        no = length(x = features) * length(x = levels(x = data$split))
       )
+    )
 
   ## 6.2. Define limits to use for all plots, based on range of reduction coords
   xlims <-
-    c(floor(x = min(data[, dim_names[1]])),
-      ceiling(x = max(data[, dim_names[1]])))
+    c(
+      floor(x = min(data[, dim_names[1]])),
+      ceiling(x = max(data[, dim_names[1]]))
+    )
   ylims <-
-    c(floor(min(data[, dim_names[2]])),
-      ceiling(x = max(data[, dim_names[2]])))
+    c(floor(min(data[, dim_names[2]])), ceiling(x = max(data[, dim_names[2]])))
 
   ## 6.3. If blended feature plot, set bend colors
   if (blend) {
@@ -448,7 +454,7 @@ plot_feature <- function(
         two.colors = cols[2:3],
         col.threshold = blend_threshold,
         negative.color = cols[1]
-        )
+      )
     cols <- cols[2:3]
     colors <-
       list(
@@ -456,7 +462,7 @@ plot_feature <- function(
         color_matrix[1, ],
         as.vector(x = color_matrix)
       )
-    }
+  }
 
   # 7. Create plots
   for (i in 1:length(x = levels(x = data$split))) {
@@ -478,12 +484,11 @@ plot_feature <- function(
         cbind(
           data_plot[, c(dim_names, label_by)],
           Seurat:::BlendExpression(data = data_plot[, features[1:2]])
-          )
-      #Account for missing label_by column 
-      if(!is.null(label_by)){
+        )
+      #Account for missing label_by column
+      if (!is.null(label_by)) {
         features <- colnames(x = data_plot)[4:ncol(x = data_plot)]
-      }
-      else{
+      } else {
         features <- colnames(x = data_plot)[3:ncol(x = data_plot)]
       }
     }
@@ -528,13 +533,15 @@ plot_feature <- function(
       }
       # Make FeatureHeatmaps look nice(ish)
       if (length(x = levels(x = data$split)) > 1) {
-        plot <- plot + theme(panel.border = element_rect(fill = NA, colour = 'black'))
+        plot <- plot +
+          theme(panel.border = element_rect(fill = NA, colour = 'black'))
         # Add title
-        plot <- plot + if (i == 1) {
-          labs(title = feature)
-        } else {
-          labs(title = NULL)
-        }
+        plot <- plot +
+          if (i == 1) {
+            labs(title = feature)
+          } else {
+            labs(title = NULL)
+          }
         # Add second axis
         if (j == length(x = features) && !blend) {
           suppressMessages(
@@ -548,21 +555,23 @@ plot_feature <- function(
         }
         # Remove left Y axis
         if (j != 1) {
-          plot <- plot + theme(
-            axis.line.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.text.y = element_blank(),
-            axis.title.y.left = element_blank()
-          )
+          plot <- plot +
+            theme(
+              axis.line.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.title.y.left = element_blank()
+            )
         }
         # Remove bottom X axis
         if (i != length(x = levels(x = data$split))) {
-          plot <- plot + theme(
-            axis.line.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.text.x = element_blank(),
-            axis.title.x = element_blank()
-          )
+          plot <- plot +
+            theme(
+              axis.line.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.text.x = element_blank(),
+              axis.title.x = element_blank()
+            )
         }
       } else {
         plot <- plot + labs(title = feature)
@@ -576,25 +585,38 @@ plot_feature <- function(
         } else if (length(x = cols) > 1) {
           unique_feature_exp <- unique(data_plot[, feature])
           if (length(unique_feature_exp) == 1) {
-            warning("All cells have the same value (", unique_feature_exp, ") of ", feature, ".")
+            warning(
+              "All cells have the same value (",
+              unique_feature_exp,
+              ") of ",
+              feature,
+              "."
+            )
             if (unique_feature_exp == 0) {
               cols_grad <- cols[1]
-            } else{
+            } else {
               cols_grad <- cols
             }
           }
           plot <- suppressMessages(
-            expr = plot + scale_color_gradientn(
-              colors = cols_grad,
-              guide = "colorbar"
-            )
+            expr = plot +
+              scale_color_gradientn(
+                colors = cols_grad,
+                guide = "colorbar"
+              )
           )
         }
       }
       if (!(is.null(x = keep_scale)) && keep_scale == "feature" && !blend) {
         max_feature_value <- max(data[, feature])
         min_feature_value <- min(data[, feature])
-        plot <- suppressMessages(plot & scale_color_gradientn(colors = cols, limits = c(min_feature_value, max_feature_value)))
+        plot <- suppressMessages(
+          plot &
+            scale_color_gradientn(
+              colors = cols,
+              limits = c(min_feature_value, max_feature_value)
+            )
+        )
       }
       # Add coord_fixed
       if (coord_fixed) {
@@ -611,31 +633,35 @@ plot_feature <- function(
   if (blend) {
     blend_legend <- Seurat:::BlendMap(color.matrix = color_matrix)
     for (ii in 1:length(x = levels(x = data$split))) {
-      suppressMessages(expr = plots <- append(
-        x = plots,
-        values = list(
-          blend_legend +
-            scale_y_continuous(
-              sec.axis = dup_axis(name = ifelse(
-                test = length(x = levels(x = data$split)) > 1,
-                yes = levels(x = data$split)[ii],
-                no = ''
-              )),
-              expand = c(0, 0)
-            ) +
-            labs(
-              x = features[1],
-              y = features[2],
-              title = if (ii == 1) {
-                paste('Color threshold:', blend_threshold)
-              } else {
-                NULL
-              }
-            ) +
-            no_right
-        ),
-        after = 4 * ii - 1
-      ))
+      suppressMessages(
+        expr = plots <- append(
+          x = plots,
+          values = list(
+            blend_legend +
+              scale_y_continuous(
+                sec.axis = dup_axis(
+                  name = ifelse(
+                    test = length(x = levels(x = data$split)) > 1,
+                    yes = levels(x = data$split)[ii],
+                    no = ''
+                  )
+                ),
+                expand = c(0, 0)
+              ) +
+              labs(
+                x = features[1],
+                y = features[2],
+                title = if (ii == 1) {
+                  paste('Color threshold:', blend_threshold)
+                } else {
+                  NULL
+                }
+              ) +
+              no_right
+          ),
+          after = 4 * ii - 1
+        )
+      )
     }
   }
   # Remove NULL plots
@@ -673,14 +699,20 @@ plot_feature <- function(
             expr = x +
               theme_cowplot() +
               ggtitle("") +
-              scale_y_continuous(sec.axis = dup_axis(name = ""), limits = ylims) +
+              scale_y_continuous(
+                sec.axis = dup_axis(name = ""),
+                limits = ylims
+              ) +
               no_right
           ))
         }
       )
       nsplits <- length(x = levels(x = data$split))
       idx <- 1
-      for (i in (length(x = features) * (nsplits - 1) + 1):(length(x = features) * nsplits)) {
+      for (i in (length(x = features) * (nsplits - 1) + 1):(length(
+        x = features
+      ) *
+        nsplits)) {
         plots[[i]] <- suppressMessages(
           expr = plots[[i]] +
             scale_y_continuous(
@@ -713,7 +745,13 @@ plot_feature <- function(
       }
       plots <- plots[c(do.call(
         what = rbind,
-        args = split(x = 1:length(x = plots), f = ceiling(x = seq_along(along.with = 1:length(x = plots)) / length(x = features)))
+        args = split(
+          x = 1:length(x = plots),
+          f = ceiling(
+            x = seq_along(along.with = 1:length(x = plots)) /
+              length(x = features)
+          )
+        )
       ))]
       # Set ncol to number of splits (nrow) and nrow to number of features (ncol)
       plots <- wrap_plots(plots, ncol = nrow, nrow = ncol)
@@ -721,7 +759,11 @@ plot_feature <- function(
         plots <- plots & NoLegend()
       }
     } else {
-      plots <- wrap_plots(plots, ncol = ncol, nrow = split_by %iff% length(x = levels(x = data$split)))
+      plots <- wrap_plots(
+        plots,
+        ncol = ncol,
+        nrow = split_by %iff% length(x = levels(x = data$split))
+      )
     }
     if (!is.null(x = legend) && legend == 'none') {
       plots <- plots & NoLegend()
@@ -729,7 +771,13 @@ plot_feature <- function(
     if (!(is.null(x = keep_scale)) && keep_scale == "all" && !blend) {
       max_feature_value <- max(data[, features])
       min_feature_value <- min(data[, features])
-      plots <- suppressMessages(plots & scale_color_gradientn(colors = cols, limits = c(min_feature_value, max_feature_value)))
+      plots <- suppressMessages(
+        plots &
+          scale_color_gradientn(
+            colors = cols,
+            limits = c(min_feature_value, max_feature_value)
+          )
+      )
     }
   }
   return(plots)

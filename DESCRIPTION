@@ -1,7 +1,7 @@
 Package: SCUBA
 Type: Package
 Title: Common data accession for single cell object formats
-Version: 1.2.1
+Version: 1.2.2
 Authors@R: c(
     person(
         "William", 
@@ -44,7 +44,7 @@ Description: SCUBA provides a common accession framework for multiple single cel
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr, rmarkdown
 Depends: 
     R (>= 3.5)
@@ -69,6 +69,9 @@ Suggests:
     reticulate (>= 1.41.0),
     anndata,
     knitr,
+    BPCells,
     rmarkdown
+Additional_repositories: 
+    https://bnprks.r-universe.dev
 Config/testthat/edition: 3
 URL: https://amc-heme.github.io/SCUBA/

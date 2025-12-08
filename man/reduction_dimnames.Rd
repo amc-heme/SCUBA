@@ -16,7 +16,7 @@ reduction_dimnames(object, reduction, dims)
 \method{reduction_dimnames}{AnnDataR6}(object, reduction, dims)
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{reduction}{the name of the reduction.}
@@ -41,30 +41,30 @@ return from this function.
 
 }}
 \examples{
-# From names for first and second UMAP dimensions and 
+# From names for first and second UMAP dimensions and
 # pass to fetch_data
 dimnames <- reduction_dimnames(
   AML_Seurat,
   reduction = "umap",
   dims = c(1, 2)
   )
-  
+
 dimnames
 
 fetch_data(
   AML_Seurat,
   vars = dimnames
   ) |> str()
-  
-  
-# Form names for first five PCA dimensions and 
+
+
+# Form names for first five PCA dimensions and
 # pass to fetch_data
 dimnames <- reduction_dimnames(
   AML_Seurat,
   reduction = "pca",
   dims = c(1:5)
   )
-  
+
 dimnames
 
 fetch_data(

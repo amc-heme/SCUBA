@@ -40,7 +40,7 @@ fetch_metadata(
 )
 }
 \arguments{
-\item{object}{A single cell object. Currently, Seurat, SingleCellExpleriment,
+\item{object}{A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.}
 
 \item{vars}{metadata variables to pull from object. This must be defined,
@@ -75,18 +75,18 @@ See our GitHub.io website for additional information and examples.
 \examples{
 # Return several metadata variables as a data.frame
 fetch_metadata(
-  AML_Seurat, 
+  AML_Seurat,
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
   ) |> str()
-  
+
 # Return data for a single metadata variable as a vector
 fetch_metadata(
-  AML_Seurat, 
+  AML_Seurat,
   vars = "condensed_cell_type",
   return_class = "vector"
   ) |> str()
 
-# Return all metadata 
+# Return all metadata
 fetch_metadata(
   AML_Seurat,
   full_table = TRUE
