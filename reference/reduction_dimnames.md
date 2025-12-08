@@ -27,7 +27,7 @@ reduction_dimnames(object, reduction, dims)
 
 - object:
 
-  A single cell object. Currently, Seurat, SingleCellExpleriment, and
+  A single cell object. Currently, Seurat, SingleCellExperiment, and
   anndata objects are supported.
 
 - reduction:
@@ -51,14 +51,14 @@ reduction_dimnames(object, reduction, dims)
 ## Examples
 
 ``` r
-# From names for first and second UMAP dimensions and 
+# From names for first and second UMAP dimensions and
 # pass to fetch_data
 dimnames <- reduction_dimnames(
   AML_Seurat,
   reduction = "umap",
   dims = c(1, 2)
   )
-  
+
 dimnames
 #> [1] "UMAP_1" "UMAP_2"
 
@@ -69,16 +69,16 @@ fetch_data(
 #> 'data.frame':    250 obs. of  2 variables:
 #>  $ UMAP_1: num  -1.64 -1.5 -1.45 -1.38 -1.41 ...
 #>  $ UMAP_2: num  9.9 10.13 10.21 10.51 3.39 ...
-  
-  
-# Form names for first five PCA dimensions and 
+
+
+# Form names for first five PCA dimensions and
 # pass to fetch_data
 dimnames <- reduction_dimnames(
   AML_Seurat,
   reduction = "pca",
   dims = c(1:5)
   )
-  
+
 dimnames
 #> [1] "PC_1" "PC_2" "PC_3" "PC_4" "PC_5"
 

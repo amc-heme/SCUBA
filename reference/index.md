@@ -46,3 +46,6 @@
 - [`AML_h5ad()`](https://amc-heme.github.io/SCUBA/reference/anndata_example.md)
   [`AML_h5ad_backed()`](https://amc-heme.github.io/SCUBA/reference/anndata_example.md)
   : Reference dataset used for testing and demonstration (anndata)
+- [`AML_BPCells`](https://amc-heme.github.io/SCUBA/reference/AML_BPCells.md)
+  : Reference dataset used for testing and demonstration (Seurat with
+  BPCells-backed matrices)

@@ -30,7 +30,7 @@ features_in_assay(object, assay)
 
 - object:
 
-  A single cell object. Currently, Seurat, SingleCellExpleriment, and
+  A single cell object. Currently, Seurat, SingleCellExperiment, and
   anndata objects are supported.
 
 - assay:

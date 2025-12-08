@@ -23,7 +23,7 @@ default_layer(object)
 
 - object:
 
-  A single cell object. Currently, Seurat, SingleCellExpleriment, and
+  A single cell object. Currently, Seurat, SingleCellExperiment, and
   anndata objects are supported.
 
 ## Details

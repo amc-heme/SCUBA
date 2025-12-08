@@ -22,7 +22,7 @@ fetch_cells(object, meta_var, meta_levels)
 
 - object:
 
-  A single cell object. Currently, Seurat, SingleCellExpleriment, and
+  A single cell object. Currently, Seurat, SingleCellExperiment, and
   anndata objects are supported.
 
 - meta_var:

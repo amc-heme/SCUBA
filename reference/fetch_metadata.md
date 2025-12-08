@@ -45,7 +45,7 @@ fetch_metadata(
 
 - object:
 
-  A single cell object. Currently, Seurat, SingleCellExpleriment, and
+  A single cell object. Currently, Seurat, SingleCellExperiment, and
   anndata objects are supported.
 
 - vars:
@@ -87,24 +87,24 @@ See our GitHub.io website for additional information and examples.
 ``` r
 # Return several metadata variables as a data.frame
 fetch_metadata(
-  AML_Seurat, 
+  AML_Seurat,
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
   ) |> str()
 #> 'data.frame':    250 obs. of  3 variables:
 #>  $ condensed_cell_type: chr  "Plasma cells" "Plasma cells" "Plasma cells" "Plasma cells" ...
 #>  $ Batch              : chr  "BM_200AB" "BM_200AB" "BM_200AB" "BM_200AB" ...
 #>  $ nCount_RNA         : num  10863 8403 8100 8151 8828 ...
-  
+
 # Return data for a single metadata variable as a vector
 fetch_metadata(
-  AML_Seurat, 
+  AML_Seurat,
   vars = "condensed_cell_type",
   return_class = "vector"
   ) |> str()
 #>  Named chr [1:250] "Plasma cells" "Plasma cells" "Plasma cells" ...
 #>  - attr(*, "names")= chr [1:250] "487013_1" "39207_1" "861619_1" "561110_1" ...
 
-# Return all metadata 
+# Return all metadata
 fetch_metadata(
   AML_Seurat,
   full_table = TRUE

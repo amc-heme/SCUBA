@@ -88,6 +88,16 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 ```
 
+If you plan to use SCUBA with a Seurat object with BPCells matrices, you
+must install BPCells from Github:
+
+``` r
+# Install remotes if you do not have it already
+install.packages("remotes")
+
+remotes::install_github("bnprks/BPCells/r")
+```
+
 ## Additional Installation for anndata Objects
 
 ### Note

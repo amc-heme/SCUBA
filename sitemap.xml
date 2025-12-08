@@ -2,10 +2,13 @@
 <url><loc>https://amc-heme.github.io/SCUBA/404.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/LICENSE-text.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/LICENSE_Seurat.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/agent_conventions.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/articles/index.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/articles/user_guide.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/authors.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/copilot-instructions.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/index.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/AML_BPCells.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/AML_SCE.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/AML_Seurat.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/FetchData.AnnDataR6.html</loc></url>
@@ -13,18 +16,25 @@
 <url><loc>https://amc-heme.github.io/SCUBA/reference/SCUBA-package.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/all_keys.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/anndata_example.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/bp_cells_fetch_features.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/cells_param.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/default_layer.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/default_reduction.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/default_slot.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/expr_plot.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/features_in_assay.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/features_param.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/fetch_cells.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/fetch_data.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/fetch_feature.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/fetch_matrix.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/fetch_metadata.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/fetch_reduction.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/get_all_cells.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/get_bpcells_dir.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/index.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/is_bpcells.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/layer_param.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/meta_varnames.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/n_unique.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/object_param.html</loc></url>
@@ -36,6 +46,7 @@
 <url><loc>https://amc-heme.github.io/SCUBA/reference/plot_violin.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/reduction_dimnames.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/relabel_axis.html</loc></url>
+<url><loc>https://amc-heme.github.io/SCUBA/reference/set_bpcells_dir.html</loc></url>
 <url><loc>https://amc-heme.github.io/SCUBA/reference/unique_values.html</loc></url>
 </urlset>
 

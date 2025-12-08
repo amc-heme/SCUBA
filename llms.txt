@@ -88,6 +88,16 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("amc-heme/SCUBA", dependencies = TRUE)
 ```
 
+If you plan to use SCUBA with a Seurat object with BPCells matrices, you
+must install BPCells from Github:
+
+``` r
+# Install remotes if you do not have it already
+install.packages("remotes")
+
+remotes::install_github("bnprks/BPCells/r")
+```
+
 ## Additional Installation for anndata Objects
 
 ### Note
@@ -280,6 +290,9 @@ If any issues arise please file a Github issue on this repository.
 - [`AML_h5ad()`](https://amc-heme.github.io/SCUBA/reference/anndata_example.md)
   [`AML_h5ad_backed()`](https://amc-heme.github.io/SCUBA/reference/anndata_example.md)
   : Reference dataset used for testing and demonstration (anndata)
+- [`AML_BPCells`](https://amc-heme.github.io/SCUBA/reference/AML_BPCells.md)
+  : Reference dataset used for testing and demonstration (Seurat with
+  BPCells-backed matrices)
 
 # Articles
 

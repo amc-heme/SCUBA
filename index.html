@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,6 +108,12 @@
 <span></span>
 <span><span class="co"># Set dependencies to FALSE if you do not plan to use anndata objects</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"amc-heme/SCUBA"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>If you plan to use SCUBA with a Seurat object with BPCells matrices, you must install BPCells from Github:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install remotes if you do not have it already</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"bnprks/BPCells/r"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="additional-installation-for-anndata-objects">Additional Installation for anndata Objects<a class="anchor" aria-label="anchor" href="#additional-installation-for-anndata-objects"></a>
@@ -119,7 +125,7 @@
 <hr>
 <p>To use SCUBA with anndata objects, you will need a Python installation and the reticulate R package. If you are using anndata objects, follow the steps below. <strong>If you are only using Seurat of SingleCellExperiment objects, you do not need to complete these steps.</strong></p>
 <p>First, install the <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> package in R.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"reticulate"</span><span class="op">)</span></span></code></pre></div>
 <p>Next, you will need to set up a version of Python with the necessary packages installed. There are several ways to do this. We recommend the use of an Anaconda environment, which will allow you to create an environment just for use by SCUBA that does not interfere with any other installations of Python you may have. The instructions below cover setting up an environment via anaconda, but other means of setting up Python environments will work with SCUBA. All that is needed is a Python environment connected to reticulate with the dependencies below installed:</p>
 <ul>
@@ -143,22 +149,22 @@
 <li><p>For MacOS and linux users: open a terminal window. For Windows users, you can open the Anaconda command prompt application (cmd.exe). Subsequent steps are the same for all operating systems.</p></li>
 <li><p>In the termainal, create a new conda environment for use with SCUBA.</p></li>
 </ol>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">--name</span> SCUBA_anndata </span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">--name</span> SCUBA_anndata </span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Next, “Activate” the environment to switch to it in the terminal.</li>
 </ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">conda</span> activate SCUBA_anndata</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">conda</span> activate SCUBA_anndata</span></code></pre></div>
 <p>You should now see “(SCUBA_anndata)” to the left side of your cursor in the terminal.</p>
 <ol start="5" style="list-style-type: decimal">
 <li>Next, install the <a href="https://anndata.readthedocs.io/en/stable/" class="external-link">anndata</a> package according to the instructions from their website. Make sure to specify the channel with <code>-c</code> to install the most recent version.</li>
 </ol>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">conda</span> install anndata <span class="at">-c</span> conda-forge</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">conda</span> install anndata <span class="at">-c</span> conda-forge</span></code></pre></div>
 <ol start="6" style="list-style-type: decimal">
 <li>SCUBA requires the following additional packages: <a href="https://scipy.org/" class="external-link">scipy</a>, <a href="https://numpy.org/" class="external-link">numpy</a>, and <a href="https://pandas.pydata.org/" class="external-link">pandas</a>. These should have been installed as dependencies when installing anndata. To verify these packages are present, you can run <code>conda list</code> on the environment:</li>
 </ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata pandas</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata scipy</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata numpy</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata pandas</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata scipy</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata numpy</span></code></pre></div>
 <p>If the package is present, you will see information for the package.</p>
 <pre><code>#
 # Name                    Version                   Build  Channel
@@ -169,7 +175,7 @@ pandas                    2.2.3           py313h668b085_3    conda-forge
 <ol start="7" style="list-style-type: decimal">
 <li>Connect reticulate to the conda environment. To do this, run the following in an R console:</li>
 </ol>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_condaenv</a></span><span class="op">(</span><span class="st">"SCUBA_anndata"</span><span class="op">)</span></span></code></pre></div>
 <p>Step 7 will need to be repeated each time you restart your R session. If you are using RStudio, you may set a default Python environment to use with reticulate to avoid having to repeat this step each time. To do this in RStudio, complete the following:</p>
 <ul>

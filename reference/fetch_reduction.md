@@ -22,7 +22,7 @@ fetch_reduction(object, reduction, cells = NULL, dims = c(1, 2))
 
 - object:
 
-  A single cell object. Currently, Seurat, SingleCellExpleriment, and
+  A single cell object. Currently, Seurat, SingleCellExperiment, and
   anndata objects are supported.
 
 - reduction:

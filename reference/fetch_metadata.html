@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,7 +88,7 @@
 
 
 <dl><dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
-<dd><p>A single cell object. Currently, Seurat, SingleCellExpleriment,
+<dd><p>A single cell object. Currently, Seurat, SingleCellExperiment,
 and anndata objects are supported.</p></dd>
 
 
@@ -130,24 +130,24 @@ values. This is ignored if "full_table" is set to <code>TRUE</code>.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Return several metadata variables as a data.frame</span></span></span>
 <span class="r-in"><span><span class="fu">fetch_metadata</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="va">AML_Seurat</span>, </span></span>
+<span class="r-in"><span>  <span class="va">AML_Seurat</span>,</span></span>
 <span class="r-in"><span>  vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"condensed_cell_type"</span>, <span class="st">"Batch"</span>, <span class="st">"nCount_RNA"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 'data.frame':	250 obs. of  3 variables:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ condensed_cell_type: chr  "Plasma cells" "Plasma cells" "Plasma cells" "Plasma cells" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ Batch              : chr  "BM_200AB" "BM_200AB" "BM_200AB" "BM_200AB" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ nCount_RNA         : num  10863 8403 8100 8151 8828 ...</span>
-<span class="r-in"><span>  </span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Return data for a single metadata variable as a vector</span></span></span>
 <span class="r-in"><span><span class="fu">fetch_metadata</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="va">AML_Seurat</span>, </span></span>
+<span class="r-in"><span>  <span class="va">AML_Seurat</span>,</span></span>
 <span class="r-in"><span>  vars <span class="op">=</span> <span class="st">"condensed_cell_type"</span>,</span></span>
 <span class="r-in"><span>  return_class <span class="op">=</span> <span class="st">"vector"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Named chr [1:250] "Plasma cells" "Plasma cells" "Plasma cells" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - attr(*, "names")= chr [1:250] "487013_1" "39207_1" "861619_1" "561110_1" ...</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Return all metadata </span></span></span>
+<span class="r-in"><span><span class="co"># Return all metadata</span></span></span>
 <span class="r-in"><span><span class="fu">fetch_metadata</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="va">AML_Seurat</span>,</span></span>
 <span class="r-in"><span>  full_table <span class="op">=</span> <span class="cn">TRUE</span></span></span>

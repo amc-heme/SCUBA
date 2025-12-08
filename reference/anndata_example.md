@@ -48,12 +48,12 @@ packages.
 # packages installed to work
 # Please see our website for more details
 # https://amc-heme.github.io/SCUBA/index.html#installation
-# 
-# The examples may take a while (about 10 seconds) to run the first 
-# time they are executed in a session due to the time required to 
-# initialize a Python environment. 
+#
+# The examples may take a while (about 10 seconds) to run the first
+# time they are executed in a session due to the time required to
+# initialize a Python environment.
 # R Studio does not display a spinner while these run, so the "run_examples"
-# link may not appear to do anything until the examples are finished. 
+# link may not appear to do anything until the examples are finished.
 AML_h5ad()
 #> AnnData object with n_obs × n_vars = 250 × 462
 #>     obs: 'nCount_RNA', 'nFeature_RNA', 'nCount_AB', 'nFeature_AB', 'nCount_BOTH', 'nFeature_BOTH', 'BOTH_snn_res.0.9', 'seurat_clusters', 'Prediction_Ind', 'BOTH_snn_res.1', 'ClusterID', 'Batch', 'x', 'y', 'x_mean', 'y_mean', 'cor', 'ct', 'prop', 'meandist', 'cDC', 'B.cells', 'Myelocytes', 'Erythroid', 'Megakaryocte', 'Ident', 'RNA_snn_res.0.4', 'condensed_cell_type'

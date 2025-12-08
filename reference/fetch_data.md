@@ -7,10 +7,10 @@ reduction coordinates to be pulled using consistent syntax.
 ## Usage
 
 ``` r
-fetch_data(object, vars = NULL, layer = NULL, cells = NULL, ...)
+fetch_data(object, vars, layer = NULL, cells = NULL, ...)
 
 # S3 method for class 'Seurat'
-fetch_data(object, vars = NULL, layer = NULL, cells = NULL, slot = NULL, ...)
+fetch_data(object, vars, layer = NULL, cells = NULL, slot = NULL, ...)
 
 # S3 method for class 'SingleCellExperiment'
 fetch_data(object, vars, layer = NULL, cells = NULL, ...)
