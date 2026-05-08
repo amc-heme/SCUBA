@@ -696,14 +696,11 @@ fetch_data.AnnDataR6 <-
     cells = NULL,
     ...
   ) {
-    library(reticulate)
-
     if (!requireNamespace("reticulate", quietly = TRUE)) {
       stop(
-        paste0(
-          'Package "reticulate" must be installed to use this ',
-          'function with anndata objects.'
-        ),
+        'Package "reticulate" must be installed to use this ',
+        'function with anndata objects. ',
+        'Install it with: install.packages("reticulate")',
         call. = FALSE
       )
     }

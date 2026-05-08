@@ -94,6 +94,13 @@ AML_SCE <- function() {
 #' # Summary of metadata variables in object
 #' meta_varnames(AML_h5ad())
 AML_h5ad <- function() {
+  if (!requireNamespace("anndata", quietly = TRUE)) {
+    stop(
+      'Package "anndata" must be installed to use this function. ',
+      'Install it with: install.packages("anndata")',
+      call. = FALSE
+    )
+  }
   anndata::read_h5ad(
     system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA")
   )
@@ -103,6 +110,13 @@ AML_h5ad <- function() {
 #' @usage AML_h5ad_backed()
 #' @export
 AML_h5ad_backed <- function() {
+  if (!requireNamespace("anndata", quietly = TRUE)) {
+    stop(
+      'Package "anndata" must be installed to use this function. ',
+      'Install it with: install.packages("anndata")',
+      call. = FALSE
+    )
+  }
   anndata::read_h5ad(
     system.file("extdata", "AML_h5ad.h5ad", package = "SCUBA"),
     backed = "r"
