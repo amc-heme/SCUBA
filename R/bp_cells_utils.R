@@ -222,9 +222,16 @@ bp_cells_fetch_features <- function(
         "\n",
         "Falling back to fetch_data."
       )
+      # Reconstruct keyed feature names so fetch_data routes to the
+      # correct assay. Without the key prefix, fetch_data resolves
+      # unkeyed names against the default assay, producing wrong
+      # data for features that exist in multiple assays (e.g.,
+      # shared gene names between RNA and protein assays).
+      assay_key <- SeuratObject::Key(object[[assay]])
+      keyed_features <- paste0(assay_key, features)
       SCUBA::fetch_data(
         object = object,
-        vars = features,
+        vars = keyed_features,
         layer = layer,
         cells = cells
       )
