@@ -548,3 +548,19 @@ test_that("fetch_data returns an error when a nonsensical feature is entered", {
     )
   )
 })
+
+test_that("fetch_data.AnnDataR6 errors informatively when reticulate is not installed", {
+  # Create a minimal mock AnnDataR6 object
+  mock_anndata <- structure(list(), class = "AnnDataR6")
+  
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) FALSE,
+    .package = "SCUBA"
+  )
+  
+  expect_error(
+    fetch_data(mock_anndata, vars = "test_feature"),
+    regexp = 'Package "reticulate" must be installed to use this function with anndata objects\\. Install it with: install\\.packages\\("reticulate"\\)',
+    fixed = FALSE
+  )
+})
