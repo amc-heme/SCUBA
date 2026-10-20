@@ -107,8 +107,26 @@ using SCUBA, RCall, DataFrames, CategoricalArrays
 
 const S = SCUBA
 
-function run(f, obj, args...; kwargs...)
+# Cache of wrapped sources keyed by the R object pointer. Holding the RObject keeps the SEXP
+# alive (RCall preserves it), so an address cannot be reused by a different object while cached.
+# R copies on modify, so a modified object arrives with a new address and gets a fresh source.
+const SRC_CACHE = Dict{Ptr{Cvoid}, Tuple{Any, Any}}()
+const SRC_CACHE_MAX = 4
+function getsrc(obj)
+    key = Ptr{Cvoid}(obj.p)
+    hit = get(SRC_CACHE, key, nothing)
+    hit === nothing || return hit[2]
+    if length(SRC_CACHE) >= SRC_CACHE_MAX
+        empty!(SRC_CACHE)
+    end
     src = S.rsource(obj)
+    SRC_CACHE[key] = (obj, src)
+    return src
+end
+clear_cache() = (empty!(SRC_CACHE); nothing)
+
+function run(f, obj, args...; kwargs...)
+    src = getsrc(obj)
     result, ws = S.with_collected_warnings(() -> f(src, args...; kwargs...))
     return result, String[w.message for w in ws]
 end
@@ -163,7 +181,7 @@ get_all_cells(obj) = run(S.all_cells, obj)
 meta_varnames(obj) = run(S.meta_varnames, obj)
 function all_keys(obj)
     # R SCUBA returns names = assay / reduction names and values = keys; mirror that for Seurat
-    src = S.rsource(obj)
+    src = getsrc(obj)
     ks = S.all_keys(src)
     names_ = collect(keys(ks)); vals = collect(values(ks))
     if hasproperty(src, :assay_alias)
@@ -179,7 +197,7 @@ default_layer(obj) = run(S.default_layer, obj)
 default_reduction(obj) = run(S.default_reduction, obj)
 function default_reduction_name(obj)
     # R SCUBA returns the reduction *name* for Seurat ("umap"), the key for others
-    src = S.rsource(obj)
+    src = getsrc(obj)
     key = S.default_reduction(src)
     name = key
     if hasproperty(src, :reductions) && haskey(src.reductions, key) && hasproperty(src.reductions[key], :name)
