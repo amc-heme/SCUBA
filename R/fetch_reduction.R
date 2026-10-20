@@ -32,6 +32,9 @@ fetch_reduction <-
     cells = NULL,
     dims = c(1, 2)
   ) {
+    if (.scuba_use_julia(object)) {
+      return(.jl_fetch_reduction(object, reduction, cells = cells, dims = dims))
+    }
     UseMethod("fetch_reduction")
   }
 

@@ -22,6 +22,7 @@ meta_varnames <-
   function(
     object
   ){
+    if (.scuba_use_julia(object)) return(.jl_meta_varnames(object))
     UseMethod("meta_varnames")
   }
 

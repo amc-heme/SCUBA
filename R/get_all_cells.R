@@ -16,6 +16,7 @@ get_all_cells <-
   function(
     object
   ) {
+    if (.scuba_use_julia(object)) return(.jl_get_all_cells(object))
     UseMethod("get_all_cells")
   }
 

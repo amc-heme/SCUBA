@@ -54,6 +54,9 @@ fetch_data <-
     cells = NULL,
     ...
   ) {
+    if (.scuba_use_julia(object)) {
+      return(.jl_fetch_data(object, vars, layer = layer, cells = cells, ...))
+    }
     UseMethod("fetch_data")
   }
 

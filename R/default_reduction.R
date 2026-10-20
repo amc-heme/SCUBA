@@ -25,6 +25,7 @@ default_reduction <-
   function(
     object
   ){
+    if (.scuba_use_julia(object)) return(.jl_default_reduction(object))
     UseMethod("default_reduction")
   }
 

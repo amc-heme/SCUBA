@@ -22,6 +22,9 @@ fetch_cells <-
       stop("Meta_levels must not be NULL.")
     }
 
+    if (.scuba_use_julia(object)) {
+      return(.jl_fetch_cells(object, meta_var, meta_levels))
+    }
     UseMethod("fetch_cells")
   }
 

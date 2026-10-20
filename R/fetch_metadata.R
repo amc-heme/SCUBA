@@ -48,6 +48,10 @@ fetch_metadata <-
     full_table = FALSE,
     return_class = "dataframe"
   ) {
+    if (.scuba_use_julia(object)) {
+      return(.jl_fetch_metadata(object, vars = vars, cells = cells, full_table = full_table,
+                                return_class = return_class))
+    }
     UseMethod("fetch_metadata")
   }
 

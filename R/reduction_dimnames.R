@@ -52,6 +52,7 @@ reduction_dimnames <-
     reduction,
     dims
   ) {
+    if (.scuba_use_julia(object)) return(.jl_reduction_dimnames(object, reduction, dims))
     UseMethod("reduction_dimnames")
   }
 

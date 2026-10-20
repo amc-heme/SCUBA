@@ -1,7 +1,7 @@
 Package: SCUBA
 Type: Package
 Title: Common data accession for single cell object formats
-Version: 1.2.2
+Version: 2.0.0.9000
 Authors@R: c(
     person(
         "William", 
@@ -66,6 +66,7 @@ Imports:
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
+    JuliaCall (>= 0.17),
     reticulate (>= 1.41.0),
     anndata,
     knitr,

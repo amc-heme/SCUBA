@@ -213,8 +213,18 @@ test_that(
 
 test_that("fetch_data returns a warning, but no errors, for mixed feature inputs", {
   # Inputs below are present features mixed with features not present
-  # Seurat
-  expect_warning(
+  # Seurat. The Julia engine aggregates the missing variables into one warning
+  # (as the SCE and AnnData paths always did); SeuratObject::FetchData emits four.
+  if (identical(scuba_engine(), "julia")) {
+    expect_warning(
+      fetch_data(
+        AML_Seurat,
+        vars = c("ab_CD110-AB", "rna_GAPDH", "rna_MEIS1", "UMAP_1",
+                 "nonsense", "rna_MESS1", "ab_CD1110-AB", "UMAP_11")
+      ),
+      "not found"
+    )
+  } else expect_warning(
     fetch_data(
       AML_Seurat,
       vars = c(

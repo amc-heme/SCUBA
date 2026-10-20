@@ -1,0 +1,298 @@
+# Engine selection: SCUBA 2.x can run its accessors either through the Julia package SCUBA.jl
+# (one implementation of the resolution rules shared with Python and Julia) or through the
+# legacy pure-R methods. Nothing Julia-related happens at load time.
+#
+#   options(SCUBA.engine = "auto")    # default: Julia when available, else R
+#   options(SCUBA.engine = "julia")   # require Julia (errors if it cannot be set up)
+#   options(SCUBA.engine = "r")       # legacy pure-R implementation
+#
+# Julia-side package location: option `SCUBA.jl_path` / env `SCUBA_JL_PATH` points at a
+# development checkout of SCUBA.jl; otherwise the registered package is installed into a
+# dedicated shared Julia environment (`~/.julia/environments/scuba-r`).
+
+.scuba_env <- new.env(parent = emptyenv())
+.scuba_env$julia_ready <- NULL
+
+#' Which engine SCUBA is using
+#'
+#' @return `"julia"` or `"r"`.
+#' @export
+scuba_engine <- function() {
+  opt <- getOption("SCUBA.engine", "auto")
+  if (!opt %in% c("auto", "julia", "r")) {
+    stop("options(SCUBA.engine) must be 'auto', 'julia' or 'r'", call. = FALSE)
+  }
+  if (opt == "r") return("r")
+  if (opt == "julia") {
+    if (!scuba_julia_available()) {
+      stop("options(SCUBA.engine = 'julia') but the Julia engine could not be initialised. ",
+           "Install Julia (https://julialang.org/downloads) and the R package JuliaCall, or use ",
+           "options(SCUBA.engine = 'r').", call. = FALSE)
+    }
+    return("julia")
+  }
+  if (isTRUE(scuba_julia_available())) "julia" else "r"
+}
+
+#' Is the Julia engine available?
+#'
+#' Initialises Julia through JuliaCall on first use (which may take a while the first time,
+#' as SCUBA.jl is installed and precompiled) and caches the result for the session.
+#' @param quiet Suppress the message shown while Julia starts.
+#' @export
+scuba_julia_available <- function(quiet = FALSE) {
+  if (!is.null(.scuba_env$julia_ready)) return(.scuba_env$julia_ready)
+  ok <- tryCatch({
+    .scuba_julia_init(quiet = quiet)
+    TRUE
+  }, error = function(e) {
+    if (!quiet && !identical(getOption("SCUBA.engine", "auto"), "r")) {
+      message("SCUBA: Julia engine unavailable (", conditionMessage(e), "); using the R engine.")
+    }
+    FALSE
+  })
+  .scuba_env$julia_ready <- ok
+  ok
+}
+
+#' Run an expression with a given SCUBA engine
+#' @param engine `"julia"` or `"r"`.
+#' @param expr Expression to evaluate.
+#' @export
+with_engine <- function(engine, expr) {
+  old <- options(SCUBA.engine = engine)
+  on.exit(options(old), add = TRUE)
+  force(expr)
+}
+
+.scuba_julia_init <- function(quiet = FALSE) {
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    stop("package 'JuliaCall' is not installed")
+  }
+  if (!quiet) message("SCUBA: starting the Julia engine ...")
+  JuliaCall::julia_setup(installJulia = FALSE, verbose = FALSE)
+  dev_path <- getOption("SCUBA.jl_path", Sys.getenv("SCUBA_JL_PATH", unset = ""))
+  project <- getOption("SCUBA.jl_project",
+                       Sys.getenv("SCUBA_JL_PROJECT", unset = "scuba-r"))
+  if (grepl("[/\\\\]", project)) {
+    JuliaCall::julia_command(sprintf('import Pkg; Pkg.activate("%s"; io = devnull)', project))
+  } else {
+    # a bare name is a shared environment: ~/.julia/environments/<name>
+    JuliaCall::julia_command(sprintf('import Pkg; Pkg.activate("%s"; shared = true, io = devnull)', project))
+  }
+  have <- JuliaCall::julia_eval('Base.find_package("SCUBA") !== nothing')
+  if (!isTRUE(have)) {
+    if (nzchar(dev_path)) {
+      JuliaCall::julia_command(sprintf('Pkg.develop(path = "%s"; io = devnull)', normalizePath(dev_path)))
+    } else {
+      JuliaCall::julia_command('Pkg.add("SCUBA"; io = devnull)')
+    }
+  }
+  for (pkg in c("RCall", "DataFrames", "CategoricalArrays")) {
+    if (!isTRUE(JuliaCall::julia_eval(sprintf('Base.find_package("%s") !== nothing', pkg)))) {
+      JuliaCall::julia_command(sprintf('Pkg.add("%s"; io = devnull)', pkg))
+    }
+  }
+  JuliaCall::julia_library("SCUBA")
+  JuliaCall::julia_library("RCall")
+  JuliaCall::julia_command(.scuba_julia_glue)
+  invisible(TRUE)
+}
+
+# Julia glue evaluated once per session. Every entry point wraps the R object as a SCUBA
+# source, runs the accessor collecting warnings, and returns a plain list for R.
+.scuba_julia_glue <- '
+module ScubaR
+using SCUBA, RCall, DataFrames, CategoricalArrays
+
+const S = SCUBA
+
+function run(f, obj, args...; kwargs...)
+    src = S.rsource(obj)
+    result, ws = S.with_collected_warnings(() -> f(src, args...; kwargs...))
+    return result, String[w.message for w in ws]
+end
+
+asvec(x::AbstractString) = String[x]
+asvec(x) = x
+
+# Hand a table to R column by column so factors, NA and types survive the JuliaCall conversion.
+function totable(df::DataFrame)
+    cc = S.cell_column(df)
+    names_ = String[n for n in names(df) if n != cc]
+    columns = Any[]
+    cat_idx = Int[]; cat_codes = Any[]; cat_levels = Any[]; cat_ordered = Bool[]
+    for (k, n) in enumerate(names_)
+        v = df[!, n]
+        if v isa CategoricalVector
+            push!(cat_idx, k)
+            push!(cat_codes, Int[ismissing(x) ? -1 : levelcode(x) for x in v])
+            push!(cat_levels, string.(levels(v)))
+            push!(cat_ordered, isordered(v))
+            push!(columns, Int[0])
+        else
+            push!(columns, v)
+        end
+    end
+    (names = names_, columns = columns, cat_idx = cat_idx, cat_codes = cat_codes, cat_levels = cat_levels,
+     cat_ordered = cat_ordered, cells = String.(S.cells(df)))
+end
+
+function fetch_data(obj, vars, layer, cells)
+    df, w = run(S.fetch_data, obj, asvec(vars); layer = layer, cells = cells)
+    (totable(df)..., warnings = w)
+end
+function fetch_feature(obj, features, layer, cells)
+    df, w = run(S.fetch_feature, obj, asvec(features); layer = layer, cells = cells)
+    (totable(df)..., warnings = w)
+end
+function fetch_metadata(obj, vars, cells, full_table)
+    df, w = if full_table
+        run(S.fetch_metadata, obj; cells = cells)
+    else
+        run(S.fetch_metadata, obj, asvec(vars); cells = cells)
+    end
+    (totable(df)..., warnings = w)
+end
+function fetch_reduction(obj, reduction, cells, dims)
+    df, w = run(S.fetch_reduction, obj, reduction; cells = cells, dims = dims)
+    (totable(df)..., warnings = w)
+end
+fetch_cells(obj, meta_var, meta_levels) = run(S.fetch_cells, obj, meta_var, asvec(meta_levels))
+get_all_cells(obj) = run(S.all_cells, obj)
+meta_varnames(obj) = run(S.meta_varnames, obj)
+function all_keys(obj)
+    # R SCUBA returns names = assay / reduction names and values = keys; mirror that for Seurat
+    src = S.rsource(obj)
+    ks = S.all_keys(src)
+    names_ = collect(keys(ks)); vals = collect(values(ks))
+    if hasproperty(src, :assay_alias)
+        inv = Dict(v => k for (k, v) in src.assay_alias)
+        merge!(inv, Dict(v => k for (k, v) in src.red_alias))
+        names_ = [get(inv, k, k) for k in names_]
+    end
+    return names_, vals, String[]
+end
+features_in_assay(obj, assay) = run(S.features_in_modality, obj, assay)
+reduction_dimnames(obj, reduction, dims) = run(S.reduction_dimnames, obj, reduction, dims)
+default_layer(obj) = run(S.default_layer, obj)
+default_reduction(obj) = run(S.default_reduction, obj)
+function default_reduction_name(obj)
+    # R SCUBA returns the reduction *name* for Seurat ("umap"), the key for others
+    src = S.rsource(obj)
+    key = S.default_reduction(src)
+    name = key
+    if hasproperty(src, :reductions) && haskey(src.reductions, key) && hasproperty(src.reductions[key], :name)
+        name = src.reductions[key].name
+    end
+    return name, String[]
+end
+unique_values(obj, var) = run(S.unique_values, obj, var)
+n_unique(obj, var) = run(S.n_unique, obj, var)
+end
+'
+
+# ---------------------------------------------------------------------------
+# R-side shims
+
+.scuba_use_julia <- function(object) {
+  (inherits(object, "Seurat") || inherits(object, "SingleCellExperiment")) &&
+    identical(scuba_engine(), "julia")
+}
+
+.jl_call <- function(fn, ...) {
+  res <- tryCatch(
+    JuliaCall::julia_call(paste0("ScubaR.", fn), ...),
+    error = function(e) {
+      msg <- conditionMessage(e)
+      msg <- sub("^Error happens in Julia.\\s*", "", msg)
+      msg <- sub("(?s)\\s*Stacktrace:.*$", "", msg, perl = TRUE)
+      msg <- sub("^[A-Za-z]+Error: ", "", msg)
+      stop(msg, call. = FALSE)
+    }
+  )
+  res
+}
+
+.jl_emit_warnings <- function(w) {
+  for (m in w) warning(m, call. = FALSE)
+  invisible(NULL)
+}
+
+.jl_table <- function(res) {
+  cols <- res$columns
+  if (length(res$cat_idx) > 0) {
+    for (k in seq_along(res$cat_idx)) {
+      codes <- res$cat_codes[[k]]
+      lv <- res$cat_levels[[k]]
+      codes[codes < 1] <- NA
+      cols[[res$cat_idx[k]]] <- factor(lv[codes], levels = lv, ordered = isTRUE(res$cat_ordered[k]))
+    }
+  }
+  if (length(cols) == 0) {
+    df <- data.frame(row.names = res$cells)
+  } else {
+    names(cols) <- res$names
+    df <- as.data.frame(cols, check.names = FALSE, stringsAsFactors = FALSE, optional = TRUE)
+    names(df) <- res$names
+    rownames(df) <- res$cells
+  }
+  .jl_emit_warnings(res$warnings)
+  df
+}
+
+.jl_value <- function(res) {
+  .jl_emit_warnings(res[[2]])
+  res[[1]]
+}
+
+.jl_fetch_data <- function(object, vars, layer = NULL, cells = NULL, slot = NULL) {
+  layer <- slot %||% layer
+  .jl_table(.jl_call("fetch_data", object, as.character(vars), layer, cells))
+}
+.jl_fetch_feature <- function(object, features, layer = NULL, cells = NULL) {
+  .jl_table(.jl_call("fetch_feature", object, as.character(features), layer, cells))
+}
+.jl_fetch_metadata <- function(object, vars = NULL, cells = NULL, full_table = FALSE,
+                               return_class = "dataframe") {
+  if (!return_class %in% c("dataframe", "vector")) {
+    stop("return_class must be 'dataframe' or 'vector'", call. = FALSE)
+  }
+  if (is.null(vars) && !isTRUE(full_table)) {
+    stop("`vars` must be provided unless full_table = TRUE", call. = FALSE)
+  }
+  if (!is.null(vars) && isTRUE(full_table)) {
+    warning("`vars` is ignored when full_table = TRUE", call. = FALSE)
+  }
+  df <- .jl_table(.jl_call("fetch_metadata", object, as.character(vars), cells, isTRUE(full_table)))
+  if (return_class == "vector") {
+    v <- df[[1]]
+    names(v) <- rownames(df)
+    return(v)
+  }
+  df
+}
+.jl_fetch_reduction <- function(object, reduction, cells = NULL, dims = c(1, 2)) {
+  .jl_table(.jl_call("fetch_reduction", object, reduction, cells, as.integer(dims)))
+}
+.jl_fetch_cells <- function(object, meta_var, meta_levels) {
+  if (is.null(meta_levels)) stop("`meta_levels` must be provided", call. = FALSE)
+  .jl_value(.jl_call("fetch_cells", object, meta_var, as.character(meta_levels)))
+}
+.jl_get_all_cells <- function(object) .jl_value(.jl_call("get_all_cells", object))
+.jl_meta_varnames <- function(object) .jl_value(.jl_call("meta_varnames", object))
+.jl_all_keys <- function(object) {
+  res <- .jl_call("all_keys", object)
+  .jl_emit_warnings(res[[3]])
+  out <- unlist(res[[2]])
+  names(out) <- unlist(res[[1]])
+  out
+}
+.jl_features_in_assay <- function(object, assay) .jl_value(.jl_call("features_in_assay", object, assay))
+.jl_reduction_dimnames <- function(object, reduction, dims) {
+  .jl_value(.jl_call("reduction_dimnames", object, reduction, as.integer(dims)))
+}
+.jl_default_layer <- function(object) .jl_value(.jl_call("default_layer", object))
+.jl_default_reduction <- function(object) .jl_value(.jl_call("default_reduction_name", object))
+.jl_unique_values <- function(object, var) .jl_value(.jl_call("unique_values", object, var))
+.jl_n_unique <- function(object, var) .jl_value(.jl_call("n_unique", object, var))

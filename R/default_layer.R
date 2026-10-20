@@ -25,6 +25,7 @@ default_layer <-
   function(
     object
   ){
+    if (.scuba_use_julia(object)) return(.jl_default_layer(object))
     UseMethod("default_layer")
   }
 

@@ -50,6 +50,9 @@ fetch_feature <- function(
   layer = NULL,
   cells = NULL
 ) {
+  if (.scuba_use_julia(object)) {
+    return(.jl_fetch_feature(object, features, layer = layer, cells = cells))
+  }
   UseMethod("fetch_feature")
 }
 
