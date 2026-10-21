@@ -117,7 +117,65 @@ with_engine <- function(engine, expr) {
   if (!isTRUE(JuliaCall::julia_eval("Base.get_extension(SCUBA, :SCUBARCallExt) !== nothing"))) {
     JuliaCall::julia_command("Base.retry_load_extensions()")
   }
-  JuliaCall::julia_command(.scuba_julia_glue)
+  # The glue module ships (precompiled) with SCUBA.jl's RCall extension; older SCUBA.jl versions
+  # get the copy embedded below.
+  in_ext <- JuliaCall::julia_eval("isdefined(Base.get_extension(SCUBA, :SCUBARCallExt), :ScubaR)")
+  if (isTRUE(in_ext)) {
+    JuliaCall::julia_command("isdefined(Main, :ScubaR) || (global ScubaR = Base.get_extension(SCUBA, :SCUBARCallExt).ScubaR)")
+  } else {
+    JuliaCall::julia_command(.scuba_julia_glue)
+  }
+  if (isTRUE(getOption("SCUBA.julia_warmup", TRUE))) scuba_julia_warmup()
+  invisible(TRUE)
+}
+
+#' Warm up the Julia engine
+#'
+#' Runs each accessor once on a tiny in-memory Seurat object so the first call on a real object
+#' does not pay for compilation (about 0.6 s with JuliaCall, even with precompiled code). Called
+#' automatically at engine start-up unless `options(SCUBA.julia_warmup = FALSE)`; a Shiny app can
+#' call it from `global.R` so sessions start warm.
+#'
+#' @returns `TRUE` invisibly.
+#' @export
+scuba_julia_warmup <- function() {
+  if (!requireNamespace("SeuratObject", quietly = TRUE)) return(invisible(FALSE))
+  m <- Matrix::sparseMatrix(i = c(1, 2, 3, 1, 4, 2, 5), j = c(1, 1, 2, 3, 3, 4, 4), x = c(3, 1, 2, 5, 1, 4, 2),
+                            dims = c(5, 4), dimnames = list(paste0("g", 1:5), paste0("c", 1:4)))
+  md <- data.frame(group = factor(c("a", "b", "a", "b")), score = c(0.5, 1.5, 2.5, 3.5), row.names = colnames(m))
+  obj <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = m, meta.data = md))
+  obj <- SeuratObject::SetAssayData(obj, layer = "data", new.data = m)
+  obj[["umap"]] <- SeuratObject::CreateDimReducObject(
+    embeddings = matrix(as.numeric(1:8), 4, 2, dimnames = list(colnames(m), c("UMAP_1", "UMAP_2"))), key = "UMAP_", assay = "RNA")
+  objs <- list(obj)
+  if (requireNamespace("BPCells", quietly = TRUE)) {
+    # on-disk BPCells layers in both storage orders (the layout of cellDIVER objects)
+    tmp <- tempfile("scuba_warmup_bp")
+    on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
+    bp <- tryCatch({
+      col <- suppressMessages(BPCells::write_matrix_dir(methods::as(m, "IterableMatrix"), file.path(tmp, "col")))
+      row <- suppressMessages(BPCells::transpose_storage_order(col, outdir = file.path(tmp, "row"), tmpdir = tmp))
+      o <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = row, meta.data = md))
+      o[["RNA"]]$data <- col
+      o[["umap"]] <- obj[["umap"]]
+      o
+    }, error = function(e) NULL)
+    if (!is.null(bp)) objs <- c(objs, list(bp))
+  }
+  for (obj in objs) suppressWarnings(with_engine("julia", {
+    .jl_call("get_all_cells", obj)
+    .jl_call("fetch_data", obj, "rna_g1", NULL, NULL)
+    .jl_call("fetch_data", obj, c("rna_g1", "group", "UMAP_1"), NULL, c("c2", "c1"))
+    .jl_call("fetch_feature", obj, c("g1", "g2"), NULL, NULL)
+    .jl_call("fetch_metadata", obj, NULL, NULL, TRUE)
+    .jl_call("fetch_metadata", obj, c("group", "score"), c("c1", "c3"), FALSE)
+    .jl_call("fetch_reduction", obj, "umap", NULL, c(1L, 2L))
+    .jl_call("fetch_cells", obj, "group", "a")
+    .jl_call("unique_values", obj, "group")
+    .jl_call("meta_varnames", obj); .jl_call("all_keys", obj); .jl_call("features_in_assay", obj, NULL)
+    .jl_call("default_layer", obj); .jl_call("default_reduction_name", obj)
+  }))
+  JuliaCall::julia_command("ScubaR.clear_cache()")
   invisible(TRUE)
 }
 
