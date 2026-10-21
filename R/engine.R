@@ -70,15 +70,28 @@ with_engine <- function(engine, expr) {
     stop("package 'JuliaCall' is not installed")
   }
   if (!quiet) message("SCUBA: starting the Julia engine ...")
-  JuliaCall::julia_setup(installJulia = FALSE, verbose = FALSE)
+  img <- .scuba_sysimage()
   dev_path <- getOption("SCUBA.jl_path", Sys.getenv("SCUBA_JL_PATH", unset = ""))
   project <- getOption("SCUBA.jl_project",
                        Sys.getenv("SCUBA_JL_PROJECT", unset = "scuba-r"))
-  if (grepl("[/\\\\]", project)) {
-    JuliaCall::julia_command(sprintf('import Pkg; Pkg.activate("%s"; io = devnull)', project))
-  } else {
-    # a bare name is a shared environment: ~/.julia/environments/<name>
-    JuliaCall::julia_command(sprintf('import Pkg; Pkg.activate("%s"; shared = true, io = devnull)', project))
+  # a bare name is a shared environment: ~/.julia/environments/<name>
+  shared <- !grepl("[/\\\\]", project)
+  if (!is.null(img) && !nzchar(Sys.getenv("JULIA_PROJECT"))) {
+    # With a system image SCUBA is loaded before anything runs, so its RCall extension must be
+    # locatable from the default environment when JuliaCall loads RCall during start-up.
+    Sys.setenv(JULIA_PROJECT = if (shared) paste0("@", project) else normalizePath(project))
+  }
+  if (is.null(img)) JuliaCall::julia_setup(installJulia = FALSE, verbose = FALSE)
+  else JuliaCall::julia_setup(installJulia = FALSE, verbose = FALSE, sysimage_path = img)
+  JuliaCall::julia_command("import Pkg")
+  active <- JuliaCall::julia_eval("Base.active_project()")
+  want <- if (shared) file.path(path.expand("~"), ".julia", "environments", project, "Project.toml") else file.path(project, "Project.toml")
+  if (!identical(normalizePath(active, mustWork = FALSE), normalizePath(want, mustWork = FALSE))) {
+    if (shared) {
+      JuliaCall::julia_command(sprintf('Pkg.activate("%s"; shared = true, io = devnull)', project))
+    } else {
+      JuliaCall::julia_command(sprintf('Pkg.activate("%s"; io = devnull)', project))
+    }
   }
   have <- JuliaCall::julia_eval('Base.find_package("SCUBA") !== nothing')
   if (!isTRUE(have)) {
@@ -93,8 +106,17 @@ with_engine <- function(engine, expr) {
       JuliaCall::julia_command(sprintf('Pkg.add("%s"; io = devnull)', pkg))
     }
   }
-  JuliaCall::julia_library("SCUBA")
+  loaded <- tryCatch({ JuliaCall::julia_library("SCUBA"); TRUE }, error = function(e) FALSE)
+  if (!loaded) {
+    # a development checkout may have gained dependencies since the environment was resolved
+    # (resolving takes ~10 s, so it only runs when loading failed)
+    JuliaCall::julia_command("Pkg.resolve(io = devnull); Pkg.instantiate(io = devnull)")
+    JuliaCall::julia_library("SCUBA")
+  }
   JuliaCall::julia_library("RCall")
+  if (!isTRUE(JuliaCall::julia_eval("Base.get_extension(SCUBA, :SCUBARCallExt) !== nothing"))) {
+    JuliaCall::julia_command("Base.retry_load_extensions()")
+  }
   JuliaCall::julia_command(.scuba_julia_glue)
   invisible(TRUE)
 }
@@ -241,10 +263,13 @@ end
 #' @keywords internal
 .scuba_route_fetch_data <- function(object, vars) {
   if (!.scuba_julia_object(object)) return(FALSE)
-  meta <- .r_meta_names(object)
-  reds <- .r_reduction_keys(object)
+  vars <- as.character(vars)
+  meta <- as.character(.r_meta_names(object))
+  reds <- as.character(.r_reduction_keys(object))
   is_meta <- vars %in% meta | sub("^obs_", "", vars) %in% meta
-  is_red <- vapply(vars, function(v) any(startsWith(v, reds)) && grepl("_[0-9]+$", v), logical(1))
+  is_red <- if (length(reds)) {
+    vapply(vars, function(v) any(startsWith(v, reds)) && grepl("_[0-9]+$", v), logical(1))
+  } else rep(FALSE, length(vars))
   # metadata- and reduction-only requests are faster on the R methods
   !all(is_meta | is_red)
 }
@@ -345,3 +370,39 @@ end
 .jl_default_reduction <- function(object) .jl_value(.jl_call("default_reduction_name", object))
 .jl_unique_values <- function(object, var) .jl_value(.jl_call("unique_values", object, var))
 .jl_n_unique <- function(object, var) .jl_value(.jl_call("n_unique", object, var))
+
+# ---------------------------------------------------------------------------
+# System image support (cold-start latency)
+
+#' Build a Julia system image with SCUBA.jl compiled in
+#'
+#' Compiles SCUBA.jl, RCall and their dependencies into a Julia system image so that
+#' `scuba_julia_available()` and the first accessor calls take well under a second. Building
+#' takes several minutes once. Afterwards set `options(SCUBA.sysimage = path)` (or the
+#' `SCUBA_SYSIMAGE` environment variable) before the first SCUBA call in a session.
+#'
+#' @param path Output path for the image (default: `~/.julia/scuba/SCUBA.<os>-<arch>.<ext>`).
+#' @param julia_path Path to the Julia binary (default: the one JuliaCall finds).
+#' @return The image path, invisibly.
+#' @export
+scuba_build_sysimage <- function(path = NULL, julia_path = NULL) {
+  dev_path <- getOption("SCUBA.jl_path", Sys.getenv("SCUBA_JL_PATH", unset = ""))
+  if (!nzchar(dev_path)) {
+    stop("scuba_build_sysimage() needs a SCUBA.jl checkout: set options(SCUBA.jl_path = ...) or SCUBA_JL_PATH", call. = FALSE)
+  }
+  julia <- julia_path %||% Sys.which("julia")
+  if (!nzchar(julia)) stop("julia binary not found", call. = FALSE)
+  script <- file.path(normalizePath(dev_path), "tools", "build_sysimage.jl")
+  args <- c(paste0("--project=", file.path(normalizePath(dev_path), "tools", "sysimage")), script, "--no-pythoncall")
+  if (!is.null(path)) args <- c(args, "--out", path.expand(path))
+  message("Building the SCUBA system image (this takes several minutes) ...")
+  out <- system2(julia, args, stdout = TRUE, stderr = "")
+  img <- tail(out[nzchar(out)], 1)
+  message("System image written to ", img, "\nUse it with options(SCUBA.sysimage = \"", img, "\") before the first SCUBA call.")
+  invisible(img)
+}
+
+.scuba_sysimage <- function() {
+  p <- getOption("SCUBA.sysimage", Sys.getenv("SCUBA_SYSIMAGE", unset = ""))
+  if (nzchar(p) && file.exists(path.expand(p))) normalizePath(path.expand(p)) else NULL
+}

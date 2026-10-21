@@ -21,6 +21,15 @@ expect_same <- function(a, b, ...) {
   }
 }
 
+test_that("routing: objects without reductions and non-character vars", {
+  skip_if_not_installed("SeuratObject")
+  bare <- SeuratObject::CreateSeuratObject(counts = Matrix::rsparsematrix(5, 4, 0.5, rand.x = function(n) rpois(n, 2) + 1,
+                                                                            dimnames = list(paste0("g", 1:5), paste0("c", 1:4))))
+  expect_true(with_engine("julia", SCUBA:::.scuba_route_fetch_data(bare, "g1")))
+  expect_true(with_engine("julia", SCUBA:::.scuba_route_fetch_data(bare, factor("g1"))))
+  expect_false(with_engine("julia", SCUBA:::.scuba_route_fetch_data(bare, "nCount_RNA")))
+})
+
 for (form in names(objects)) {
   obj <- objects[[form]]
   v <- vars[[form]]
