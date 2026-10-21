@@ -65,9 +65,43 @@ with_engine <- function(engine, expr) {
   force(expr)
 }
 
+# On Debian/Ubuntu the `R` launcher script (etc/ldpaths) exports
+# LD_LIBRARY_PATH=$R_HOME/lib:/usr/lib/x86_64-linux-gnu. With the system library directory on
+# that path, Julia embedded in R resolves libstdc++, libgfortran, OpenBLAS and friends to the
+# system copies instead of its bundled ones, and the R process segfaults with no R-level error
+# (observed on Ubuntu with R 4.5 / Julia 1.13). The loader reads LD_LIBRARY_PATH once at process
+# start, so this cannot be repaired from inside R; it must be set before R starts, e.g.
+# R_LD_LIBRARY_PATH=/usr/lib/R/lib in the shiny-server service environment.
+# Returns NULL when the path looks safe, otherwise an explanation.
+.scuba_ld_library_path_issue <- function(path = Sys.getenv("LD_LIBRARY_PATH"),
+                                         sysname = Sys.info()[["sysname"]]) {
+  if (!identical(sysname, "Linux") || !nzchar(path)) return(NULL)
+  entries <- strsplit(path, ":", fixed = TRUE)[[1]]
+  entries <- sub("/+$", "", entries[nzchar(entries)])
+  system_dir <- grepl("^/(usr/)?lib(32|64|x32)?(/[^/]+-linux-gnu[^/]*)?$", entries) |
+    grepl("^/usr/local/lib(32|64)?$", entries)
+  julia_dir <- grepl("/lib/julia$", entries)
+  bad <- which(system_dir)
+  if (!length(bad)) return(NULL)
+  # Julia's own library directories listed before the system ones take precedence: fine
+  if (any(julia_dir) && min(which(julia_dir)) < min(bad)) return(NULL)
+  paste0(
+    "LD_LIBRARY_PATH contains the system library directory ", entries[bad[1]],
+    " ahead of Julia's libraries, which makes Julia embedded in R load system copies of its ",
+    "bundled libraries and crash. Start R with R_LD_LIBRARY_PATH=", file.path(R.home(), "lib"),
+    " (set it in the environment that launches R, e.g. the shiny-server service), or prepend ",
+    "<julia>/lib/julia:<julia>/lib to LD_LIBRARY_PATH. Set options(SCUBA.ignore_ld_library_path = TRUE) ",
+    "to try anyway."
+  )
+}
+
 .scuba_julia_init <- function(quiet = FALSE) {
   if (!requireNamespace("JuliaCall", quietly = TRUE)) {
     stop("package 'JuliaCall' is not installed")
+  }
+  if (!isTRUE(getOption("SCUBA.ignore_ld_library_path", FALSE))) {
+    issue <- .scuba_ld_library_path_issue()
+    if (!is.null(issue)) stop(issue, call. = FALSE)
   }
   if (!quiet) message("SCUBA: starting the Julia engine ...")
   img <- .scuba_sysimage()
