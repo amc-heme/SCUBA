@@ -447,10 +447,14 @@ end
 
 #' Build a Julia system image with SCUBA.jl compiled in
 #'
-#' Compiles SCUBA.jl, RCall and their dependencies into a Julia system image so that
-#' `scuba_julia_available()` and the first accessor calls take well under a second. Building
-#' takes several minutes once. Afterwards set `options(SCUBA.sysimage = path)` (or the
-#' `SCUBA_SYSIMAGE` environment variable) before the first SCUBA call in a session.
+#' Compiles SCUBA.jl and its dependencies into a Julia system image, which cuts the Julia
+#' start-up of each R process from about 5 s to about 3 s. RCall itself cannot be compiled into
+#' the image on Julia 1.13 (PackageCompiler fails with an LLVM calling-convention error), so it
+#' and the RCall extension load from their own precompile caches. Building takes several
+#' minutes once and runs in a separate `julia` process (equivalent to
+#' `julia <SCUBA.jl>/tools/build_sysimage.jl --no-rcall --no-pythoncall` from a terminal).
+#' Afterwards set `options(SCUBA.sysimage = path)` (or the `SCUBA_SYSIMAGE` environment
+#' variable) before the first SCUBA call in a session.
 #'
 #' @param path Output path for the image (default: `~/.julia/scuba/SCUBA.<os>-<arch>.<ext>`).
 #' @param julia_path Path to the Julia binary (default: the one JuliaCall finds).
@@ -464,7 +468,7 @@ scuba_build_sysimage <- function(path = NULL, julia_path = NULL) {
   julia <- julia_path %||% Sys.which("julia")
   if (!nzchar(julia)) stop("julia binary not found", call. = FALSE)
   script <- file.path(normalizePath(dev_path), "tools", "build_sysimage.jl")
-  args <- c(paste0("--project=", file.path(normalizePath(dev_path), "tools", "sysimage")), script, "--no-pythoncall")
+  args <- c(paste0("--project=", file.path(normalizePath(dev_path), "tools", "sysimage")), script, "--no-rcall", "--no-pythoncall")
   if (!is.null(path)) args <- c(args, "--out", path.expand(path))
   message("Building the SCUBA system image (this takes several minutes) ...")
   out <- system2(julia, args, stdout = TRUE, stderr = "")
