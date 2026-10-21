@@ -213,9 +213,40 @@ end
 # ---------------------------------------------------------------------------
 # R-side shims
 
-.scuba_use_julia <- function(object) {
+# Routing. The Julia engine only wins where Julia reads matrices natively, i.e. expression
+# fetches. Metadata, reduction and cell queries on live R objects are served by the R methods
+# directly: through Julia they would round-trip R -> Julia -> R (1.8 s for a 1M-cell metadata
+# table vs 2 ms in R, see bench/report/summary.md). `fetch_data()` requests that contain only
+# metadata / reduction vars stay in R as well; mixed requests go to Julia, which fetches the
+# features and appends the metadata columns.
+.scuba_julia_object <- function(object) {
   (inherits(object, "Seurat") || inherits(object, "SingleCellExperiment")) &&
     identical(scuba_engine(), "julia")
+}
+.scuba_use_julia <- function(object) .scuba_julia_object(object)
+
+.r_meta_names <- function(object) {
+  if (inherits(object, "Seurat")) colnames(object[[]])
+  else if (inherits(object, "SingleCellExperiment")) colnames(SummarizedExperiment::colData(object))
+  else character()
+}
+.r_reduction_keys <- function(object) {
+  if (inherits(object, "Seurat")) {
+    unlist(lapply(SeuratObject::Reductions(object), function(r) SeuratObject::Key(object[[r]])))
+  } else if (inherits(object, "SingleCellExperiment")) {
+    paste0(SingleCellExperiment::reducedDimNames(object), "_")
+  } else character()
+}
+
+#' @keywords internal
+.scuba_route_fetch_data <- function(object, vars) {
+  if (!.scuba_julia_object(object)) return(FALSE)
+  meta <- .r_meta_names(object)
+  reds <- .r_reduction_keys(object)
+  is_meta <- vars %in% meta | sub("^obs_", "", vars) %in% meta
+  is_red <- vapply(vars, function(v) any(startsWith(v, reds)) && grepl("_[0-9]+$", v), logical(1))
+  # metadata- and reduction-only requests are faster on the R methods
+  !all(is_meta | is_red)
 }
 
 .jl_call <- function(fn, ...) {

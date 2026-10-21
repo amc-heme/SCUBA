@@ -39,7 +39,6 @@ all_keys <-
   function(
     object
   ){
-    if (.scuba_use_julia(object)) return(.jl_all_keys(object))
     UseMethod("all_keys")
   }
 

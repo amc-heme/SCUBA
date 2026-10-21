@@ -25,6 +25,14 @@ for (form in names(objects)) {
   obj <- objects[[form]]
   v <- vars[[form]]
 
+  test_that(paste("routing: metadata-only fetch_data stays in R, mixed requests go to Julia:", form), {
+    expect_false(SCUBA:::.scuba_route_fetch_data(obj, c("nCount_RNA", "Batch")))
+    expect_false(SCUBA:::.scuba_route_fetch_data(obj, c("UMAP_1", "UMAP_2")))
+    expect_true(with_engine("julia", SCUBA:::.scuba_route_fetch_data(obj, c(v[1], "Batch"))))
+    # two reduction dims: legacy SCE drops a single dim (documented divergence)
+    expect_same(with_engine("julia", fetch_data(obj, c(v[1], "Batch", "UMAP_1", "UMAP_2"))), with_engine("r", fetch_data(obj, c(v[1], "Batch", "UMAP_1", "UMAP_2"))))
+  })
+
   test_that(paste("fetch_data parity:", form), {
     expect_same(with_engine("julia", fetch_data(obj, v)), with_engine("r", fetch_data(obj, v)))
     cells <- rev(get_all_cells(obj)[1:20])
@@ -69,8 +77,7 @@ for (form in names(objects)) {
   test_that(paste("features_in_assay and all_keys parity:", form), {
     main <- if (form == "seurat") "RNA" else SingleCellExperiment::mainExpName(obj)
     expect_equal(with_engine("julia", features_in_assay(obj, main)), with_engine("r", features_in_assay(obj, main)))
-    kj <- with_engine("julia", all_keys(obj)); kr <- with_engine("r", all_keys(obj))
-    # Julia keys have no trailing underscore and no key for metadata (Seurat lists `md_`)
-    expect_setequal(names(kj), setdiff(names(kr), "meta.data"))
+    # all_keys() is served by the R method under both engines (metadata-type calls are routed to R)
+    expect_identical(with_engine("julia", all_keys(obj)), with_engine("r", all_keys(obj)))
   })
 }

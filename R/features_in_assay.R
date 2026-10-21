@@ -25,7 +25,6 @@ features_in_assay <-
       stop("Only one assay/experiment name may be passed to `assay`.")
     }
     
-    if (.scuba_use_julia(object)) return(.jl_features_in_assay(object, assay))
     UseMethod("features_in_assay")
   }
 
