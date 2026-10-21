@@ -332,6 +332,19 @@ end
   !all(is_meta | is_red)
 }
 
+# Legacy fetch_feature resolves a *bare* name that is both a metadata column and a feature of the
+# default assay through fetch_data, i.e. metadata first (unless the assay is BPCells-backed). The
+# Julia engine never searches metadata in fetch_feature, so such requests stay on the R method.
+.scuba_feature_collides <- function(object, features) {
+  features <- as.character(features)
+  meta <- .r_meta_names(object)
+  if (!length(meta)) return(FALSE)
+  keys <- tryCatch(as.character(all_keys(object)), error = function(e) character())
+  keys <- keys[nzchar(keys)]
+  keyed <- if (length(keys)) Reduce(`|`, lapply(keys, function(k) startsWith(features, k))) else rep(FALSE, length(features))
+  any(!keyed & features %in% meta)
+}
+
 .jl_call <- function(fn, ...) {
   res <- tryCatch(
     JuliaCall::julia_call(paste0("ScubaR.", fn), ...),

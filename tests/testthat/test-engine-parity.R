@@ -30,6 +30,17 @@ test_that("routing: objects without reductions and non-character vars", {
   expect_false(with_engine("julia", SCUBA:::.scuba_route_fetch_data(bare, "nCount_RNA")))
 })
 
+test_that("fetch_feature: keyed names from other assays and metadata collisions match legacy", {
+  obj <- AML_Seurat
+  expect_same(with_engine("julia", fetch_feature(obj, c("ab_CD117-AB", "GAPDH"))), with_engine("r", fetch_feature(obj, c("ab_CD117-AB", "GAPDH"))))
+  expect_same(with_engine("julia", fetch_feature(obj, "ab_CD117-AB", assay = "AB")), with_engine("r", fetch_feature(obj, "ab_CD117-AB", assay = "AB")))
+  obj@meta.data[["GAPDH"]] <- seq_len(ncol(obj))   # bare name colliding with a metadata column
+  expect_true(SCUBA:::.scuba_feature_collides(obj, "GAPDH"))
+  expect_false(SCUBA:::.scuba_feature_collides(obj, "rna_GAPDH"))
+  expect_same(suppressWarnings(with_engine("julia", fetch_feature(obj, "GAPDH"))), suppressWarnings(with_engine("r", fetch_feature(obj, "GAPDH"))))
+  expect_same(with_engine("julia", fetch_feature(obj, "rna_GAPDH")), with_engine("r", fetch_feature(obj, "rna_GAPDH")))
+})
+
 for (form in names(objects)) {
   obj <- objects[[form]]
   v <- vars[[form]]
