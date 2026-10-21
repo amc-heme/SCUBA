@@ -103,8 +103,8 @@ with_engine <- function(engine, expr) {
     issue <- .scuba_ld_library_path_issue()
     if (!is.null(issue)) stop(issue, call. = FALSE)
   }
-  if (!quiet) message("SCUBA: starting the Julia engine ...")
   img <- .scuba_sysimage()
+  if (!quiet) message("SCUBA: starting the Julia engine", if (is.null(img)) "" else paste0(" (sysimage ", img, ")"), " ...")
   dev_path <- getOption("SCUBA.jl_path", Sys.getenv("SCUBA_JL_PATH", unset = ""))
   project <- getOption("SCUBA.jl_project",
                        Sys.getenv("SCUBA_JL_PROJECT", unset = "scuba-r"))
@@ -513,5 +513,11 @@ scuba_build_sysimage <- function(path = NULL, julia_path = NULL) {
 
 .scuba_sysimage <- function() {
   p <- getOption("SCUBA.sysimage", Sys.getenv("SCUBA_SYSIMAGE", unset = ""))
-  if (nzchar(p) && file.exists(path.expand(p))) normalizePath(path.expand(p)) else NULL
+  if (!nzchar(p)) return(NULL)
+  if (!file.exists(path.expand(p))) {
+    warning("SCUBA.sysimage / SCUBA_SYSIMAGE points to a file that does not exist (", p,
+            "); starting Julia without a system image", call. = FALSE)
+    return(NULL)
+  }
+  normalizePath(path.expand(p))
 }
