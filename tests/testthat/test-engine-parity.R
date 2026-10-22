@@ -46,6 +46,31 @@ test_that("scuba_julia_warmup(objects) wraps the given objects and leaves result
   expect_same(with_engine("julia", fetch_data(AML_Seurat, "rna_GAPDH")), with_engine("r", fetch_data(AML_Seurat, "rna_GAPDH")))
 })
 
+test_that("BPCells layers stored transposed on disk (t(write_matrix_dir(t(m)))) match legacy", {
+  skip_if_not_installed("BPCells")
+  counts <- SeuratObject::LayerData(AML_Seurat[["RNA"]], layer = "counts")
+  d <- tempfile("cxg")
+  # a cells x genes matrix written as such (col storage = gene-major), then t() for the Seurat layer:
+  # BPCells keeps the files and flips a `transpose` flag, so the on-disk shape is swapped
+  cxg <- BPCells::write_matrix_dir(methods::as(Matrix::t(counts), "IterableMatrix"), d)
+  expect_identical(readBin(file.path(d, "shape"), "integer", n = 4, size = 4)[-(1:2)], c(ncol(counts), nrow(counts)))
+  obj <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = BPCells::t(cxg)))
+  obj[["RNA"]]$data <- BPCells::t(cxg)
+  expect_true(obj[["RNA"]]$data@transpose)   # BPCells sets the flag on the outer wrapper too
+  expect_silent(with_engine("julia", fetch_data(obj, "GAPDH")))   # native path, no shape-mismatch warning
+  # transpose_storage_order() output (row-major, transpose flag TRUE, logical shape on disk) is native too
+  rowdir <- BPCells::transpose_storage_order(BPCells::write_matrix_dir(methods::as(counts, "IterableMatrix"), tempfile("gxc")), outdir = tempfile("row"), tmpdir = tempdir())
+  obj2 <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = rowdir)); obj2[["RNA"]]$data <- rowdir
+  expect_silent(with_engine("julia", fetch_data(obj2, "GAPDH")))
+  expect_same(with_engine("julia", fetch_data(obj2, c("GAPDH", "FLT3"))), with_engine("r", fetch_data(obj2, c("GAPDH", "FLT3"))))
+  for (g in c(rownames(obj)[1], "GAPDH", rownames(obj)[nrow(obj)])) {
+    expect_same(with_engine("julia", fetch_data(obj, g)), with_engine("r", fetch_data(obj, g)))
+  }
+  expect_same(with_engine("julia", fetch_data(obj, c("GAPDH", "FLT3"), cells = colnames(obj)[c(5, 1, 3)])),
+              with_engine("r", fetch_data(obj, c("GAPDH", "FLT3"), cells = colnames(obj)[c(5, 1, 3)])))
+  unlink(d, recursive = TRUE)
+})
+
 test_that("fetch_feature: keyed names from other assays and metadata collisions match legacy", {
   obj <- AML_Seurat
   expect_same(with_engine("julia", fetch_feature(obj, c("ab_CD117-AB", "GAPDH"))), with_engine("r", fetch_feature(obj, c("ab_CD117-AB", "GAPDH"))))
