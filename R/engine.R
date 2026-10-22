@@ -502,6 +502,21 @@ end
   }
   df
 }
+.jl_fetch_matrix <- function(object, features = NULL, assay = NULL, layer = NULL, cells = NULL, sparse = TRUE) {
+  res <- .jl_call("fetch_matrix", object, if (is.null(features)) NULL else as.character(features), assay, layer, cells,
+                  isTRUE(sparse), .scuba_julia_eltype())
+  .jl_emit_warnings(res$warnings)
+  dn <- list(as.character(res$features), as.character(res$cells))
+  if (isTRUE(res$sparse)) {
+    Matrix::sparseMatrix(i = as.integer(res$i), p = as.integer(res$p), x = as.numeric(res$x), dims = as.integer(res$dim),
+                         index1 = FALSE, dimnames = dn)
+  } else {
+    x <- res$x
+    if (!is.matrix(x)) x <- matrix(as.numeric(x), nrow = length(dn[[1]]), ncol = length(dn[[2]]))
+    dimnames(x) <- dn
+    x
+  }
+}
 .jl_fetch_reduction <- function(object, reduction, cells = NULL, dims = c(1, 2)) {
   .jl_table(.jl_call("fetch_reduction", object, reduction, cells, as.integer(dims)))
 }
