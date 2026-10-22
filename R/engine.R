@@ -177,7 +177,7 @@ with_engine <- function(engine, expr) {
 #' and compiling for its exact layout (about 0.1-1 s per object depending on size). A Shiny app
 #' should call this once, after loading its objects and before serving sessions.
 #'
-#' @param objects Optional list of Seurat or SingleCellExperiment objects to warm.
+#' @param objects Optional list of Seurat, SingleCellExperiment or `scuba_source` objects to warm.
 #' @returns With `objects`, a named logical vector (one entry per object: `TRUE` warmed, `FALSE`
 #'   failed with a warning naming the object, `NA` not a Seurat/SingleCellExperiment object),
 #'   invisibly; otherwise `TRUE` invisibly (`FALSE` if the engine is not available).
@@ -185,19 +185,20 @@ with_engine <- function(engine, expr) {
 scuba_julia_warmup <- function(objects = list()) {
   if (length(objects)) {
     if (!isTRUE(scuba_julia_available())) return(invisible(FALSE))
-    if (!is.list(objects) || inherits(objects, c("Seurat", "SingleCellExperiment"))) objects <- list(objects)
+    if (!is.list(objects) || inherits(objects, c("Seurat", "SingleCellExperiment", "scuba_source"))) objects <- list(objects)
     labels <- names(objects)
     if (is.null(labels)) labels <- rep("", length(objects))
     labels <- ifelse(nzchar(labels), labels, paste0("object ", seq_along(objects)))
     ok <- logical(length(objects)); names(ok) <- labels
     for (i in seq_along(objects)) {
       object <- objects[[i]]
-      if (!.scuba_julia_object(object)) { ok[i] <- NA; next }
+      file_backed <- inherits(object, "scuba_source")
+      if (!file_backed && !.scuba_julia_object(object)) { ok[i] <- NA; next }
       feats <- rownames(object)                            # default assay / main experiment
       if (!length(feats)) { ok[i] <- NA; next }
       cells <- head(get_all_cells(object), 2)
       res <- tryCatch(with_engine("julia", {
-        .jl_call("get_all_cells", object)                 # wraps the object (cached by address)
+        if (!file_backed) .jl_call("get_all_cells", object)   # wraps the object (cached by address)
         fetch_data(object, feats[1])
         fetch_feature(object, feats[1], cells = cells)
         TRUE
@@ -236,6 +237,7 @@ scuba_julia_warmup <- function(objects = list()) {
   for (obj in objs) suppressWarnings(with_engine("julia", {
     .jl_call("get_all_cells", obj)
     .jl_call("fetch_data", obj, "rna_g1", NULL, NULL)
+    .jl_call("fetch_data", obj, "rna_g1", NULL, NULL, "Float32", FALSE)
     .jl_call("fetch_data", obj, c("rna_g1", "group", "UMAP_1"), NULL, c("c2", "c1"))
     .jl_call("fetch_feature", obj, c("g1", "g2"), NULL, NULL)
     .jl_call("fetch_metadata", obj, NULL, NULL, TRUE)
@@ -307,12 +309,13 @@ function totable(df::DataFrame)
      cat_ordered = cat_ordered, cells = String.(S.cells(df)))
 end
 
-function fetch_data(obj, vars, layer, cells)
-    df, w = run(S.fetch_data, obj, asvec(vars); layer = layer, cells = cells)
+_eltype(s) = s == "Float32" ? Float32 : Float64
+function fetch_data(obj, vars, layer, cells, eltype = "Float64", allow_empty = false)
+    df, w = run(S.fetch_data, obj, asvec(vars); layer = layer, cells = cells, eltype = _eltype(eltype))
     (totable(df)..., warnings = w)
 end
-function fetch_feature(obj, features, layer, cells)
-    df, w = run(S.fetch_feature, obj, asvec(features); layer = layer, cells = cells)
+function fetch_feature(obj, features, layer, cells, modality = nothing, eltype = "Float64")
+    df, w = run(S.fetch_feature, obj, asvec(features); modality = modality, layer = layer, cells = cells, eltype = _eltype(eltype))
     (totable(df)..., warnings = w)
 end
 function fetch_metadata(obj, vars, cells, full_table)
@@ -465,12 +468,20 @@ end
   res[[1]]
 }
 
-.jl_fetch_data <- function(object, vars, layer = NULL, cells = NULL, slot = NULL) {
-  layer <- slot %||% layer
-  .jl_table(.jl_call("fetch_data", object, as.character(vars), layer, cells))
+# Element type Julia uses while gathering expression values. The R result is always double (RCall
+# converts any float array to an R numeric vector), so this only bounds the Julia-side transient:
+# "single" halves it for wide requests.
+.scuba_julia_eltype <- function() {
+  v <- match.arg(getOption("SCUBA.julia_eltype", "double"), c("double", "single"))
+  if (v == "single") "Float32" else "Float64"
 }
-.jl_fetch_feature <- function(object, features, layer = NULL, cells = NULL) {
-  .jl_table(.jl_call("fetch_feature", object, as.character(features), layer, cells))
+.jl_fetch_data <- function(object, vars, layer = NULL, cells = NULL, slot = NULL, eltype = .scuba_julia_eltype(),
+                           allow_empty = FALSE) {
+  layer <- slot %||% layer
+  .jl_table(.jl_call("fetch_data", object, as.character(vars), layer, cells, eltype, allow_empty))
+}
+.jl_fetch_feature <- function(object, features, layer = NULL, cells = NULL, modality = NULL, eltype = .scuba_julia_eltype()) {
+  .jl_table(.jl_call("fetch_feature", object, as.character(features), layer, cells, modality, eltype))
 }
 .jl_fetch_metadata <- function(object, vars = NULL, cells = NULL, full_table = FALSE,
                                return_class = "dataframe") {
