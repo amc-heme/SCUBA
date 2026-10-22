@@ -30,6 +30,13 @@ test_that("routing: objects without reductions and non-character vars", {
   expect_false(with_engine("julia", SCUBA:::.scuba_route_fetch_data(bare, "nCount_RNA")))
 })
 
+test_that("scuba_julia_warmup(objects) wraps the given objects and leaves results unchanged", {
+  expect_true(scuba_julia_warmup(objects = list(AML_Seurat, AML_SCE())))
+  expect_true(scuba_julia_warmup(objects = AML_Seurat))
+  expect_gte(JuliaCall::julia_eval("ScubaR.cache_size()"), 1)
+  expect_same(with_engine("julia", fetch_data(AML_Seurat, "rna_GAPDH")), with_engine("r", fetch_data(AML_Seurat, "rna_GAPDH")))
+})
+
 test_that("fetch_feature: keyed names from other assays and metadata collisions match legacy", {
   obj <- AML_Seurat
   expect_same(with_engine("julia", fetch_feature(obj, c("ab_CD117-AB", "GAPDH"))), with_engine("r", fetch_feature(obj, c("ab_CD117-AB", "GAPDH"))))

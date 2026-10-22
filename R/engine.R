@@ -159,20 +159,44 @@ with_engine <- function(engine, expr) {
   } else {
     JuliaCall::julia_command(.scuba_julia_glue)
   }
+  cache_max <- getOption("SCUBA.julia_cache_max", 16L)
+  JuliaCall::julia_command(sprintf("isdefined(ScubaR, :set_cache_max!) && ScubaR.set_cache_max!(%d)", as.integer(cache_max)))
   if (isTRUE(getOption("SCUBA.julia_warmup", TRUE))) scuba_julia_warmup()
   invisible(TRUE)
 }
 
 #' Warm up the Julia engine
 #'
-#' Runs each accessor once on a tiny in-memory Seurat object so the first call on a real object
-#' does not pay for compilation (about 0.6 s with JuliaCall, even with precompiled code). Called
-#' automatically at engine start-up unless `options(SCUBA.julia_warmup = FALSE)`; a Shiny app can
-#' call it from `global.R` so sessions start warm.
+#' Runs each accessor once on tiny in-memory and BPCells-backed Seurat objects so the first call
+#' on a real object does not pay for compilation (about 0.6 s with JuliaCall, even with
+#' precompiled code). Called automatically at engine start-up unless
+#' `options(SCUBA.julia_warmup = FALSE)`.
 #'
-#' @returns `TRUE` invisibly.
+#' Pass the objects an application will serve as `objects` to also wrap each of them and run one
+#' expression fetch, so the first user request does not pay for reading the object's cell names
+#' and compiling for its exact layout (about 0.1-1 s per object depending on size). A Shiny app
+#' should call this once, after loading its objects and before serving sessions.
+#'
+#' @param objects Optional list of Seurat or SingleCellExperiment objects to warm.
+#' @returns `TRUE` invisibly (`FALSE` if the engine is not available).
 #' @export
-scuba_julia_warmup <- function() {
+scuba_julia_warmup <- function(objects = list()) {
+  if (length(objects)) {
+    if (!isTRUE(scuba_julia_available())) return(invisible(FALSE))
+    if (!is.list(objects) || inherits(objects, c("Seurat", "SingleCellExperiment"))) objects <- list(objects)
+    for (object in objects) {
+      if (!.scuba_julia_object(object)) next
+      feats <- rownames(object)                            # default assay / main experiment
+      if (!length(feats)) next
+      cells <- head(get_all_cells(object), 2)
+      with_engine("julia", {
+        .jl_call("get_all_cells", object)                 # wraps the object (cached by address)
+        fetch_data(object, feats[1])
+        fetch_feature(object, feats[1], cells = cells)
+      })
+    }
+    return(invisible(TRUE))
+  }
   if (!requireNamespace("SeuratObject", quietly = TRUE)) return(invisible(FALSE))
   m <- Matrix::sparseMatrix(i = c(1, 2, 3, 1, 4, 2, 5), j = c(1, 1, 2, 3, 3, 4, 4), x = c(3, 1, 2, 5, 1, 4, 2),
                             dims = c(5, 4), dimnames = list(paste0("g", 1:5), paste0("c", 1:4)))
