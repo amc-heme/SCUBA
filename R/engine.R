@@ -441,7 +441,10 @@ end
   invisible(NULL)
 }
 
-.jl_table <- function(res) {
+# `cells`: the row names R already holds (object column names, the caller's `cells`, or the
+# scuba_source metadata); when given, the glue is asked not to send its own copy back.
+.jl_table <- function(res, cells = NULL) {
+  rn <- cells %||% res$cells
   cols <- res$columns
   if (length(res$cat_idx) > 0) {
     for (k in seq_along(res$cat_idx)) {
@@ -452,12 +455,12 @@ end
     }
   }
   if (length(cols) == 0) {
-    df <- data.frame(row.names = res$cells)
+    df <- data.frame(row.names = rn)
   } else {
     names(cols) <- res$names
     df <- as.data.frame(cols, check.names = FALSE, stringsAsFactors = FALSE, optional = TRUE)
     names(df) <- res$names
-    rownames(df) <- res$cells
+    rownames(df) <- rn
   }
   .jl_emit_warnings(res$warnings)
   df
@@ -475,13 +478,17 @@ end
   v <- match.arg(getOption("SCUBA.julia_eltype", "double"), c("double", "single"))
   if (v == "single") "Float32" else "Float64"
 }
+# Cell names R already holds for a live object: the caller's `cells` (Julia returns rows in that
+# order) or the object's column names (file/object order).
+.r_cell_names <- function(object, cells = NULL) if (is.null(cells)) colnames(object) else as.character(cells)
 .jl_fetch_data <- function(object, vars, layer = NULL, cells = NULL, slot = NULL, eltype = .scuba_julia_eltype(),
-                           allow_empty = FALSE) {
+                           allow_empty = FALSE, rownames = .r_cell_names(object, cells)) {
   layer <- slot %||% layer
-  .jl_table(.jl_call("fetch_data", object, as.character(vars), layer, cells, eltype, allow_empty))
+  .jl_table(.jl_call("fetch_data", object, as.character(vars), layer, cells, eltype, allow_empty, FALSE), rownames)
 }
-.jl_fetch_feature <- function(object, features, layer = NULL, cells = NULL, modality = NULL, eltype = .scuba_julia_eltype()) {
-  .jl_table(.jl_call("fetch_feature", object, as.character(features), layer, cells, modality, eltype))
+.jl_fetch_feature <- function(object, features, layer = NULL, cells = NULL, modality = NULL, eltype = .scuba_julia_eltype(),
+                              rownames = .r_cell_names(object, cells)) {
+  .jl_table(.jl_call("fetch_feature", object, as.character(features), layer, cells, modality, eltype, FALSE), rownames)
 }
 .jl_fetch_metadata <- function(object, vars = NULL, cells = NULL, full_table = FALSE,
                                return_class = "dataframe") {
@@ -517,8 +524,8 @@ end
     x
   }
 }
-.jl_fetch_reduction <- function(object, reduction, cells = NULL, dims = c(1, 2)) {
-  .jl_table(.jl_call("fetch_reduction", object, reduction, cells, as.integer(dims)))
+.jl_fetch_reduction <- function(object, reduction, cells = NULL, dims = c(1, 2), rownames = NULL) {
+  .jl_table(.jl_call("fetch_reduction", object, reduction, cells, as.integer(dims), is.null(rownames)), rownames)
 }
 .jl_fetch_cells <- function(object, meta_var, meta_levels) {
   if (is.null(meta_levels)) stop("`meta_levels` must be provided", call. = FALSE)

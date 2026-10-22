@@ -89,6 +89,11 @@ open_h5mu <- function(path) .open_scuba_source(path, "h5mu", "open_h5mu()")
 }
 
 # Cells of the object (all, or the subset recorded by `[`), optionally validated against a request.
+# The cells Julia must subset by: NULL for a whole object (file order == metadata order), the
+# subset's cells for a subset object, or the caller's request. Never the full list of a whole
+# object, which would cost two 1M-string transfers per call.
+.src_cells_for_julia <- function(object, cells = NULL) if (is.null(cells)) object$cells else as.character(cells)
+
 .src_cells <- function(object, cells = NULL) {
   all <- object$cells %||% rownames(object$meta)
   if (is.null(cells)) return(all)
@@ -153,6 +158,7 @@ fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, sl
     warning("Duplicate entries in `vars` were dropped: ", paste(unique(vars[duplicated(vars)]), collapse = ", "), call. = FALSE)
     vars <- unique(vars)
   }
+  jl_cells <- .src_cells_for_julia(object, cells)
   cells <- .src_cells(object, cells)
   meta_names <- names(object$meta)
   bare <- sub("^obs_", "", vars)
@@ -170,8 +176,8 @@ fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, sl
   }
   out_expr <- NULL; inputs <- character()
   if (any(!is_meta)) {
-    res <- .jl_call("fetch_data", object$path, vars[!is_meta], slot %||% layer, cells, .scuba_julia_eltype(), any(is_meta))
-    out_expr <- .jl_table(res)
+    res <- .jl_call("fetch_data", object$path, vars[!is_meta], slot %||% layer, jl_cells, .scuba_julia_eltype(), any(is_meta), FALSE)
+    out_expr <- .jl_table(res, cells)
     inputs <- as.character(res$inputs)
   }
   out <- if (is.null(out_expr)) out_meta else if (is.null(out_meta)) out_expr else cbind(out_expr, out_meta)
@@ -184,9 +190,10 @@ fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, sl
 #' @export
 fetch_feature.scuba_source <- function(object, features, assay = NULL, layer = NULL, cells = NULL) {
   .scuba_source_engine()
+  jl_cells <- .src_cells_for_julia(object, cells)
   cells <- .src_cells(object, cells)
-  res <- .jl_call("fetch_feature", object$path, as.character(features), layer, cells, assay, .scuba_julia_eltype())
-  out <- .jl_table(res)
+  res <- .jl_call("fetch_feature", object$path, as.character(features), layer, jl_cells, assay, .scuba_julia_eltype(), FALSE)
+  out <- .jl_table(res, cells)
   rownames(out) <- cells
   out
 }
@@ -238,8 +245,9 @@ fetch_reduction.scuba_source <- function(object, reduction, cells = NULL, dims =
     stop(paste0('\nThe reduction "', reduction, '" was not found in the object passsed. \nReductions present in object: ',
                 paste(reds, collapse = ", "), "."))
   }
+  jl_cells <- .src_cells_for_julia(object, cells)
   cells <- .src_cells(object, cells)
-  out <- .jl_fetch_reduction(object$path, reduction, cells, dims)
+  out <- .jl_fetch_reduction(object$path, reduction, jl_cells, dims, rownames = cells)
   rownames(out) <- cells
   out
 }
