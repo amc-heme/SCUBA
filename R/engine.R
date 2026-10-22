@@ -471,9 +471,9 @@ end
   res[[1]]
 }
 
-# Element type Julia uses while gathering expression values. The R result is always double (RCall
-# converts any float array to an R numeric vector), so this only bounds the Julia-side transient:
-# "single" halves it for wide requests.
+# Element type requested from Julia. Since expression columns are written straight into R double
+# vectors (no Julia-side transient), options(SCUBA.julia_eltype) no longer changes memory or
+# results; it is still accepted so existing configurations keep working.
 .scuba_julia_eltype <- function() {
   v <- match.arg(getOption("SCUBA.julia_eltype", "double"), c("double", "single"))
   if (v == "single") "Float32" else "Float64"
@@ -509,11 +509,12 @@ end
   }
   df
 }
-.jl_fetch_matrix <- function(object, features = NULL, assay = NULL, layer = NULL, cells = NULL, sparse = TRUE) {
+.jl_fetch_matrix <- function(object, features = NULL, assay = NULL, layer = NULL, cells = NULL, sparse = TRUE,
+                             cellnames = NULL) {
   res <- .jl_call("fetch_matrix", object, if (is.null(features)) NULL else as.character(features), assay, layer, cells,
-                  isTRUE(sparse), .scuba_julia_eltype())
+                  isTRUE(sparse), .scuba_julia_eltype(), is.null(cellnames))
   .jl_emit_warnings(res$warnings)
-  dn <- list(as.character(res$features), as.character(res$cells))
+  dn <- list(as.character(res$features), as.character(cellnames %||% res$cells))
   if (isTRUE(res$sparse)) {
     Matrix::sparseMatrix(i = as.integer(res$i), p = as.integer(res$p), x = as.numeric(res$x), dims = as.integer(res$dim),
                          index1 = FALSE, dimnames = dn)

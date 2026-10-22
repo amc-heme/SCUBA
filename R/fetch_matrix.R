@@ -150,7 +150,8 @@ fetch_matrix.scuba_source <-
     sparse = TRUE
   ){
     .scuba_source_engine()
-    .jl_fetch_matrix(object$path, features, assay = assay, layer = layer, cells = .src_cells(object, cells), sparse = sparse)
+    .jl_fetch_matrix(object$path, features, assay = assay, layer = layer, cells = .src_cells_for_julia(object, cells),
+                     sparse = sparse, cellnames = .src_cells(object, cells))
   }
 
 # Slice a features x cells layer in R (any matrix class that supports `[`), as dgCMatrix or dense.
