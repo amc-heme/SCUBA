@@ -409,8 +409,11 @@ end
     error = function(e) {
       msg <- conditionMessage(e)
       msg <- sub("^Error happens in Julia.\\s*", "", msg)
-      msg <- sub("(?s)\\s*Stacktrace:.*$", "", msg, perl = TRUE)
-      msg <- sub("^[A-Za-z]+Error: ", "", msg)
+      # options(SCUBA.julia_traceback = TRUE) keeps Julia's stack trace for debugging
+      if (!isTRUE(getOption("SCUBA.julia_traceback", FALSE))) {
+        msg <- sub("(?s)\\s*Stacktrace:.*$", "", msg, perl = TRUE)
+        msg <- sub("^[A-Za-z]+Error: ", "", msg)
+      }
       stop(msg, call. = FALSE)
     }
   )
