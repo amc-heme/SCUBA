@@ -9,35 +9,45 @@
 # make metadata updates and subsets per-object, unlike reticulate AnnData objects, which are
 # mutated in place.
 
-#' Open an .h5ad file as a SCUBA object (Julia engine)
+#' Open an .h5ad or .h5mu file as a SCUBA object (Julia engine)
 #'
-#' Reads the schema and the cell metadata of an AnnData `.h5ad` file and returns a
-#' `scuba_source` object that every SCUBA accessor accepts. Expression values and reductions
-#' are read from the file on demand by the Julia engine (SCUBA.jl), so no Python environment is
-#' needed. Requires `scuba_engine()` to be `"julia"`.
+#' Reads the schema and the cell metadata of an AnnData `.h5ad` file (or a MuData `.h5mu` file
+#' with `open_h5mu()`) and returns a `scuba_source` object that every SCUBA accessor accepts.
+#' Expression values and reductions are read from the file on demand by the Julia engine
+#' (SCUBA.jl), so no Python environment is needed. Requires `scuba_engine()` to be `"julia"`.
 #'
-#' Keys follow SCUBA.jl's rules: the main matrix is modality `"X"` (features addressed bare or as
-#' `X_<gene>`, layers `"X"` and `layers/*`), each `obsm` data frame is a modality named after it
-#' (e.g. `protein_CD117-AB`), each numeric `obsm` array is a reduction (`X_umap_1`), and
-#' metadata columns may be given bare or as `obs_<column>`.
+#' Keys follow SCUBA.jl's rules. For `.h5ad`: the main matrix is modality `"X"` (features
+#' addressed bare or as `X_<gene>`, layers `"X"` and `layers/*`), each `obsm` data frame is a
+#' modality named after it (e.g. `protein_CD117-AB`), each numeric `obsm` array is a reduction
+#' (`X_umap_1`), and metadata columns may be given bare or as `obs_<column>`. For `.h5mu`:
+#' modalities are named after the MuData modalities (`rna_GAPDH`), reductions as
+#' `<modality>_<key>` (`rna_X_umap_1`, bare `X_umap_1` when unique), metadata is the global
+#' `obs` plus each modality's `obs` as `<modality>_<column>`; cells absent from a modality are
+#' `NaN` / `NA`.
 #'
-#' @param path Path to an `.h5ad` file.
+#' @param path Path to an `.h5ad` (`open_h5ad()`) or `.h5mu` (`open_h5mu()`) file.
 #' @returns An object of class `scuba_source`.
 #' @seealso [update_object_metadata()], [scuba_source_modalities()]
 #' @export
-open_h5ad <- function(path) {
+open_h5ad <- function(path) .open_scuba_source(path, "h5ad", "open_h5ad()")
+
+#' @rdname open_h5ad
+#' @export
+open_h5mu <- function(path) .open_scuba_source(path, "h5mu", "open_h5mu()")
+
+.open_scuba_source <- function(path, format, what) {
   path <- path.expand(path)
-  if (!file.exists(path)) stop("open_h5ad(): file not found: ", path, call. = FALSE)
+  if (!file.exists(path)) stop(what, ": file not found: ", path, call. = FALSE)
   path <- normalizePath(path)
-  .scuba_source_engine("open_h5ad()")
+  .scuba_source_engine(what)
   if (!isTRUE(JuliaCall::julia_eval("isdefined(ScubaR, :source_open)"))) {
-    stop("open_h5ad() needs a SCUBA.jl with file-backed glue (ScubaR.source_open); update the SCUBA.jl checkout",
+    stop(what, " needs a SCUBA.jl with file-backed glue (ScubaR.source_open); update the SCUBA.jl checkout",
          call. = FALSE)
   }
   info <- .jl_call("source_open", path)
   cells <- as.character(info$cells)
   if (anyDuplicated(cells)) {
-    stop("open_h5ad(): duplicated cell names (obs_names) in ", path, "; SCUBA objects need unique cell names",
+    stop(what, ": duplicated cell names (obs_names) in ", path, "; SCUBA objects need unique cell names",
          call. = FALSE)
   }
   meta <- .jl_table(info$obs)
@@ -52,7 +62,7 @@ open_h5ad <- function(path) {
   reds <- as.character(info$reductions)
   structure(list(
     path = path,
-    format = "h5ad",
+    format = format,
     cells = NULL,                                   # NULL = every cell; a character vector after `[`
     meta = meta,
     info = list(
