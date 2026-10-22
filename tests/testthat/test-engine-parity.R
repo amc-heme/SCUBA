@@ -31,8 +31,17 @@ test_that("routing: objects without reductions and non-character vars", {
 })
 
 test_that("scuba_julia_warmup(objects) wraps the given objects and leaves results unchanged", {
-  expect_true(scuba_julia_warmup(objects = list(AML_Seurat, AML_SCE())))
-  expect_true(scuba_julia_warmup(objects = AML_Seurat))
+  r <- scuba_julia_warmup(objects = list(a = AML_Seurat, b = AML_SCE()))
+  expect_identical(r, c(a = TRUE, b = TRUE))
+  expect_identical(unname(scuba_julia_warmup(objects = AML_Seurat)), TRUE)
+  skip_if_not_installed("BPCells")
+  # an object whose BPCells directory has vanished: the engine cannot read it
+  m <- Matrix::rsparsematrix(6, 5, 0.5, rand.x = function(n) rpois(n, 2) + 1, dimnames = list(paste0("g", 1:6), paste0("c", 1:5)))
+  d <- tempfile("gone"); bp <- BPCells::write_matrix_dir(methods::as(m, "IterableMatrix"), d)
+  bad <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = bp)); bad[["RNA"]]$data <- bp
+  unlink(d, recursive = TRUE)
+  expect_warning(r2 <- scuba_julia_warmup(objects = list(bad = bad, good = AML_Seurat)), "warm-up failed for bad")
+  expect_identical(r2, c(bad = FALSE, good = TRUE))
   expect_gte(JuliaCall::julia_eval("ScubaR.cache_size()"), 1)
   expect_same(with_engine("julia", fetch_data(AML_Seurat, "rna_GAPDH")), with_engine("r", fetch_data(AML_Seurat, "rna_GAPDH")))
 })

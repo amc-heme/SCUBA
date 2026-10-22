@@ -178,24 +178,37 @@ with_engine <- function(engine, expr) {
 #' should call this once, after loading its objects and before serving sessions.
 #'
 #' @param objects Optional list of Seurat or SingleCellExperiment objects to warm.
-#' @returns `TRUE` invisibly (`FALSE` if the engine is not available).
+#' @returns With `objects`, a named logical vector (one entry per object: `TRUE` warmed, `FALSE`
+#'   failed with a warning naming the object, `NA` not a Seurat/SingleCellExperiment object),
+#'   invisibly; otherwise `TRUE` invisibly (`FALSE` if the engine is not available).
 #' @export
 scuba_julia_warmup <- function(objects = list()) {
   if (length(objects)) {
     if (!isTRUE(scuba_julia_available())) return(invisible(FALSE))
     if (!is.list(objects) || inherits(objects, c("Seurat", "SingleCellExperiment"))) objects <- list(objects)
-    for (object in objects) {
-      if (!.scuba_julia_object(object)) next
+    labels <- names(objects)
+    if (is.null(labels)) labels <- rep("", length(objects))
+    labels <- ifelse(nzchar(labels), labels, paste0("object ", seq_along(objects)))
+    ok <- logical(length(objects)); names(ok) <- labels
+    for (i in seq_along(objects)) {
+      object <- objects[[i]]
+      if (!.scuba_julia_object(object)) { ok[i] <- NA; next }
       feats <- rownames(object)                            # default assay / main experiment
-      if (!length(feats)) next
+      if (!length(feats)) { ok[i] <- NA; next }
       cells <- head(get_all_cells(object), 2)
-      with_engine("julia", {
+      res <- tryCatch(with_engine("julia", {
         .jl_call("get_all_cells", object)                 # wraps the object (cached by address)
         fetch_data(object, feats[1])
         fetch_feature(object, feats[1], cells = cells)
-      })
+        TRUE
+      }), error = function(e) e)
+      if (inherits(res, "error")) {
+        warning("SCUBA: Julia engine warm-up failed for ", labels[i], " (", paste(class(object)[1]),
+                ", ", ncol(object), " cells, feature '", feats[1], "'): ", conditionMessage(res),
+                call. = FALSE, immediate. = TRUE)
+      } else ok[i] <- TRUE
     }
-    return(invisible(TRUE))
+    return(invisible(ok))
   }
   if (!requireNamespace("SeuratObject", quietly = TRUE)) return(invisible(FALSE))
   m <- Matrix::sparseMatrix(i = c(1, 2, 3, 1, 4, 2, 5), j = c(1, 1, 2, 3, 3, 4, 4), x = c(3, 1, 2, 5, 1, 4, 2),
