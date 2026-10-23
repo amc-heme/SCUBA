@@ -1,5 +1,20 @@
 # SCUBA 2.0.0 (development)
 
+## Pseudobulk aggregation
+
+* New `pseudobulk(object, sample_by, group_by)` sums (or averages) a counts layer over
+  sample x group profiles for Seurat (including BPCells layers and split v5 layers),
+  SingleCellExperiment (in memory or HDF5-backed), AnnData (in memory or backed, through
+  reticulate) and file-backed `.h5ad` / `.h5mu` objects (`open_h5ad()` / `open_h5mu()`),
+  returning the small features x profiles matrix and a table of the profiles. The full
+  features x cells matrix is never materialised: the Julia engine streams every backend into a
+  group accumulator, and the R engine uses the class's own block-wise primitive
+  (`BPCells::pseudobulk_matrix()`, `DelayedArray::colsum()`, a sparse indicator product).
+  `sample_by` / `group_by` may be metadata column names or cell-named label vectors.
+* New `pseudobulk_design()` previews the same profiles from metadata alone (cells per
+  sample x group, replicates per group, paired designs) without reading expression data.
+* New `layer_names()` lists the layers of an assay for every supported class.
+
 ## Julia engine
 
 * SCUBA's accessors (`fetch_data()`, `fetch_metadata()`, `fetch_reduction()`, `fetch_cells()`,

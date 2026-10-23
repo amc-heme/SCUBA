@@ -3,25 +3,82 @@
 \name{fetch_matrix}
 \alias{fetch_matrix}
 \alias{fetch_matrix.AnnDataR6}
-\title{Fetch matrix}
+\alias{fetch_matrix.Seurat}
+\alias{fetch_matrix.SingleCellExperiment}
+\alias{fetch_matrix.scuba_source}
+\title{Fetch an expression matrix}
 \usage{
-fetch_matrix(object, matrix_location, ...)
+fetch_matrix(
+  object,
+  features = NULL,
+  ...,
+  assay = NULL,
+  layer = NULL,
+  cells = NULL,
+  sparse = TRUE
+)
 
-\method{fetch_matrix}{AnnDataR6}(object, matrix_location, ...)
+\method{fetch_matrix}{AnnDataR6}(object, features = NULL, ..., matrix_location = features)
+
+\method{fetch_matrix}{Seurat}(
+  object,
+  features = NULL,
+  ...,
+  assay = NULL,
+  layer = NULL,
+  cells = NULL,
+  sparse = TRUE
+)
+
+\method{fetch_matrix}{SingleCellExperiment}(
+  object,
+  features = NULL,
+  ...,
+  assay = NULL,
+  layer = NULL,
+  cells = NULL,
+  sparse = TRUE
+)
+
+\method{fetch_matrix}{scuba_source}(
+  object,
+  features = NULL,
+  ...,
+  assay = NULL,
+  layer = NULL,
+  cells = NULL,
+  sparse = TRUE
+)
 }
 \arguments{
-\item{object}{a single-cell object (Seurat, SingleCellExperiment, Anndata).}
+\item{object}{a single-cell object (Seurat, SingleCellExperiment, \code{scuba_source}, AnnData).}
 
-\item{matrix_location}{the}
+\item{features}{feature names (bare, or keyed with the assay key); \code{NULL} for all features.}
 
-\item{...}{Currently unused.}
+\item{...}{Passed to methods (\code{matrix_location} for AnnData objects).}
+
+\item{assay}{assay / modality (default: the default assay).}
+
+\item{layer}{layer to read (default: \code{\link[=default_layer]{default_layer()}}).}
+
+\item{cells}{cells to include, in the returned order (default: all cells).}
+
+\item{sparse}{return a \code{dgCMatrix} (default) or a dense matrix.}
+}
+\value{
+A features x cells matrix with dimnames.
 }
 \description{
-Returns object metadata for a specified set of cells.
+Returns the expression values of a set of features (all features of the assay by default) for a
+set of cells as a features x cells matrix, sparse (\code{dgCMatrix}) by default. On the Julia engine
+the block is read natively (BPCells directories, h5ad files); otherwise the layer is sliced in R.
+}
+\details{
+For AnnData (reticulate) objects the legacy signature \code{fetch_matrix(object, matrix_location)}
+still returns the raw slot (\code{"X"}, \code{c("obsm", "X_umap")}, ...).
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{fetch_matrix(AnnDataR6)}: AnnDataR6 objects
 
 }}
-\keyword{internal}

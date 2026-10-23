@@ -55,6 +55,7 @@ Imports:
     Seurat,
     SingleCellExperiment,
     HDF5Array,
+    Matrix,
     patchwork,
     RColorBrewer,
     scales,
@@ -71,6 +72,7 @@ Suggests:
     anndata,
     knitr,
     BPCells,
+    DelayedArray,
     rmarkdown
 Additional_repositories: 
     https://bnprks.r-universe.dev

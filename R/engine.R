@@ -128,12 +128,18 @@ with_engine <- function(engine, expr) {
     }
   }
   have <- JuliaCall::julia_eval('Base.find_package("SCUBA") !== nothing')
-  if (!isTRUE(have)) {
-    if (nzchar(dev_path)) {
-      JuliaCall::julia_command(sprintf('Pkg.develop(path = "%s"; io = devnull)', normalizePath(dev_path)))
-    } else {
-      JuliaCall::julia_command('Pkg.add("SCUBA"; io = devnull)')
+  if (nzchar(dev_path)) {
+    # A development checkout must win over whatever the shared environment tracks (another
+    # checkout, or the registered package), otherwise SCUBA_JL_PATH silently has no effect.
+    want_path <- normalizePath(dev_path)
+    current <- tryCatch(JuliaCall::julia_eval(paste0(
+      'let deps = Pkg.dependencies(); k = findfirst(p -> p.name == "SCUBA" && p.is_tracking_path, deps); ',
+      'k === nothing ? "" : string(something(deps[k].source, "")) end')), error = function(e) "")
+    if (!isTRUE(have) || !identical(normalizePath(current, mustWork = FALSE), want_path)) {
+      JuliaCall::julia_command(sprintf('Pkg.develop(path = "%s"; io = devnull)', want_path))
     }
+  } else if (!isTRUE(have)) {
+    JuliaCall::julia_command('Pkg.add("SCUBA"; io = devnull)')
   }
   for (pkg in c("RCall", "DataFrames", "CategoricalArrays")) {
     if (!isTRUE(JuliaCall::julia_eval(sprintf('Base.find_package("%s") !== nothing', pkg)))) {
@@ -247,6 +253,10 @@ scuba_julia_warmup <- function(objects = list()) {
     .jl_call("unique_values", obj, "group")
     .jl_call("meta_varnames", obj); .jl_call("all_keys", obj); .jl_call("features_in_assay", obj, NULL)
     .jl_call("default_layer", obj); .jl_call("default_reduction_name", obj)
+    if (isTRUE(JuliaCall::julia_eval("isdefined(ScubaR, :pseudobulk)"))) {
+      .jl_call("pseudobulk", obj, c(1L, 2L, 1L, 2L), 2L, NULL, "counts", NULL, NULL, "sum")
+      .jl_call("pseudobulk", obj, c(1L, 1L), 1L, "RNA", "counts", c("c2", "c4"), c("g1", "g3"), "mean")
+    }
   }))
   JuliaCall::julia_command("ScubaR.clear_cache()")
   invisible(TRUE)
@@ -524,6 +534,28 @@ end
     dimnames(x) <- dn
     x
   }
+}
+# Pseudobulk through SCUBA.jl: `codes` (one per cell of `cells`, or per cell in object order when
+# `cells` is NULL; 0 = dropped) and `ngroups` are computed in R; Julia streams the layer into a
+# group accumulator and returns the features x groups sums as a plain dense matrix (no sparse
+# index vectors, so none of fetch_matrix's Int32 limits apply) plus the cells behind each group.
+# Not part of the embedded `.scuba_julia_glue` (which exists only for SCUBA.jl versions without
+# the in-extension ScubaR, and those lack `aggregate` as well): a too-old SCUBA.jl errors here.
+.jl_pseudobulk <- function(object_or_path, codes, ngroups, assay = NULL, layer = NULL, cells = NULL, features = NULL,
+                           fun = "sum") {
+  if (!isTRUE(JuliaCall::julia_eval("isdefined(ScubaR, :pseudobulk)"))) {
+    stop("pseudobulk() on the Julia engine needs a SCUBA.jl with ScubaR.pseudobulk (SCUBA.jl >= the ",
+         "feature/pseudobulk-scuba branch). Update the SCUBA.jl checkout (options(SCUBA.jl_path) / SCUBA_JL_PATH) ",
+         "or use options(SCUBA.engine = 'r').", call. = FALSE)
+  }
+  res <- .jl_call("pseudobulk", object_or_path, as.integer(codes), as.integer(ngroups), assay, layer,
+                  if (is.null(cells)) NULL else as.character(cells),
+                  if (is.null(features)) NULL else as.character(features), fun)
+  .jl_emit_warnings(res$warnings)
+  features_out <- as.character(res$features)
+  x <- res$values
+  if (!is.matrix(x)) x <- matrix(as.numeric(x), nrow = length(features_out), ncol = as.integer(ngroups))
+  list(sum = x, n = as.integer(res$n), features = features_out)
 }
 .jl_fetch_reduction <- function(object, reduction, cells = NULL, dims = c(1, 2), rownames = NULL) {
   .jl_table(.jl_call("fetch_reduction", object, reduction, cells, as.integer(dims), is.null(rownames)), rownames)

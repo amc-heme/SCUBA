@@ -12,6 +12,11 @@ reference:
     - fetch_data
     - fetch_metadata
     - fetch_reduction
+  - title: Aggregation
+    contents:
+    - pseudobulk
+    - pseudobulk_design
+    - layer_names
   - title: Utility functions
     contents:
     - reduction_dimnames
