@@ -51,10 +51,6 @@ jobs:
           pak::pkg_install("deps::.", dependencies = TRUE)
           # This line is required to install SCUBA
           pak::pkg_install("local::.", dependencies = TRUE)
-          # anndata 0.8 returns anndata.AnnData objects that SCUBA's AnnDataR6
-          # methods do not handle yet (amc-heme/SCUBA#172); the user guide's
-          # anndata chunks need the previous release until that is ported.
-          pak::pkg_install("url::https://cran.r-project.org/src/contrib/Archive/anndata/anndata_0.7.5.6.tar.gz")
 
       # Install all R dependencies
       # - uses: r-lib/actions/setup-r-dependencies@v2
@@ -86,10 +82,14 @@ jobs:
           path_to_venv <- virtualenv_create(
             envname = "r-reticulate",
             python = Sys.which("python"), # placed on PATH by the setup-python action
+            # Python anndata >= 0.11 exposes its class as `anndata.AnnData`,
+            # which the R anndata package no longer wraps as AnnDataR6, so
+            # SCUBA's AnnData methods are not dispatched and the user guide's
+            # anndata chunks fail (amc-heme/SCUBA#172). Pin until ported.
             packages = c(
-              "docutils", "pandas", "scipy", "matplotlib", "ipython",
+              "docutils", "pandas<3", "scipy", "matplotlib", "ipython",
               "tabulate", "plotly", "psutil", "kaleido", "wrapt",
-              "anndata"
+              "anndata<0.11"
             )
           )
 
