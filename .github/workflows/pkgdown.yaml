@@ -51,6 +51,10 @@ jobs:
           pak::pkg_install("deps::.", dependencies = TRUE)
           # This line is required to install SCUBA
           pak::pkg_install("local::.", dependencies = TRUE)
+          # anndata 0.8 returns anndata.AnnData objects that SCUBA's AnnDataR6
+          # methods do not handle yet (amc-heme/SCUBA#172); the user guide's
+          # anndata chunks need the previous release until that is ported.
+          pak::pkg_install("url::https://cran.r-project.org/src/contrib/Archive/anndata/anndata_0.7.5.6.tar.gz")
 
       # Install all R dependencies
       # - uses: r-lib/actions/setup-r-dependencies@v2
