@@ -283,17 +283,23 @@ pseudobulk.AnnDataR6 <-
     .pseudobulk_result(total, as.integer(res$n), design, features, assay %||% "X", layer, fun, sample_by, group_by, "python")
   }
 
-# anndata >= 0.8 (R package) returns plain reticulate objects of class "anndata.AnnData" instead
-# of the AnnDataR6 wrappers; the same implementation serves both.
+# Python AnnData objects that reticulate did not wrap as AnnDataR6 (created with
+# `convert = FALSE`, or any object under Python anndata >= 0.11, where the class is exposed as
+# `anndata.AnnData` rather than `anndata._core.anndata.AnnData`); the same implementation serves
+# every form.
 #' @rdname pseudobulk
-#' @export
+#' @exportS3Method pseudobulk anndata.AnnData
 pseudobulk.anndata.AnnData <- pseudobulk.AnnDataR6
+#' @rdname pseudobulk
+#' @exportS3Method pseudobulk anndata._core.anndata.AnnData
+pseudobulk.anndata._core.anndata.AnnData <- pseudobulk.AnnDataR6
 
-.is_anndata <- function(object) inherits(object, c("AnnDataR6", "anndata.AnnData"))
+.anndata_classes <- c("AnnDataR6", "anndata.AnnData", "anndata._core.anndata.AnnData")
+.is_anndata <- function(object) inherits(object, .anndata_classes)
 
-# Helpers that work on both anndata R classes: AnnDataR6 (anndata <= 0.7, R6 wrappers that hand
-# back R values) and anndata.AnnData (anndata >= 0.8, reticulate objects created without
-# conversion, so every attribute is a Python object until converted explicitly).
+# Helpers that work on every AnnData form: AnnDataR6 (R6 wrappers that hand back R values) and
+# the unwrapped reticulate objects (every attribute is a Python object until converted
+# explicitly).
 .py_chr <- function(x) {
   if (is.character(x)) return(x)
   as.character(unlist(reticulate::py_to_r(x)))

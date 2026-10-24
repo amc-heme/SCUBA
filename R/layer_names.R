@@ -77,8 +77,11 @@ layer_names.AnnDataR6 <- function(object, assay = NULL) {
 }
 
 #' @rdname layer_names
-#' @export
+#' @exportS3Method layer_names anndata.AnnData
 layer_names.anndata.AnnData <- layer_names.AnnDataR6
+#' @rdname layer_names
+#' @exportS3Method layer_names anndata._core.anndata.AnnData
+layer_names.anndata._core.anndata.AnnData <- layer_names.AnnDataR6
 
 #' @rdname layer_names
 #' @export

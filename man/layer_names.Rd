@@ -6,6 +6,7 @@
 \alias{layer_names.SingleCellExperiment}
 \alias{layer_names.AnnDataR6}
 \alias{layer_names.anndata.AnnData}
+\alias{layer_names.anndata._core.anndata.AnnData}
 \alias{layer_names.scuba_source}
 \title{Layers of an assay}
 \usage{
@@ -18,6 +19,8 @@ layer_names(object, assay = NULL)
 \method{layer_names}{AnnDataR6}(object, assay = NULL)
 
 \method{layer_names}{anndata.AnnData}(object, assay = NULL)
+
+\method{layer_names}{anndata._core.anndata.AnnData}(object, assay = NULL)
 
 \method{layer_names}{scuba_source}(object, assay = NULL)
 }

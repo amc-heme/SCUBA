@@ -7,6 +7,7 @@
 \alias{pseudobulk.scuba_source}
 \alias{pseudobulk.AnnDataR6}
 \alias{pseudobulk.anndata.AnnData}
+\alias{pseudobulk.anndata._core.anndata.AnnData}
 \title{Pseudobulk profiles: aggregate a counts layer over groups of cells}
 \usage{
 pseudobulk(
@@ -70,6 +71,18 @@ pseudobulk(
 )
 
 \method{pseudobulk}{anndata.AnnData}(
+  object,
+  sample_by,
+  group_by = NULL,
+  ...,
+  assay = NULL,
+  layer = "counts",
+  cells = NULL,
+  features = NULL,
+  fun = c("sum", "mean")
+)
+
+\method{pseudobulk}{anndata._core.anndata.AnnData}(
   object,
   sample_by,
   group_by = NULL,

@@ -1,5 +1,19 @@
 # SCUBA 2.0.0 (development)
 
+## Python environment
+
+* reticulate-managed Python environments are pinned to `anndata>=0.10.9,<0.11`,
+  `pandas<3`, `scipy<1.15` and Python < 3.14 (`py_require()` in `.onLoad`). The
+  anndata R package, now superseded, only wraps Python AnnData objects as
+  `AnnDataR6` for Python anndata < 0.11; later versions expose them as plain
+  `anndata.AnnData` objects that SCUBA's AnnData methods do not handle. This is
+  an interim measure until AnnData support moves to anndataR (#173).
+  Environments set through `RETICULATE_PYTHON` are not affected.
+* `pseudobulk()` and `layer_names()` accept unwrapped Python AnnData objects under
+  both class names (`anndata.AnnData`, `anndata._core.anndata.AnnData`).
+* `fetch_data(slot = )` on Seurat objects is an alias of `layer`; SeuratObject >= 5.4
+  no longer accepts `slot` in `FetchData()`.
+
 ## Pseudobulk aggregation
 
 * New `pseudobulk(object, sample_by, group_by)` sums (or averages) a counts layer over
