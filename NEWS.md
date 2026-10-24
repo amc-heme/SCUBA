@@ -2,6 +2,41 @@
 
 ## Julia engine
 
+* SCUBA.jl is installed from its GitHub repository when the registry lookup fails (it is not
+  registered yet); previously the engine was unavailable without a `SCUBA_JL_PATH` checkout.
+  `options(SCUBA.jl_url)` / `SCUBA_JL_URL` override the source.
+
+## Python environment
+
+* reticulate-managed Python environments are pinned to `anndata>=0.10.9,<0.11`,
+  `pandas<3`, `scipy<1.15` and Python < 3.14 (`py_require()` in `.onLoad`). The
+  anndata R package, now superseded, only wraps Python AnnData objects as
+  `AnnDataR6` for Python anndata < 0.11; later versions expose them as plain
+  `anndata.AnnData` objects that SCUBA's AnnData methods do not handle. This is
+  an interim measure until AnnData support moves to anndataR (#173).
+  Environments set through `RETICULATE_PYTHON` are not affected.
+* `pseudobulk()` and `layer_names()` accept unwrapped Python AnnData objects under
+  both class names (`anndata.AnnData`, `anndata._core.anndata.AnnData`).
+* `fetch_data(slot = )` on Seurat objects is an alias of `layer`; SeuratObject >= 5.4
+  no longer accepts `slot` in `FetchData()`.
+
+## Pseudobulk aggregation
+
+* New `pseudobulk(object, sample_by, group_by)` sums (or averages) a counts layer over
+  sample x group profiles for Seurat (including BPCells layers and split v5 layers),
+  SingleCellExperiment (in memory or HDF5-backed), AnnData (in memory or backed, through
+  reticulate) and file-backed `.h5ad` / `.h5mu` objects (`open_h5ad()` / `open_h5mu()`),
+  returning the small features x profiles matrix and a table of the profiles. The full
+  features x cells matrix is never materialised: the Julia engine streams every backend into a
+  group accumulator, and the R engine uses the class's own block-wise primitive
+  (`BPCells::pseudobulk_matrix()`, `DelayedArray::colsum()`, a sparse indicator product).
+  `sample_by` / `group_by` may be metadata column names or cell-named label vectors.
+* New `pseudobulk_design()` previews the same profiles from metadata alone (cells per
+  sample x group, replicates per group, paired designs) without reading expression data.
+* New `layer_names()` lists the layers of an assay for every supported class.
+
+## Julia engine
+
 * SCUBA's accessors (`fetch_data()`, `fetch_metadata()`, `fetch_reduction()`, `fetch_cells()`,
   `get_all_cells()`, `meta_varnames()`, `all_keys()`, `features_in_assay()`,
   `reduction_dimnames()`, `default_layer()`, `default_reduction()`, `unique_values()`,

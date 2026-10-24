@@ -71,7 +71,9 @@ options(SCUBA.engine = "r")      # legacy R implementation
 
 The Julia engine needs a Julia installation (https://julialang.org/downloads, or
 `JuliaCall::install_julia()`) and the `JuliaCall` R package. On first use SCUBA.jl is installed into
-a dedicated Julia project (`@scuba-r`); later sessions start in a few seconds. Seurat and
+a dedicated Julia project (`@scuba-r`), from the registry or, while it is unregistered, from
+https://github.com/amc-heme/SCUBA.jl (`SCUBA_JL_URL` overrides the source, `SCUBA_JL_PATH` points
+at a local checkout); later sessions start in a few seconds. Seurat and
 SingleCellExperiment objects are read in place, BPCells layers are read natively from disk. See
 `?scuba_engine`, `NEWS.md` and the SCUBA.jl compatibility notes for the (small) behavioural
 differences from 1.x.
