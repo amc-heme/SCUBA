@@ -544,8 +544,8 @@ end
 .jl_pseudobulk <- function(object_or_path, codes, ngroups, assay = NULL, layer = NULL, cells = NULL, features = NULL,
                            fun = "sum") {
   if (!isTRUE(JuliaCall::julia_eval("isdefined(ScubaR, :pseudobulk)"))) {
-    stop("pseudobulk() on the Julia engine needs a SCUBA.jl with ScubaR.pseudobulk (SCUBA.jl >= the ",
-         "feature/pseudobulk-scuba branch). Update the SCUBA.jl checkout (options(SCUBA.jl_path) / SCUBA_JL_PATH) ",
+    stop("pseudobulk() on the Julia engine needs a SCUBA.jl with ScubaR.pseudobulk (SCUBA.jl main since ",
+         "amc-heme/SCUBA.jl#3). Update the SCUBA.jl checkout (options(SCUBA.jl_path) / SCUBA_JL_PATH) ",
          "or use options(SCUBA.engine = 'r').", call. = FALSE)
   }
   res <- .jl_call("pseudobulk", object_or_path, as.integer(codes), as.integer(ngroups), assay, layer,
