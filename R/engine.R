@@ -7,7 +7,8 @@
 #   options(SCUBA.engine = "r")       # legacy pure-R implementation
 #
 # Julia-side package location: option `SCUBA.jl_path` / env `SCUBA_JL_PATH` points at a
-# development checkout of SCUBA.jl; otherwise the registered package is installed into a
+# development checkout of SCUBA.jl; otherwise the package is installed (from the registry, or
+# from GitHub while it is unregistered; `SCUBA.jl_url` / SCUBA_JL_URL) into a
 # dedicated shared Julia environment (`~/.julia/environments/scuba-r`).
 
 .scuba_env <- new.env(parent = emptyenv())
@@ -139,7 +140,13 @@ with_engine <- function(engine, expr) {
       JuliaCall::julia_command(sprintf('Pkg.develop(path = "%s"; io = devnull)', want_path))
     }
   } else if (!isTRUE(have)) {
-    JuliaCall::julia_command('Pkg.add("SCUBA"; io = devnull)')
+    # SCUBA.jl is not in the General registry (yet): when the registry lookup fails, install it
+    # from its GitHub repository. The shared environment then tracks the commit it fetched;
+    # `Pkg.update("SCUBA")` in that environment moves it forward. `SCUBA.jl_url` / SCUBA_JL_URL
+    # point at another repository or a `#branch`.
+    url <- getOption("SCUBA.jl_url", Sys.getenv("SCUBA_JL_URL", unset = "https://github.com/amc-heme/SCUBA.jl"))
+    JuliaCall::julia_command(sprintf(
+      'try; Pkg.add("SCUBA"; io = devnull); catch; Pkg.add(url = "%s"; io = devnull); end', url))
   }
   for (pkg in c("RCall", "DataFrames", "CategoricalArrays")) {
     if (!isTRUE(JuliaCall::julia_eval(sprintf('Base.find_package("%s") !== nothing', pkg)))) {

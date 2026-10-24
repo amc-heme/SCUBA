@@ -1,5 +1,11 @@
 # SCUBA 2.0.0 (development)
 
+## Julia engine
+
+* SCUBA.jl is installed from its GitHub repository when the registry lookup fails (it is not
+  registered yet); previously the engine was unavailable without a `SCUBA_JL_PATH` checkout.
+  `options(SCUBA.jl_url)` / `SCUBA_JL_URL` override the source.
+
 ## Python environment
 
 * reticulate-managed Python environments are pinned to `anndata>=0.10.9,<0.11`,
