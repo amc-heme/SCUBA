@@ -6,7 +6,15 @@ import numpy as np
 # Scipy
 from scipy.sparse import csr_matrix, csc_matrix
 # Anndata CSCDataset class (for disk-backed anndata objects)
-from anndata.abc import CSRDataset, CSCDataset
+# Backed sparse matrices: anndata >= 0.11 exposes the classes in anndata.abc,
+# 0.10 in anndata.experimental, older releases in the private module.
+try:
+    from anndata.abc import CSRDataset, CSCDataset
+except ImportError:
+    try:
+        from anndata.experimental import CSRDataset, CSCDataset
+    except ImportError:
+        from anndata._core.sparse_dataset import CSRDataset, CSCDataset
 
 # Base Python
 from collections import Counter

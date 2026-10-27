@@ -1,25 +1,37 @@
-#' Fetch matrix
+#' Fetch an expression matrix
 #'
-#' Returns object metadata for a specified set of cells.
+#' Returns the expression values of a set of features (all features of the assay by default) for a
+#' set of cells as a features x cells matrix, sparse (`dgCMatrix`) by default. On the Julia engine
+#' the block is read natively (BPCells directories, h5ad files); otherwise the layer is sliced in R.
 #'
-#' @param object a single-cell object (Seurat, SingleCellExperiment, Anndata).
-#' @param matrix_location the
-#' @param ... Currently unused.
+#' For AnnData (reticulate) objects the legacy signature `fetch_matrix(object, matrix_location)`
+#' still returns the raw slot (`"X"`, `c("obsm", "X_umap")`, ...).
 #'
-#' @keywords internal
+#' @param object a single-cell object (Seurat, SingleCellExperiment, `scuba_source`, AnnData).
+#' @param features feature names (bare, or keyed with the assay key); `NULL` for all features.
+#' @param ... Passed to methods (`matrix_location` for AnnData objects).
+#' @param matrix_location (AnnData objects) the legacy slot to return, for
+#'   example `"X"` or `c("obsm", "X_umap")`; defaults to `features`.
+#' @param assay assay / modality (default: the default assay).
+#' @param layer layer to read (default: [default_layer()]).
+#' @param cells cells to include, in the returned order (default: all cells).
+#' @param sparse return a `dgCMatrix` (default) or a dense matrix.
 #'
+#' @returns A features x cells matrix with dimnames.
 #' @rdname fetch_matrix
-#'
 #' @export
 fetch_matrix <-
   function(
     object,
-    matrix_location,
-    ...
+    features = NULL,
+    ...,
+    assay = NULL,
+    layer = NULL,
+    cells = NULL,
+    sparse = TRUE
   ){
     UseMethod("fetch_matrix")
   }
-
 #' Function to display an error message when an unsupported object
 #' type is detected
 #'
@@ -28,7 +40,7 @@ fetch_matrix <-
 fetch_matrix.default <-
   function(
     object,
-    matrix_location,
+    features = NULL,
     ...
   ){
     warning(
@@ -68,8 +80,9 @@ fetch_matrix.default <-
 fetch_matrix.AnnDataR6 <-
   function(
     object,
-    matrix_location,
-    ...
+    features = NULL,
+    ...,
+    matrix_location = features
   ){
     if (length(matrix_location) == 1){
       return(object[[matrix_location]])
@@ -83,3 +96,80 @@ fetch_matrix.AnnDataR6 <-
            'in "obsm", use c("obsm", "X_umap").')
       }
     }
+
+#' @rdname fetch_matrix
+#' @export
+fetch_matrix.Seurat <-
+  function(
+    object,
+    features = NULL,
+    ...,
+    assay = NULL,
+    layer = NULL,
+    cells = NULL,
+    sparse = TRUE
+  ){
+    if (.scuba_julia_object(object)) {
+      return(.jl_fetch_matrix(object, features, assay = assay, layer = layer, cells = cells, sparse = sparse))
+    }
+    assay <- assay %||% SeuratObject::DefaultAssay(object)
+    layer <- layer %||% default_layer(object)
+    m <- SeuratObject::LayerData(object[[assay]], layer = layer)
+    .r_matrix_slice(m, features, cells, sparse)
+  }
+
+#' @rdname fetch_matrix
+#' @export
+fetch_matrix.SingleCellExperiment <-
+  function(
+    object,
+    features = NULL,
+    ...,
+    assay = NULL,
+    layer = NULL,
+    cells = NULL,
+    sparse = TRUE
+  ){
+    if (.scuba_julia_object(object)) {
+      return(.jl_fetch_matrix(object, features, assay = assay, layer = layer, cells = cells, sparse = sparse))
+    }
+    layer <- layer %||% default_layer(object)
+    exp <- if (is.null(assay) || identical(assay, SingleCellExperiment::mainExpName(object))) object else SingleCellExperiment::altExp(object, assay)
+    m <- SummarizedExperiment::assay(exp, layer)
+    .r_matrix_slice(m, features, cells, sparse)
+  }
+
+#' @rdname fetch_matrix
+#' @export
+fetch_matrix.scuba_source <-
+  function(
+    object,
+    features = NULL,
+    ...,
+    assay = NULL,
+    layer = NULL,
+    cells = NULL,
+    sparse = TRUE
+  ){
+    .scuba_source_engine()
+    .jl_fetch_matrix(object$path, features, assay = assay, layer = layer, cells = .src_cells_for_julia(object, cells),
+                     sparse = sparse, cellnames = .src_cells(object, cells))
+  }
+
+# Slice a features x cells layer in R (any matrix class that supports `[`), as dgCMatrix or dense.
+.r_matrix_slice <- function(m, features, cells, sparse) {
+  f <- features %||% rownames(m)
+  missing_f <- setdiff(f, rownames(m))
+  if (length(missing_f)) stop("Features not found: ", paste(utils::head(missing_f, 10), collapse = ", "), call. = FALSE)
+  c <- cells %||% colnames(m)
+  missing_c <- setdiff(c, colnames(m))
+  if (length(missing_c)) stop("Cells not found: ", paste(utils::head(missing_c, 10), collapse = ", "), call. = FALSE)
+  out <- m[f, c, drop = FALSE]
+  if (sparse) {
+    if (!inherits(out, "dgCMatrix")) out <- methods::as(methods::as(as.matrix(out), "CsparseMatrix"), "generalMatrix")
+  } else {
+    out <- as.matrix(out)
+  }
+  dimnames(out) <- list(f, c)
+  out
+}

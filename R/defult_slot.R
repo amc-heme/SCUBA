@@ -1,6 +1,6 @@
 #' Get default reduction from object
 #'
-#' Returns the default slot for the object passed. This function was deprecated 
+#' Deprecated: this function was deprecated 
 #' in version 0.10.0. Please use [`default_layer()`] instead. 
 #' 
 #' `r lifecycle::badge("deprecated")`
@@ -14,15 +14,9 @@ default_slot <-
   function(
     object
   ){
-    lifecycle::deprecate_warn(
+    lifecycle::deprecate_stop(
       when = "0.10.0",
       what = "default_slot()",
-      details = 
-        paste0(
-          "Please use `default_layer()` instead. `default_slot()` will be ",
-          "removed in 1.0.0."
-          )
+      details = "Please use `default_layer()` instead."
       )
-    
-    default_layer(object)
   }

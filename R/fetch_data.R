@@ -54,6 +54,13 @@ fetch_data <-
     cells = NULL,
     ...
   ) {
+    # `slot` (Seurat v4 vocabulary, see fetch_data.Seurat) is an alias of
+    # `layer` on every engine, so resolve it before routing to Julia.
+    slot <- list(...)$slot
+    if (!is.null(slot) && is.null(layer)) layer <- slot
+    if (.scuba_route_fetch_data(object, vars)) {
+      return(.jl_fetch_data(object, vars, layer = layer, cells = cells, ...))
+    }
     UseMethod("fetch_data")
   }
 
@@ -110,25 +117,27 @@ fetch_data.Seurat <-
       }
     }
 
-    # This is a wrapper for SeuratObject::FetchData
+    # `slot` is kept for callers written against Seurat v4. SeuratObject 5
+    # names its layers after the former slots ("counts", "data",
+    # "scale.data"), and SeuratObject >= 5.4 refuses a `slot` argument, so
+    # the value is passed on as `layer` instead of being forwarded.
     if (!is.null(slot)) {
-      # For backwards compatability with Seruat v4 and earlier, use `slot`
-      # parameter instead of layer.
-      SeuratObject::FetchData(
-        object = object,
-        vars = vars,
-        slot = slot,
-        cells = cells
-      )
-    } else {
-      # Seurat v5 and later
-      SeuratObject::FetchData(
-        object = object,
-        vars = vars,
-        layer = layer,
-        cells = cells
-      )
+      if (!is.null(layer) && !identical(layer, slot)) {
+        stop(
+          "Both `layer` and `slot` were given to fetch_data(); ",
+          "`slot` is kept only as an alias of `layer`."
+        )
+      }
+      layer <- slot
     }
+
+    # This is a wrapper for SeuratObject::FetchData
+    SeuratObject::FetchData(
+      object = object,
+      vars = vars,
+      layer = layer,
+      cells = cells
+    )
   }
 
 #' @describeIn fetch_data SingleCellExperiment objects

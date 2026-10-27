@@ -10,8 +10,9 @@
 #' optimized direct matrix access for improved performance. For all other
 #' cases, it delegates to [fetch_data()].
 #'
-#' Unlike [fetch_data()], this function is specifically designed for feature
-#' retrieval and does not support fetching metadata or reduction coordinates.
+#' This function is designed for feature retrieval. Names that are metadata
+#' columns or reduction coordinates (for example `"PC_1"`) are resolved
+#' through [fetch_data()], on both engines.
 #'
 #' See our GitHub.io website for additional information and examples.
 #'
@@ -50,6 +51,14 @@ fetch_feature <- function(
   layer = NULL,
   cells = NULL
 ) {
+  # The native Julia path searches features only: requests that include metadata or reduction
+  # coordinates go to the class method, which resolves them through fetch_data() as on the R
+  # engine (and fetch_data() uses the Julia engine again where it applies).
+  if (.scuba_use_julia(object) &&
+      !.scuba_feature_collides(object, features) &&
+      .scuba_feature_only(object, features)) {
+    return(.jl_fetch_feature(object, features, layer = layer, cells = cells))
+  }
   UseMethod("fetch_feature")
 }
 

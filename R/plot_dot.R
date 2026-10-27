@@ -153,7 +153,7 @@ plot_dot <-
 
     ## 2.3. Expression data for each feature
     expr_data <-
-      FetchData(
+      fetch_data(
         object = object,
         vars = features,
         cells = cells,

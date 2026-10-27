@@ -57,6 +57,27 @@ install.packages("remotes")
 remotes::install_github("bnprks/BPCells/r")
 ```
 
+## Engine (SCUBA 2.x)
+
+Since version 2.0 the accessor functions can run on the Julia package
+[SCUBA.jl](https://github.com/amc-heme/SCUBA.jl), which implements SCUBA's rules once for R,
+Python and Julia. The engine is selected with
+
+```r
+options(SCUBA.engine = "auto")   # Julia when available, otherwise the legacy R implementation (default)
+options(SCUBA.engine = "julia")  # require the Julia engine
+options(SCUBA.engine = "r")      # legacy R implementation
+```
+
+The Julia engine needs a Julia installation (https://julialang.org/downloads, or
+`JuliaCall::install_julia()`) and the `JuliaCall` R package. On first use SCUBA.jl is installed into
+a dedicated Julia project (`@scuba-r`), from the registry or, while it is unregistered, from
+https://github.com/amc-heme/SCUBA.jl (`SCUBA_JL_URL` overrides the source, `SCUBA_JL_PATH` points
+at a local checkout); later sessions start in a few seconds. Seurat and
+SingleCellExperiment objects are read in place, BPCells layers are read natively from disk. See
+`?scuba_engine`, `NEWS.md` and the SCUBA.jl compatibility notes for the (small) behavioural
+differences from 1.x.
+
 ## Additional Installation for anndata Objects
 
 ### Note

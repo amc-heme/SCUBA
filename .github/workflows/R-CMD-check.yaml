@@ -136,10 +136,16 @@ jobs:
           path_to_venv <- virtualenv_create(
             envname = "r-reticulate",
             python = Sys.which("python"), # placed on PATH by the setup-python action
+            # SCUBA's AnnData support rests on the superseded `anndata` R
+            # package, whose AnnDataR6 wrapper needs Python anndata < 0.11,
+            # which in turn needs pandas < 3 and scipy < 1.15. This venv is
+            # exported as RETICULATE_PYTHON, which bypasses the same pins in
+            # SCUBA's .onLoad, so they are repeated here. Remove with the
+            # anndataR migration (amc-heme/SCUBA#173).
             packages = c(
-              "docutils", "pandas", "scipy", "matplotlib", "ipython",
+              "docutils", "pandas<3", "scipy<1.15", "matplotlib", "ipython",
               "tabulate", "plotly", "psutil", "kaleido", "wrapt",
-              "anndata"
+              "anndata<0.11"
             )
           )
 
