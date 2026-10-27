@@ -409,18 +409,36 @@ end
   } else character()
 }
 
+# Which requested names are metadata columns (bare, or keyed `obs_` / `md_`) or reduction
+# coordinates (`<reduction key><dimension>`), as opposed to features. `meta` and `reductions`
+# default to the in-memory object's metadata names and reduction keys (with the trailing "_").
+.scuba_var_kinds <- function(object, vars, meta = .r_meta_names(object),
+                             reductions = .r_reduction_keys(object)) {
+  vars <- as.character(vars)
+  meta <- as.character(meta)
+  reductions <- as.character(reductions)
+  is_meta <- vars %in% meta | sub("^(obs|md)_", "", vars) %in% meta
+  is_red <- if (length(reductions)) {
+    vapply(vars, function(v) any(startsWith(v, reductions)) && grepl("_[0-9]+$", v), logical(1),
+           USE.NAMES = FALSE)
+  } else rep(FALSE, length(vars))
+  list(is_meta = is_meta, is_red = is_red)
+}
+
+# TRUE when every requested name is a feature: no metadata column, no reduction coordinate.
+# SCUBA.jl's fetch_feature searches features only, while the R methods resolve the other names
+# through fetch_data(), so only feature-only requests may take the native path.
+.scuba_feature_only <- function(object, features, ...) {
+  kinds <- .scuba_var_kinds(object, features, ...)
+  !any(kinds$is_meta | kinds$is_red)
+}
+
 #' @keywords internal
 .scuba_route_fetch_data <- function(object, vars) {
   if (!.scuba_julia_object(object)) return(FALSE)
-  vars <- as.character(vars)
-  meta <- as.character(.r_meta_names(object))
-  reds <- as.character(.r_reduction_keys(object))
-  is_meta <- vars %in% meta | sub("^obs_", "", vars) %in% meta
-  is_red <- if (length(reds)) {
-    vapply(vars, function(v) any(startsWith(v, reds)) && grepl("_[0-9]+$", v), logical(1))
-  } else rep(FALSE, length(vars))
+  kinds <- .scuba_var_kinds(object, vars)
   # metadata- and reduction-only requests are faster on the R methods
-  !all(is_meta | is_red)
+  !all(kinds$is_meta | kinds$is_red)
 }
 
 # Legacy fetch_feature resolves a *bare* name that is both a metadata column and a feature of the

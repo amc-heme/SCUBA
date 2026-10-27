@@ -49,8 +49,9 @@ For Seurat objects with BPCells-backed assay layers, this function uses
 optimized direct matrix access for improved performance. For all other
 cases, it delegates to \code{\link[=fetch_data]{fetch_data()}}.
 
-Unlike \code{\link[=fetch_data]{fetch_data()}}, this function is specifically designed for feature
-retrieval and does not support fetching metadata or reduction coordinates.
+This function is designed for feature retrieval. Names that are metadata
+columns or reduction coordinates (for example \code{"PC_1"}) are resolved
+through \code{\link[=fetch_data]{fetch_data()}}, on both engines.
 
 See our GitHub.io website for additional information and examples.
 }

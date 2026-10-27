@@ -84,6 +84,12 @@ test_that("metadata accessors", {
   expect_error(fetch_cells(obj, "nCount_RNA", 1), "categorical")
 })
 
+test_that("fetch_feature resolves reduction coordinates and metadata through fetch_data", {
+  request <- c("X_GAPDH", "X_umap_1", "nCount_RNA")
+  expect_equal(fetch_feature(obj, request), fetch_data(obj, request))
+  expect_equal(fetch_feature(obj, "X_umap_1"), fetch_data(obj, "X_umap_1"))
+})
+
 test_that("reductions", {
   r <- fetch_reduction(obj, "X_umap", cells = cells[1:3])
   expect_equal(names(r), c("X_umap_1", "X_umap_2"))
