@@ -190,6 +190,12 @@ fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, sl
 #' @export
 fetch_feature.scuba_source <- function(object, features, assay = NULL, layer = NULL, cells = NULL) {
   .scuba_source_engine()
+  # SCUBA.jl's fetch_feature searches features only; resolve metadata and reduction coordinates
+  # (for example "X_umap_1") through fetch_data(), as fetch_feature() does for other classes
+  reductions <- paste0(names(scuba_source_reductions(object)), "_")
+  if (!.scuba_feature_only(object, features, meta = meta_varnames(object), reductions = reductions)) {
+    return(fetch_data(object, vars = features, layer = layer, cells = cells))
+  }
   jl_cells <- .src_cells_for_julia(object, cells)
   cells <- .src_cells(object, cells)
   res <- .jl_call("fetch_feature", object$path, as.character(features), layer, jl_cells, assay, .scuba_julia_eltype(), FALSE)

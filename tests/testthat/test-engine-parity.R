@@ -82,6 +82,30 @@ test_that("fetch_feature: keyed names from other assays and metadata collisions 
   expect_same(with_engine("julia", fetch_feature(obj, "rna_GAPDH")), with_engine("r", fetch_feature(obj, "rna_GAPDH")))
 })
 
+test_that("fetch_feature: reduction coordinates and keyed metadata match the R engine", {
+  # The native Julia fetch_feature searches features only; anything else must resolve as on the
+  # R engine (through fetch_data), alone or mixed with features. (`md_`-keyed metadata is not
+  # supported by fetch_feature on either engine: the Seurat method treats `md_` as an assay key.)
+  seurat_requests <- list("PC_1", c("UMAP_1", "UMAP_2"), c("rna_GAPDH", "PC_1"),
+                          c("rna_GAPDH", "nCount_RNA", "UMAP_2"))
+  for (request in seurat_requests) {
+    expect_same(with_engine("julia", fetch_feature(AML_Seurat, request)),
+                with_engine("r", fetch_feature(AML_Seurat, request)))
+  }
+  # SingleCellExperiment: the R engine's own fetch_data() mislabels reduction columns ("NA") for
+  # this object, so the reference is fetch_data() on the Julia engine
+  sce <- AML_SCE()
+  request <- c("RNA_GAPDH", "PCA_1")
+  expect_same(with_engine("julia", fetch_feature(sce, request)),
+              with_engine("julia", fetch_data(sce, request)))
+  expect_identical(names(with_engine("julia", fetch_feature(sce, request))), request)
+  # plot_feature() plots reduction coordinates through fetch_feature (its own example)
+  julia_plot <- with_engine("julia", plot_feature(AML_Seurat, features = "PC_1"))
+  r_plot <- with_engine("r", plot_feature(AML_Seurat, features = "PC_1"))
+  panel_data <- function(p) if (inherits(p, "patchwork")) p[[1]]$data else p$data
+  expect_same(panel_data(julia_plot), panel_data(r_plot))
+})
+
 for (form in names(objects)) {
   obj <- objects[[form]]
   v <- vars[[form]]
