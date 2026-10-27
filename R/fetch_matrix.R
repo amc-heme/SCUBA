@@ -10,6 +10,8 @@
 #' @param object a single-cell object (Seurat, SingleCellExperiment, `scuba_source`, AnnData).
 #' @param features feature names (bare, or keyed with the assay key); `NULL` for all features.
 #' @param ... Passed to methods (`matrix_location` for AnnData objects).
+#' @param matrix_location (AnnData objects) the legacy slot to return, for
+#'   example `"X"` or `c("obsm", "X_umap")`; defaults to `features`.
 #' @param assay assay / modality (default: the default assay).
 #' @param layer layer to read (default: [default_layer()]).
 #' @param cells cells to include, in the returned order (default: all cells).
