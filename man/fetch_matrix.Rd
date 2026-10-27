@@ -64,6 +64,9 @@ fetch_matrix(
 \item{cells}{cells to include, in the returned order (default: all cells).}
 
 \item{sparse}{return a \code{dgCMatrix} (default) or a dense matrix.}
+
+\item{matrix_location}{(AnnData objects) the legacy slot to return, for
+example \code{"X"} or \code{c("obsm", "X_umap")}; defaults to \code{features}.}
 }
 \value{
 A features x cells matrix with dimnames.

@@ -73,7 +73,8 @@ Suggests:
     knitr,
     BPCells,
     DelayedArray,
-    rmarkdown
+    rmarkdown,
+    withr
 Additional_repositories: 
     https://bnprks.r-universe.dev
 Config/testthat/edition: 3
