@@ -104,6 +104,18 @@ test_that("reductions", {
   expect_equal(relabel_axis(obj, "Batch"), "")
 })
 
+test_that("a literal obs_ column is not confused with the obs_ alias (review #11)", {
+  m <- fetch_metadata(obj, full_table = TRUE)
+  m$score <- seq_len(nrow(m))
+  m$obs_score <- rev(seq_len(nrow(m)))
+  obj2 <- update_object_metadata(obj, m)
+  expect_equal(fetch_data(obj2, "obs_score")[[1]], rev(seq_len(nrow(m))))
+  expect_equal(fetch_data(obj2, "score")[[1]], seq_len(nrow(m)))
+  # without a literal column, obs_<name> still reaches <name>
+  expect_equal(fetch_data(obj2, "obs_nCount_RNA")[[1]], fetch_data(obj2, "nCount_RNA")[[1]])
+  expect_error(fetch_data(obj2, "X_GAPDH", layer = "X", slot = "counts"), "Both `layer` and `slot`")
+})
+
 test_that("update_object_metadata is copy-on-modify and feeds fetch_data", {
   m <- fetch_metadata(obj, full_table = TRUE)
   m$new_col <- seq_len(nrow(m))

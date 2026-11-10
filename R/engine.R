@@ -121,11 +121,14 @@ with_engine <- function(engine, expr) {
   JuliaCall::julia_command("import Pkg")
   active <- JuliaCall::julia_eval("Base.active_project()")
   want <- if (shared) file.path(path.expand("~"), ".julia", "environments", project, "Project.toml") else file.path(project, "Project.toml")
+  # Paths, project names and URLs reach Julia as values (julia_assign), never spliced into
+  # Julia source: Windows paths contain backslashes, which are escapes in a Julia string literal.
   if (!identical(normalizePath(active, mustWork = FALSE), normalizePath(want, mustWork = FALSE))) {
+    JuliaCall::julia_assign("scuba_r_project", project)
     if (shared) {
-      JuliaCall::julia_command(sprintf('Pkg.activate("%s"; shared = true, io = devnull)', project))
+      JuliaCall::julia_command("Pkg.activate(scuba_r_project; shared = true, io = devnull)")
     } else {
-      JuliaCall::julia_command(sprintf('Pkg.activate("%s"; io = devnull)', project))
+      JuliaCall::julia_command("Pkg.activate(scuba_r_project; io = devnull)")
     }
   }
   have <- JuliaCall::julia_eval('Base.find_package("SCUBA") !== nothing')
@@ -137,7 +140,8 @@ with_engine <- function(engine, expr) {
       'let deps = Pkg.dependencies(); k = findfirst(p -> p.name == "SCUBA" && p.is_tracking_path, deps); ',
       'k === nothing ? "" : string(something(deps[k].source, "")) end')), error = function(e) "")
     if (!isTRUE(have) || !identical(normalizePath(current, mustWork = FALSE), want_path)) {
-      JuliaCall::julia_command(sprintf('Pkg.develop(path = "%s"; io = devnull)', want_path))
+      JuliaCall::julia_assign("scuba_r_path", want_path)
+      JuliaCall::julia_command("Pkg.develop(path = scuba_r_path; io = devnull)")
     }
   } else if (!isTRUE(have)) {
     # SCUBA.jl is not in the General registry (yet): when the registry lookup fails, install it
@@ -145,8 +149,8 @@ with_engine <- function(engine, expr) {
     # `Pkg.update("SCUBA")` in that environment moves it forward. `SCUBA.jl_url` / SCUBA_JL_URL
     # point at another repository or a `#branch`.
     url <- getOption("SCUBA.jl_url", Sys.getenv("SCUBA_JL_URL", unset = "https://github.com/amc-heme/SCUBA.jl"))
-    JuliaCall::julia_command(sprintf(
-      'try; Pkg.add("SCUBA"; io = devnull); catch; Pkg.add(url = "%s"; io = devnull); end', url))
+    JuliaCall::julia_assign("scuba_r_url", url)
+    JuliaCall::julia_command('try; Pkg.add("SCUBA"; io = devnull); catch; Pkg.add(url = scuba_r_url; io = devnull); end')
   }
   for (pkg in c("RCall", "DataFrames", "CategoricalArrays")) {
     if (!isTRUE(JuliaCall::julia_eval(sprintf('Base.find_package("%s") !== nothing', pkg)))) {
@@ -164,17 +168,28 @@ with_engine <- function(engine, expr) {
   if (!isTRUE(JuliaCall::julia_eval("Base.get_extension(SCUBA, :SCUBARCallExt) !== nothing"))) {
     JuliaCall::julia_command("Base.retry_load_extensions()")
   }
-  # The glue module ships (precompiled) with SCUBA.jl's RCall extension; older SCUBA.jl versions
-  # get the copy embedded below.
-  in_ext <- JuliaCall::julia_eval("isdefined(Base.get_extension(SCUBA, :SCUBARCallExt), :ScubaR)")
-  if (isTRUE(in_ext)) {
-    JuliaCall::julia_command("isdefined(Main, :ScubaR) || (global ScubaR = Base.get_extension(SCUBA, :SCUBARCallExt).ScubaR)")
-  } else {
-    JuliaCall::julia_command(.scuba_julia_glue)
-  }
+  # The glue module (ScubaR) ships, precompiled, with SCUBA.jl's RCall extension. A SCUBA.jl too
+  # old to have it is rejected here: the shims below need its entry points, and an error makes
+  # scuba_julia_available() FALSE so the "auto" engine falls back to R.
+  .scuba_require_scubar(
+    JuliaCall::julia_eval("isdefined(Base.get_extension(SCUBA, :SCUBARCallExt), :ScubaR)"),
+    environment = if (shared) paste0("@", project) else project
+  )
+  JuliaCall::julia_command("isdefined(Main, :ScubaR) || (global ScubaR = Base.get_extension(SCUBA, :SCUBARCallExt).ScubaR)")
   cache_max <- getOption("SCUBA.julia_cache_max", 16L)
   JuliaCall::julia_command(sprintf("isdefined(ScubaR, :set_cache_max!) && ScubaR.set_cache_max!(%d)", as.integer(cache_max)))
   if (isTRUE(getOption("SCUBA.julia_warmup", TRUE))) scuba_julia_warmup()
+  invisible(TRUE)
+}
+
+# Stop when SCUBA.jl's RCall extension has no ScubaR glue module (SCUBA.jl too old). Separate so
+# it can be tested without Julia; the error makes scuba_julia_available() FALSE.
+.scuba_require_scubar <- function(has_scubar, environment) {
+  if (!isTRUE(has_scubar)) {
+    stop("the installed SCUBA.jl is too old for this SCUBA (its RCall extension has no ScubaR). ",
+         "Update it with Pkg.update(\"SCUBA\") in the Julia environment SCUBA uses (",
+         environment, "), or point SCUBA_JL_PATH at a current checkout.", call. = FALSE)
+  }
   invisible(TRUE)
 }
 
@@ -269,117 +284,6 @@ scuba_julia_warmup <- function(objects = list()) {
   invisible(TRUE)
 }
 
-# Julia glue evaluated once per session. Every entry point wraps the R object as a SCUBA
-# source, runs the accessor collecting warnings, and returns a plain list for R.
-.scuba_julia_glue <- '
-module ScubaR
-using SCUBA, RCall, DataFrames, CategoricalArrays
-
-const S = SCUBA
-
-# Cache of wrapped sources keyed by the R object pointer. Holding the RObject keeps the SEXP
-# alive (RCall preserves it), so an address cannot be reused by a different object while cached.
-# R copies on modify, so a modified object arrives with a new address and gets a fresh source.
-const SRC_CACHE = Dict{Ptr{Cvoid}, Tuple{Any, Any}}()
-const SRC_CACHE_MAX = 4
-function getsrc(obj)
-    key = Ptr{Cvoid}(obj.p)
-    hit = get(SRC_CACHE, key, nothing)
-    hit === nothing || return hit[2]
-    if length(SRC_CACHE) >= SRC_CACHE_MAX
-        empty!(SRC_CACHE)
-    end
-    src = S.rsource(obj)
-    SRC_CACHE[key] = (obj, src)
-    return src
-end
-clear_cache() = (empty!(SRC_CACHE); nothing)
-
-function run(f, obj, args...; kwargs...)
-    src = getsrc(obj)
-    result, ws = S.with_collected_warnings(() -> f(src, args...; kwargs...))
-    return result, String[w.message for w in ws]
-end
-
-asvec(x::AbstractString) = String[x]
-asvec(x) = x
-
-# Hand a table to R column by column so factors, NA and types survive the JuliaCall conversion.
-function totable(df::DataFrame)
-    cc = S.cell_column(df)
-    names_ = String[n for n in names(df) if n != cc]
-    columns = Any[]
-    cat_idx = Int[]; cat_codes = Any[]; cat_levels = Any[]; cat_ordered = Bool[]
-    for (k, n) in enumerate(names_)
-        v = df[!, n]
-        if v isa CategoricalVector
-            push!(cat_idx, k)
-            push!(cat_codes, Int[ismissing(x) ? -1 : levelcode(x) for x in v])
-            push!(cat_levels, string.(levels(v)))
-            push!(cat_ordered, isordered(v))
-            push!(columns, Int[0])
-        else
-            push!(columns, v)
-        end
-    end
-    (names = names_, columns = columns, cat_idx = cat_idx, cat_codes = cat_codes, cat_levels = cat_levels,
-     cat_ordered = cat_ordered, cells = String.(S.cells(df)))
-end
-
-_eltype(s) = s == "Float32" ? Float32 : Float64
-function fetch_data(obj, vars, layer, cells, eltype = "Float64", allow_empty = false)
-    df, w = run(S.fetch_data, obj, asvec(vars); layer = layer, cells = cells, eltype = _eltype(eltype))
-    (totable(df)..., warnings = w)
-end
-function fetch_feature(obj, features, layer, cells, modality = nothing, eltype = "Float64")
-    df, w = run(S.fetch_feature, obj, asvec(features); modality = modality, layer = layer, cells = cells, eltype = _eltype(eltype))
-    (totable(df)..., warnings = w)
-end
-function fetch_metadata(obj, vars, cells, full_table)
-    df, w = if full_table
-        run(S.fetch_metadata, obj; cells = cells)
-    else
-        run(S.fetch_metadata, obj, asvec(vars); cells = cells)
-    end
-    (totable(df)..., warnings = w)
-end
-function fetch_reduction(obj, reduction, cells, dims)
-    df, w = run(S.fetch_reduction, obj, reduction; cells = cells, dims = dims)
-    (totable(df)..., warnings = w)
-end
-fetch_cells(obj, meta_var, meta_levels) = run(S.fetch_cells, obj, meta_var, asvec(meta_levels))
-get_all_cells(obj) = run(S.all_cells, obj)
-meta_varnames(obj) = run(S.meta_varnames, obj)
-function all_keys(obj)
-    # R SCUBA returns names = assay / reduction names and values = keys; mirror that for Seurat
-    src = getsrc(obj)
-    ks = S.all_keys(src)
-    names_ = collect(keys(ks)); vals = collect(values(ks))
-    if hasproperty(src, :assay_alias)
-        inv = Dict(v => k for (k, v) in src.assay_alias)
-        merge!(inv, Dict(v => k for (k, v) in src.red_alias))
-        names_ = [get(inv, k, k) for k in names_]
-    end
-    return names_, vals, String[]
-end
-features_in_assay(obj, assay) = run(S.features_in_modality, obj, assay)
-reduction_dimnames(obj, reduction, dims) = run(S.reduction_dimnames, obj, reduction, dims)
-default_layer(obj) = run(S.default_layer, obj)
-default_reduction(obj) = run(S.default_reduction, obj)
-function default_reduction_name(obj)
-    # R SCUBA returns the reduction *name* for Seurat ("umap"), the key for others
-    src = getsrc(obj)
-    key = S.default_reduction(src)
-    name = key
-    if hasproperty(src, :reductions) && haskey(src.reductions, key) && hasproperty(src.reductions[key], :name)
-        name = src.reductions[key].name
-    end
-    return name, String[]
-end
-unique_values(obj, var) = run(S.unique_values, obj, var)
-n_unique(obj, var) = run(S.n_unique, obj, var)
-end
-'
 
 # ---------------------------------------------------------------------------
 # R-side shims
@@ -391,9 +295,17 @@ end
 # metadata / reduction vars stay in R as well; mixed requests go to Julia, which fetches the
 # features and appends the metadata columns.
 .scuba_julia_object <- function(object) {
-  (inherits(object, "Seurat") || inherits(object, "SingleCellExperiment")) &&
-    identical(scuba_engine(), "julia")
+  is_seurat <- inherits(object, "Seurat")
+  # SCUBA.jl reads Seurat layers with the SeuratObject 5 API (LayerData(), GetAssayData(layer =)),
+  # so Seurat objects stay on the R engine under SeuratObject 4
+  (is_seurat || inherits(object, "SingleCellExperiment")) &&
+    identical(scuba_engine(), "julia") &&
+    (!is_seurat || .seuratobject_v5())
 }
+
+# SeuratObject 5 or later (its accessors take `layer =`; SeuratObject 4's take `slot =`). A
+# function, so tests can mock it.
+.seuratobject_v5 <- function() utils::packageVersion("SeuratObject") >= "5.0.0"
 .scuba_use_julia <- function(object) .scuba_julia_object(object)
 
 .r_meta_names <- function(object) {
@@ -516,9 +428,9 @@ end
 # Cell names R already holds for a live object: the caller's `cells` (Julia returns rows in that
 # order) or the object's column names (file/object order).
 .r_cell_names <- function(object, cells = NULL) if (is.null(cells)) colnames(object) else as.character(cells)
+# `slot` is resolved into `layer` by the fetch_data() generic; the argument only absorbs it.
 .jl_fetch_data <- function(object, vars, layer = NULL, cells = NULL, slot = NULL, eltype = .scuba_julia_eltype(),
                            allow_empty = FALSE, rownames = .r_cell_names(object, cells)) {
-  layer <- slot %||% layer
   .jl_table(.jl_call("fetch_data", object, as.character(vars), layer, cells, eltype, allow_empty, FALSE), rownames)
 }
 .jl_fetch_feature <- function(object, features, layer = NULL, cells = NULL, modality = NULL, eltype = .scuba_julia_eltype(),
@@ -564,8 +476,7 @@ end
 # `cells` is NULL; 0 = dropped) and `ngroups` are computed in R; Julia streams the layer into a
 # group accumulator and returns the features x groups sums as a plain dense matrix (no sparse
 # index vectors, so none of fetch_matrix's Int32 limits apply) plus the cells behind each group.
-# Not part of the embedded `.scuba_julia_glue` (which exists only for SCUBA.jl versions without
-# the in-extension ScubaR, and those lack `aggregate` as well): a too-old SCUBA.jl errors here.
+# ScubaR versions from before SCUBA.jl's `aggregate` have no pseudobulk entry point: error clearly.
 .jl_pseudobulk <- function(object_or_path, codes, ngroups, assay = NULL, layer = NULL, cells = NULL, features = NULL,
                            fun = "sum") {
   if (!isTRUE(JuliaCall::julia_eval("isdefined(ScubaR, :pseudobulk)"))) {

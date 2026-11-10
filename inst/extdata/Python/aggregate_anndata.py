@@ -42,6 +42,13 @@ def _matrix(obj, modality, layer):
             raise ValueError("The object has no raw matrix (adata.raw is None)")
         return obj.raw.X, obj.raw.var_names
     if modality in obj.obsm_keys() and isinstance(obj.obsm[modality], pd.DataFrame):
+        # An obsm data frame is a single matrix with no layers (layer_names() reports only "X"):
+        # aggregating it under any other layer name would silently mislabel its values
+        if not (layer is None or layer == "X"):
+            raise ValueError(
+                "Modality '%s' has no layer '%s'; it is a single matrix (available: X). "
+                "Pass layer = \"X\" to aggregate its values." % (modality, layer)
+            )
         df = obj.obsm[modality]
         return df, df.columns
     raise ValueError("Modality '%s' not found; modalities: %s" % (modality, ", ".join(["X"] + list(obj.obsm_keys()))))

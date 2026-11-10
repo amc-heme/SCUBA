@@ -574,3 +574,43 @@ test_that("fetch_data.AnnDataR6 errors informatively when reticulate is not inst
     fixed = FALSE
   )
 })
+
+
+test_that("conflicting layer and slot fail on every engine; slot is an alias (review #8)", {
+  engines <- if (scuba_julia_available(quiet = TRUE)) c("r", "julia") else "r"
+  for (engine in engines) with_engine(engine, {
+    expect_error(fetch_data(AML_Seurat, "rna_GAPDH", layer = "data", slot = "counts"), "Both `layer` and `slot`")
+    expect_identical(fetch_data(AML_Seurat, "rna_GAPDH", slot = "counts"), fetch_data(AML_Seurat, "rna_GAPDH", layer = "counts"))
+    sce <- AML_SCE()
+    expect_identical(fetch_data(sce, "RNA_GAPDH", slot = "counts"), fetch_data(sce, "RNA_GAPDH", layer = "counts"))
+  })
+})
+
+test_that("very wide queries warn once on every engine (review #9)", {
+  vars <- paste0("rna_", rownames(AML_Seurat)[rep_len(seq_len(nrow(AML_Seurat)), 1000)])
+  engines <- if (scuba_julia_available(quiet = TRUE)) c("r", "julia") else "r"
+  for (engine in engines) {
+    seen <- 0L
+    withCallingHandlers(
+      invisible(with_engine(engine, fetch_data(AML_Seurat, vars))),
+      warning = function(w) {
+        if (grepl("A very large number of features was requested", conditionMessage(w))) seen <<- seen + 1L
+        invokeRestart("muffleWarning")
+      }
+    )
+    expect_identical(seen, 1L, info = engine)
+  }
+})
+
+test_that("SeuratObject 4 gets `slot =` and stays on the R engine (review #2)", {
+  captured <- NULL
+  local_mocked_bindings(.seuratobject_v5 = function() FALSE)
+  local_mocked_bindings(FetchData = function(object, vars, ...) { captured <<- list(...); data.frame(x = 1) },
+                        .package = "SeuratObject")
+  with_engine("r", fetch_data(AML_Seurat, "rna_GAPDH", layer = "counts"))
+  expect_identical(captured$slot, "counts")
+  expect_null(captured$layer)
+  with_engine("r", fetch_data(AML_Seurat, "rna_GAPDH"))
+  expect_identical(captured$slot, "data")
+  expect_false(with_engine("julia", SCUBA:::.scuba_julia_object(AML_Seurat)))
+})

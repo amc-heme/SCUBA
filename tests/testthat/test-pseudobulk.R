@@ -196,6 +196,9 @@ test_that("anndata objects (reticulate) aggregate in memory and in backed mode",
   px <- pseudobulk(ad, "Batch", layer = "X")
   expect_false(all(px$counts == round(px$counts)))
   expect_equal(dim(pseudobulk(ad, "Batch", "condensed_cell_type", assay = "protein", layer = "X")), c(197L, 18L))
+  # an obsm modality has no layers: the default "counts" must not silently aggregate it
+  expect_error(pseudobulk(ad, "Batch", assay = "protein"), "has no layer 'counts'")
+  expect_error(pseudobulk(ad, "Batch", assay = "protein", layer = "nope"), "has no layer 'nope'")
   expect_error(pseudobulk(ad, "Batch", layer = "nope"), "Layer 'nope' not found")
   adb <- AML_h5ad_backed()
   expect_pb_equal(pseudobulk(adb, "Batch", "condensed_cell_type"))
@@ -265,4 +268,35 @@ test_that("file-backed h5ad / h5mu objects aggregate through the Julia engine", 
   expect_pb_equal(pmu)
   expect_identical(pmu$assay, "rna")
   expect_equal(dim(pseudobulk(mu, "Batch", "condensed_cell_type", assay = "prot", layer = "X")), c(197L, 18L))
+})
+
+
+test_that("split v5 layers aggregate on the R path on both engines (review #5)", {
+  object <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = counts_ref, meta.data = meta_ref))
+  object[["RNA"]] <- split(object[["RNA"]], f = object$Batch)
+  expect_length(SeuratObject::Layers(object[["RNA"]], search = "counts"), 2L)
+  r_engine <- with_engine("r", pseudobulk(object, "Batch", "condensed_cell_type"))
+  expect_pb_equal(r_engine)
+  skip_if_not(scuba_julia_available(quiet = TRUE), "Julia engine not available")
+  # SCUBA.jl resolves cells against the whole object, so split layers stay in R
+  julia_engine <- with_engine("julia", pseudobulk(object, "Batch", "condensed_cell_type"))
+  expect_identical(julia_engine$engine, "r")
+  expect_pb_equal(julia_engine)
+})
+
+test_that("split layers with different feature sets aggregate with zero rows (review #12)", {
+  bm <- meta_ref$Batch == "BM_200AB"
+  first <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = counts_ref[1:300, bm]))
+  second <- suppressWarnings(SeuratObject::CreateSeuratObject(counts = counts_ref[100:462, !bm]))
+  merged <- merge(first, second)
+  merged$Batch <- meta_ref[colnames(merged), "Batch"]
+  expect_identical(SeuratObject::Layers(merged[["RNA"]]), c("counts.1", "counts.2"))
+  pb <- with_engine("r", pseudobulk(merged, "Batch"))
+  # a layer contributes zero for the features it does not hold
+  want <- cbind(
+    BM_200AB = Matrix::rowSums(counts_ref[, bm]) * (seq_len(nrow(counts_ref)) <= 300),
+    PBMC_200AB = Matrix::rowSums(counts_ref[, !bm]) * (seq_len(nrow(counts_ref)) >= 100)
+  )
+  expect_equal(unname(pb$counts[rownames(counts_ref), c("BM_200AB", "PBMC_200AB")]), unname(want))
+  expect_error(with_engine("r", pseudobulk(merged, "Batch", features = "not_a_gene")), "not_a_gene")
 })
