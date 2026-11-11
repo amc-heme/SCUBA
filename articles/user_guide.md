@@ -33,6 +33,7 @@ Please ensure you have loaded the SCUBA package before continuing. See
 instructions to install SCUBA.
 
 ``` r
+
 # Load package
 library(SCUBA)
 ```
@@ -60,6 +61,7 @@ installed in a Python environment. For more information, see
 - anndata
 
 ``` r
+
 readRDS(
   # Replace with path to Seurat object
   "path/to/Seurat_object.rds"
@@ -67,6 +69,7 @@ readRDS(
 ```
 
 ``` r
+
 # Standard SingleCellExperiment objects
 readRDS(
   # Replace with the path to your object
@@ -82,6 +85,7 @@ HDF5Array::loadHDF5SummarizedExperiment(
 ```
 
 ``` r
+
 anndata::read_h5ad(
   "path_to_anndata_object.h5ad"
 )
@@ -139,6 +143,7 @@ equal to the name of the modality, and values equal to the key to use.
 - anndata
 
 ``` r
+
 all_keys(AML_Seurat)
 ```
 
@@ -152,6 +157,7 @@ To pull gene expression data for FLT3, for example, you would pass
 “rna_FLT3” to `vars`.
 
 ``` r
+
 fetch_data(
   AML_Seurat,
   vars = "rna_FLT3"
@@ -159,6 +165,8 @@ fetch_data(
   # First 10 rows are shown for this example
   head(10)
 ```
+
+    ## SCUBA: Julia engine unavailable (LD_LIBRARY_PATH contains the system library directory /usr/local/lib ahead of Julia's libraries, which makes Julia embedded in R load system copies of its bundled libraries and crash. Start R with R_LD_LIBRARY_PATH=/opt/R/4.6.2/lib/R/lib (set it in the environment that launches R, e.g. the shiny-server service), or prepend <julia>/lib/julia:<julia>/lib to LD_LIBRARY_PATH. Set options(SCUBA.ignore_ld_library_path = TRUE) to try anyway.); using the R engine.
 
     ##          rna_FLT3
     ## 487013_1 0.000000
@@ -173,6 +181,7 @@ fetch_data(
     ## 624345_1 2.037607
 
 ``` r
+
 all_keys(AML_SCE())
 ```
 
@@ -186,6 +195,7 @@ To pull gene expression data for FLT3, for example, you would pass
 “RNA_FLT3” to `vars`.
 
 ``` r
+
 fetch_data(
   AML_SCE(),
   vars = "RNA_FLT3"
@@ -207,6 +217,7 @@ fetch_data(
     ## 624345_1 2.037607
 
 ``` r
+
 all_keys(AML_h5ad())
 ```
 
@@ -221,6 +232,7 @@ To pull gene expression data for FLT3, for example, you would pass
 “X_FLT3” to `vars`.
 
 ``` r
+
 fetch_data(
   AML_h5ad(),
   vars = "X_FLT3"
@@ -256,6 +268,7 @@ in the data for the assay before passage to fetch_data.
 - anndata
 
 ``` r
+
 available_genes <-
   features_in_assay(
     AML_Seurat,
@@ -271,6 +284,7 @@ available_genes |>
     ##  [8] "ANP32E"  "ANPEP"   "ANXA2"
 
 ``` r
+
 # Test if a gene is present in the RNA assay before passage to fetch_data
 "MEIS1" %in% available_genes
 ```
@@ -278,6 +292,7 @@ available_genes |>
     ## [1] TRUE
 
 ``` r
+
 # Request data for multiple features
 fetch_data(
   AML_Seurat,
@@ -299,6 +314,7 @@ fetch_data(
     ## 624345_1 2.037607         0
 
 ``` r
+
 available_genes <-
   features_in_assay(
     AML_SCE(),
@@ -314,6 +330,7 @@ available_genes |>
     ##  [8] "ANP32E"  "ANPEP"   "ANXA2"
 
 ``` r
+
 # Test if a gene is present in the RNA assay before passage to fetch_data
 "MEIS1" %in% available_genes
 ```
@@ -321,6 +338,7 @@ available_genes |>
     ## [1] TRUE
 
 ``` r
+
 # Request data for multiple features
 fetch_data(
   AML_SCE(),
@@ -342,6 +360,7 @@ fetch_data(
     ## 624345_1 2.037607         0
 
 ``` r
+
 available_genes <-
   features_in_assay(
     AML_h5ad(),
@@ -356,6 +375,7 @@ available_genes |>
     ##  [8] "ANP32E"  "ANPEP"   "ANXA2"
 
 ``` r
+
 # Test if a gene is present in the RNA assay before passage to fetch_data
 "MEIS1" %in% available_genes
 ```
@@ -363,6 +383,7 @@ available_genes |>
     ## [1] TRUE
 
 ``` r
+
 # Request data for multiple features
 fetch_data(
   AML_h5ad(),
@@ -404,24 +425,17 @@ To pull data from alternate layers, use the `layer` parameter.
 - anndata
 
 Below, feature expression data is pulled from raw counts (the `counts`
-slot).
+layer).
 
 ``` r
+
 fetch_data(
   AML_Seurat,
   vars = c("rna_FLT3", "rna_MEIS1"),
-  slot = "counts"
+  layer = "counts"
   ) |>
   head(10)
 ```
-
-    ## Warning: The `slot` argument of `FetchData()` is deprecated as of SeuratObject 5.0.0.
-    ## ℹ Please use the `layer` argument instead.
-    ## ℹ The deprecated feature was likely used in the SCUBA package.
-    ##   Please report the issue to the authors.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-    ## generated.
 
     ##          rna_FLT3 rna_MEIS1
     ## 487013_1        0         0
@@ -446,6 +460,7 @@ Below, feature expression data is pulled from raw counts (the `counts`
 layer, referred to as the `counts` “assay” in SingleCellExperiment).
 
 ``` r
+
 fetch_data(
   AML_SCE(),
   vars = c("RNA_FLT3", "RNA_MEIS1"),
@@ -477,6 +492,7 @@ In the example object below, normalized counts are stored in X, and raw
 counts are stored in an alternate layer named “counts”.
 
 ``` r
+
 # Raw counts in "counts"
 fetch_data(
   AML_h5ad(),
@@ -499,6 +515,7 @@ fetch_data(
     ## 624345_1      4       0
 
 ``` r
+
 # Normalized counts in X
 fetch_data(
   AML_h5ad(),
@@ -540,6 +557,7 @@ utility function.
 - anndata
 
 ``` r
+
 # View available metadata
 meta_varnames(AML_Seurat)
 ```
@@ -556,6 +574,7 @@ meta_varnames(AML_Seurat)
     ## [28] "RNA_snn_res.0.4"     "condensed_cell_type"
 
 ``` r
+
 fetch_data(
   AML_Seurat,
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -577,6 +596,7 @@ fetch_data(
     ## 624345_1 Plasmacytoid dendritic cells BM_200AB       5995
 
 ``` r
+
 # View available metadata
 meta_varnames(AML_SCE())
 ```
@@ -593,6 +613,7 @@ meta_varnames(AML_SCE())
     ## [28] "RNA_snn_res.0.4"     "condensed_cell_type" "ident"
 
 ``` r
+
 fetch_data(
   AML_SCE(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -614,6 +635,7 @@ fetch_data(
     ## 624345_1 Plasmacytoid dendritic cells BM_200AB       5995
 
 ``` r
+
 # View available metadata
 meta_varnames(AML_h5ad())
 ```
@@ -630,6 +652,7 @@ meta_varnames(AML_h5ad())
     ## [28] "condensed_cell_type"
 
 ``` r
+
 fetch_data(
   AML_h5ad(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -677,6 +700,7 @@ does not offer performance advantages over
 - anndata
 
 ``` r
+
 fetch_metadata(
   AML_Seurat,
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -698,6 +722,7 @@ fetch_metadata(
     ## 624345_1 Plasmacytoid dendritic cells BM_200AB       5995
 
 ``` r
+
 fetch_metadata(
   AML_SCE(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -719,6 +744,7 @@ fetch_metadata(
     ## 624345_1 Plasmacytoid dendritic cells BM_200AB       5995
 
 ``` r
+
 fetch_metadata(
   AML_h5ad(),
   vars = c("condensed_cell_type", "Batch", "nCount_RNA")
@@ -753,6 +779,7 @@ using the `full_table` parameter.
 - anndata
 
 ``` r
+
 table <- 
   fetch_metadata(
     AML_Seurat,
@@ -775,6 +802,7 @@ table[1:10, 1:5]
     ## 624345_1 SeuratProject       5995          246     22268         194
 
 ``` r
+
 table <-
   fetch_metadata(
     AML_SCE(),
@@ -799,6 +827,7 @@ table[1:10, 1:5]
     ## 624345_1 SeuratProject       5995          246     22268         194
 
 ``` r
+
 table <-
   fetch_metadata(
     AML_h5ad(),
@@ -845,6 +874,7 @@ From running
 the key of the UMAP reduction in this object is “UMAP\_”.
 
 ``` r
+
 all_keys(AML_Seurat)
 ```
 
@@ -855,6 +885,7 @@ To fetch the first and second dims, pass “UMAP_1” and “UMAP_2” to
 `vars`.
 
 ``` r
+
 fetch_data(
   AML_Seurat,
   vars = c("UMAP_1", "UMAP_2")
@@ -879,6 +910,7 @@ From running
 the key of the UMAP reduction in this object is “UMAP\_”.
 
 ``` r
+
 all_keys(AML_SCE())
 ```
 
@@ -889,6 +921,7 @@ To fetch the first and second dims, pass “UMAP_1” and “UMAP_2” to
 `vars`.
 
 ``` r
+
 fetch_data(
   AML_SCE(),
   vars = c("UMAP_1", "UMAP_2")
@@ -913,6 +946,7 @@ From running
 the key of the UMAP reduction in this object is “X_umap\_”.
 
 ``` r
+
 all_keys(AML_h5ad())
 ```
 
@@ -923,6 +957,7 @@ To fetch the first and second dims, pass “X_umap_1” and “X_umap_2” to
 `vars`.
 
 ``` r
+
 fetch_data(
   AML_h5ad(),
   vars = c("X_umap_1", "X_umap_2")
@@ -977,6 +1012,7 @@ second dimensions of the specified reduction are returned.
 - anndata
 
 ``` r
+
 fetch_reduction(
   AML_Seurat,
   reduction = "umap",
@@ -999,6 +1035,7 @@ fetch_reduction(
     ## 624345_1 -2.692851  4.533458
 
 ``` r
+
 fetch_reduction(
   AML_SCE(),
   reduction = "UMAP",
@@ -1021,6 +1058,7 @@ fetch_reduction(
     ## 624345_1 -2.692851  4.533458
 
 ``` r
+
 fetch_reduction(
   AML_h5ad(),
   reduction = "X_umap",
@@ -1075,6 +1113,7 @@ function.
 Identifying available values for the variable “Batch”:
 
 ``` r
+
 unique_values(AML_Seurat, var = "Batch")
 ```
 
@@ -1083,6 +1122,7 @@ unique_values(AML_Seurat, var = "Batch")
 Returning cells are returned where “Batch” is equal to “PBMC_200AB”:
 
 ``` r
+
 cell_subset <- 
   fetch_cells(
     object = AML_Seurat, 
@@ -1097,6 +1137,7 @@ cell_subset[1:6]
     ## [1] "844178_2" "809777_2" "613075_2" "401992_2" "15150_2"  "208437_2"
 
 ``` r
+
 # Number of cells
 length(cell_subset)
 ```
@@ -1106,6 +1147,7 @@ length(cell_subset)
 Retrieving expression data for the subset:
 
 ``` r
+
 data <-
   fetch_data(
     AML_Seurat,
@@ -1120,6 +1162,7 @@ str(data)
     ##  $ rna_FLT3: num  0 0 0 0 0 0 0 0 0 0 ...
 
 ``` r
+
 # Compare with full data
 full_data <-
   fetch_data(
@@ -1136,6 +1179,7 @@ str(full_data)
 Identifying available values for the variable “Batch”:
 
 ``` r
+
 unique_values(AML_SCE(), var = "Batch")
 ```
 
@@ -1144,6 +1188,7 @@ unique_values(AML_SCE(), var = "Batch")
 Returning cells are returned where “Batch” is equal to “PBMC_200AB”:
 
 ``` r
+
 cell_subset <- 
   fetch_cells(
     object = AML_SCE(), 
@@ -1158,6 +1203,7 @@ cell_subset[1:6]
     ## [1] "844178_2" "809777_2" "613075_2" "401992_2" "15150_2"  "208437_2"
 
 ``` r
+
 # Number of cells
 length(cell_subset)
 ```
@@ -1167,6 +1213,7 @@ length(cell_subset)
 Retrieving expression data for the subset:
 
 ``` r
+
 data <-
   fetch_data(
     AML_SCE(),
@@ -1181,6 +1228,7 @@ str(data)
     ##  $ RNA_FLT3: num  0 0 0 0 0 0 0 0 0 0 ...
 
 ``` r
+
 # Compare with full data
 full_data <-
   fetch_data(
@@ -1197,6 +1245,7 @@ str(full_data)
 Identifying available values for the variable “Batch”:
 
 ``` r
+
 unique_values(AML_h5ad(), var = "Batch")
 ```
 
@@ -1206,6 +1255,7 @@ unique_values(AML_h5ad(), var = "Batch")
 Returning cells are returned where “Batch” is equal to “PBMC_200AB”:
 
 ``` r
+
 cell_subset <- 
   fetch_cells(
     object = AML_h5ad(), 
@@ -1220,6 +1270,7 @@ cell_subset[1:6]
     ## [1] "844178_2" "809777_2" "613075_2" "401992_2" "15150_2"  "208437_2"
 
 ``` r
+
 # Number of cells
 length(cell_subset)
 ```
@@ -1229,6 +1280,7 @@ length(cell_subset)
 Retrieving expression data for the subset:
 
 ``` r
+
 data <-
   fetch_data(
     AML_h5ad(),
@@ -1261,6 +1313,7 @@ str(data)
     ##       dtype='object')
 
 ``` r
+
 # Compare with full data
 full_data <-
   fetch_data(
@@ -1312,6 +1365,7 @@ This is done via
 - anndata
 
 ``` r
+
 meta_varnames(
   AML_Seurat
 )
@@ -1329,6 +1383,7 @@ meta_varnames(
     ## [28] "RNA_snn_res.0.4"     "condensed_cell_type"
 
 ``` r
+
 meta_varnames(
   AML_SCE()
 )
@@ -1346,6 +1401,7 @@ meta_varnames(
     ## [28] "RNA_snn_res.0.4"     "condensed_cell_type" "ident"
 
 ``` r
+
 meta_varnames(
   AML_h5ad()
 )
@@ -1382,6 +1438,7 @@ function.
 - anndata
 
 ``` r
+
 unique_values(
   AML_Seurat,
   var = "condensed_cell_type"
@@ -1397,6 +1454,7 @@ unique_values(
 ```
 
 ``` r
+
 unique_values(
   AML_SCE(),
   var = "condensed_cell_type"
@@ -1412,6 +1470,7 @@ unique_values(
 ```
 
 ``` r
+
 unique_values(
   AML_h5ad(),
   var = "condensed_cell_type"
@@ -1469,12 +1528,14 @@ long as it exists. When developing your own functions, these values
 could reflect a test case for the function you are developing.
 
 ``` r
+
 object <- AML_Seurat
 feature <- "rna_GAPDH"
 metadata <- "condensed_cell_type"
 ```
 
 ``` r
+
 object <- AML_Seurat
 feature <- "rna_GAPDH"
 metadata <- "condensed_cell_type"
@@ -1498,6 +1559,7 @@ and not split by a metadata variable.
 Make sure you have loaded ggplot2 before proceeding.
 
 ``` r
+
 if (!require("ggplot2", quietly = TRUE)){
   install.packages("ggplot2")
 }
@@ -1514,6 +1576,7 @@ column corresponding to the feature in the output of
 [`fetch_data()`](https://amc-heme.github.io/SCUBA/reference/fetch_data.md).
 
 ``` r
+
 object <- AML_Seurat
 feature <- "rna_GAPDH"
 metadata <- "condensed_cell_type"
@@ -1544,6 +1607,7 @@ entered. The metadata variable is supplied to the fill attribute, again
 using `.data[[]]`.
 
 ``` r
+
 object <- AML_Seurat
 feature <- "rna_GAPDH"
 metadata <- "condensed_cell_type"
@@ -1574,6 +1638,7 @@ out into separate plots. This is done with
 [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html).
 
 ``` r
+
 object <- AML_Seurat
 feature <- "rna_GAPDH"
 metadata <- "condensed_cell_type"
@@ -1622,6 +1687,7 @@ The following additional changes will be added with a custom theme:
 - The text is made bold and shrank via `strip.text`.
 
 ``` r
+
 if (!require("cowplot", quietly = TRUE)){
   install.packages("cowplot")
 }
@@ -1630,6 +1696,7 @@ library(cowplot)
 ```
 
 ``` r
+
 object <- AML_Seurat
 feature <- "rna_GAPDH"
 metadata <- "condensed_cell_type"
@@ -1674,6 +1741,7 @@ the function as parameters, and move the subsequent code into the
 function.
 
 ``` r
+
 # Transfer variables to parameters
 # object <- AML_Seurat
 # feature <- "rna_GAPDH"
@@ -1727,6 +1795,7 @@ entering features.
 - anndata
 
 ``` r
+
 density_plot(
   object = AML_Seurat,
   feature = "rna_GAPDH",
@@ -1737,6 +1806,7 @@ density_plot(
 ![](user_guide_files/figure-html/unnamed-chunk-60-1.png)
 
 ``` r
+
 density_plot(
   object = AML_SCE(),
   feature = "RNA_GAPDH",
@@ -1747,6 +1817,7 @@ density_plot(
 ![](user_guide_files/figure-html/unnamed-chunk-61-1.png)
 
 ``` r
+
 density_plot(
   object = AML_h5ad(),
   feature = "X_GAPDH",
@@ -1785,6 +1856,7 @@ utility functions:
   in `fetch_data`.
 
 ``` r
+
 feature_plot <- 
   function(
     object,
@@ -1861,6 +1933,7 @@ Running function without specifying default reduction, layer: utility
 functions will supply defaults.
 
 ``` r
+
 feature_plot(
   object = AML_Seurat,
   feature = "rna_GAPDH"
@@ -1872,6 +1945,7 @@ feature_plot(
 Running the function with the raw counts layer:
 
 ``` r
+
 feature_plot(
   object = AML_Seurat,
   feature = "rna_GAPDH",
@@ -1885,6 +1959,7 @@ Running function without specifying default reduction, layer: utility
 functions will supply defaults.
 
 ``` r
+
 feature_plot(
   object = AML_SCE(),
   feature = "RNA_GAPDH"
@@ -1896,6 +1971,7 @@ feature_plot(
 Running the function using the raw counts layer:
 
 ``` r
+
 feature_plot(
   object = AML_SCE(),
   feature = "RNA_GAPDH",
@@ -1909,6 +1985,7 @@ Running function without specifying default reduction, layer: utility
 functions will supply defaults.
 
 ``` r
+
 feature_plot(
   object = AML_h5ad(),
   feature = "X_GAPDH"
@@ -1920,6 +1997,7 @@ feature_plot(
 Running the function with the raw counts layer:
 
 ``` r
+
 feature_plot(
   object = AML_h5ad(),
   feature = "X_GAPDH",

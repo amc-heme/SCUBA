@@ -16,6 +16,17 @@
   : Fetch metadata from single-cell objects
 - [`fetch_reduction()`](https://amc-heme.github.io/SCUBA/reference/fetch_reduction.md)
   : Fetch reduction coordinates from single-cell objects
+- [`fetch_matrix()`](https://amc-heme.github.io/SCUBA/reference/fetch_matrix.md)
+  : Fetch an expression matrix
+
+## Aggregation
+
+- [`pseudobulk()`](https://amc-heme.github.io/SCUBA/reference/pseudobulk.md)
+  : Pseudobulk profiles: aggregate a counts layer over groups of cells
+- [`pseudobulk_design()`](https://amc-heme.github.io/SCUBA/reference/pseudobulk_design.md)
+  : Preview the pseudobulk profiles of an object
+- [`layer_names()`](https://amc-heme.github.io/SCUBA/reference/layer_names.md)
+  : Layers of an assay
 
 ## Utility functions
 
@@ -35,6 +46,27 @@
   : Plotting utility function to return all cell IDs
 - [`n_unique()`](https://amc-heme.github.io/SCUBA/reference/n_unique.md)
   : Number of unique values in a metadata variable
+- [`update_object_metadata()`](https://amc-heme.github.io/SCUBA/reference/update_object_metadata.md)
+  : Metadata for multiple single cell object classes
+
+## Julia engine and file-backed objects
+
+- [`scuba_engine()`](https://amc-heme.github.io/SCUBA/reference/scuba_engine.md)
+  : Which engine SCUBA is using
+- [`with_engine()`](https://amc-heme.github.io/SCUBA/reference/with_engine.md)
+  : Run an expression with a given SCUBA engine
+- [`scuba_julia_available()`](https://amc-heme.github.io/SCUBA/reference/scuba_julia_available.md)
+  : Is the Julia engine available?
+- [`scuba_julia_warmup()`](https://amc-heme.github.io/SCUBA/reference/scuba_julia_warmup.md)
+  : Warm up the Julia engine
+- [`scuba_build_sysimage()`](https://amc-heme.github.io/SCUBA/reference/scuba_build_sysimage.md)
+  : Build a Julia system image with SCUBA.jl compiled in
+- [`open_h5ad()`](https://amc-heme.github.io/SCUBA/reference/open_h5ad.md)
+  [`open_h5mu()`](https://amc-heme.github.io/SCUBA/reference/open_h5ad.md)
+  : Open an .h5ad or .h5mu file as a SCUBA object (Julia engine)
+- [`scuba_source_modalities()`](https://amc-heme.github.io/SCUBA/reference/scuba_source_modalities.md)
+  [`scuba_source_reductions()`](https://amc-heme.github.io/SCUBA/reference/scuba_source_modalities.md)
+  : Modalities and reductions of a file-backed SCUBA object
 
 ## Datasets
 

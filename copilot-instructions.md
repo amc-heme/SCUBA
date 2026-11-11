@@ -97,6 +97,7 @@ warning requesting the user to specify the experiment key.
 **Examples**:
 
 ``` r
+
 # Fetch feature with explicit assay key
 fetch_data(obj, vars = "rna_FLT3")
 fetch_data(obj, vars = c("adt_CD9", "adt_CD19"))
@@ -128,6 +129,7 @@ Example: `X_umap_1`, `X_pca_2`.
 **Examples**:
 
 ``` r
+
 # Seurat / SCE reductions
 fetch_data(obj, vars = c("UMAP_1", "UMAP_2"))
 fetch_data(obj, vars = c("PC_1", "PC_2", "PC_3"))
@@ -229,6 +231,7 @@ for consistency across object classes.
 ## Quick Validation Commands
 
 ``` r
+
 # Load dev version
 devtools::load_all()
 # Regenerate docs

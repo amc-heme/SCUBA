@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Common data accession for single cell object formats • SCUBA</title>
 <script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="Common data accession for single cell object formats">
@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">SCUBA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,7 @@
 <li><a class="dropdown-item" href="articles/user_guide.html">User Guide</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -116,6 +117,16 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"bnprks/BPCells/r"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="engine-scuba-2x">Engine (SCUBA 2.x)<a class="anchor" aria-label="anchor" href="#engine-scuba-2x"></a>
+</h2>
+<p>Since version 2.0 the accessor functions can run on the Julia package <a href="https://github.com/amc-heme/SCUBA.jl" class="external-link">SCUBA.jl</a>, which implements SCUBA’s rules once for R, Python and Julia. The engine is selected with</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>SCUBA.engine <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span>   <span class="co"># Julia when available, otherwise the legacy R implementation (default)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>SCUBA.engine <span class="op">=</span> <span class="st">"julia"</span><span class="op">)</span>  <span class="co"># require the Julia engine</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>SCUBA.engine <span class="op">=</span> <span class="st">"r"</span><span class="op">)</span>      <span class="co"># legacy R implementation</span></span></code></pre></div>
+<p>The Julia engine needs a Julia installation (<a href="https://julialang.org/downloads" class="external-link uri">https://julialang.org/downloads</a>, or <code><a href="https://rdrr.io/pkg/JuliaCall/man/install_julia.html" class="external-link">JuliaCall::install_julia()</a></code>) and the <code>JuliaCall</code> R package. On first use SCUBA.jl is installed into a dedicated Julia project (<code>@scuba-r</code>), from the registry or, while it is unregistered, from <a href="https://github.com/amc-heme/SCUBA.jl" class="external-link uri">https://github.com/amc-heme/SCUBA.jl</a> (<code>SCUBA_JL_URL</code> overrides the source, <code>SCUBA_JL_PATH</code> points at a local checkout); later sessions start in a few seconds. Seurat and SingleCellExperiment objects are read in place, BPCells layers are read natively from disk. See <code><a href="reference/scuba_engine.html">?scuba_engine</a></code>, <code>NEWS.md</code> and the SCUBA.jl compatibility notes for the (small) behavioural differences from 1.x.</p>
+</div>
+<div class="section level2">
 <h2 id="additional-installation-for-anndata-objects">Additional Installation for anndata Objects<a class="anchor" aria-label="anchor" href="#additional-installation-for-anndata-objects"></a>
 </h2>
 <div class="section level3">
@@ -125,7 +136,7 @@
 <hr>
 <p>To use SCUBA with anndata objects, you will need a Python installation and the reticulate R package. If you are using anndata objects, follow the steps below. <strong>If you are only using Seurat of SingleCellExperiment objects, you do not need to complete these steps.</strong></p>
 <p>First, install the <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a> package in R.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"reticulate"</span><span class="op">)</span></span></code></pre></div>
 <p>Next, you will need to set up a version of Python with the necessary packages installed. There are several ways to do this. We recommend the use of an Anaconda environment, which will allow you to create an environment just for use by SCUBA that does not interfere with any other installations of Python you may have. The instructions below cover setting up an environment via anaconda, but other means of setting up Python environments will work with SCUBA. All that is needed is a Python environment connected to reticulate with the dependencies below installed:</p>
 <ul>
@@ -149,22 +160,22 @@
 <li><p>For MacOS and linux users: open a terminal window. For Windows users, you can open the Anaconda command prompt application (cmd.exe). Subsequent steps are the same for all operating systems.</p></li>
 <li><p>In the termainal, create a new conda environment for use with SCUBA.</p></li>
 </ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">--name</span> SCUBA_anndata </span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">--name</span> SCUBA_anndata </span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Next, “Activate” the environment to switch to it in the terminal.</li>
 </ol>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">conda</span> activate SCUBA_anndata</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">conda</span> activate SCUBA_anndata</span></code></pre></div>
 <p>You should now see “(SCUBA_anndata)” to the left side of your cursor in the terminal.</p>
 <ol start="5" style="list-style-type: decimal">
 <li>Next, install the <a href="https://anndata.readthedocs.io/en/stable/" class="external-link">anndata</a> package according to the instructions from their website. Make sure to specify the channel with <code>-c</code> to install the most recent version.</li>
 </ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">conda</span> install anndata <span class="at">-c</span> conda-forge</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">conda</span> install anndata <span class="at">-c</span> conda-forge</span></code></pre></div>
 <ol start="6" style="list-style-type: decimal">
 <li>SCUBA requires the following additional packages: <a href="https://scipy.org/" class="external-link">scipy</a>, <a href="https://numpy.org/" class="external-link">numpy</a>, and <a href="https://pandas.pydata.org/" class="external-link">pandas</a>. These should have been installed as dependencies when installing anndata. To verify these packages are present, you can run <code>conda list</code> on the environment:</li>
 </ol>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata pandas</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata scipy</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata numpy</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata pandas</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata scipy</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-n</span> SCUBA_anndata numpy</span></code></pre></div>
 <p>If the package is present, you will see information for the package.</p>
 <pre><code>#
 # Name                    Version                   Build  Channel
@@ -175,7 +186,7 @@ pandas                    2.2.3           py313h668b085_3    conda-forge
 <ol start="7" style="list-style-type: decimal">
 <li>Connect reticulate to the conda environment. To do this, run the following in an R console:</li>
 </ol>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_condaenv</a></span><span class="op">(</span><span class="st">"SCUBA_anndata"</span><span class="op">)</span></span></code></pre></div>
 <p>Step 7 will need to be repeated each time you restart your R session. If you are using RStudio, you may set a default Python environment to use with reticulate to avoid having to repeat this step each time. To do this in RStudio, complete the following:</p>
 <ul>
@@ -251,7 +262,7 @@ pandas                    2.2.3           py313h668b085_3    conda-forge
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

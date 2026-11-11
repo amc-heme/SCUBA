@@ -18,14 +18,14 @@
 
 ## Citation
 
-Showers W, Desai J, Gillen A (2025). *SCUBA: Common data accession for
-single cell object formats*. R package version 1.2.2,
+Showers W, Desai J, Gillen A (2026). *SCUBA: Common data accession for
+single cell object formats*. R package version 2.0.0.9000,
 <https://amc-heme.github.io/SCUBA/>.
 
     @Manual{,
       title = {SCUBA: Common data accession for single cell object formats},
       author = {William Showers and Jairav Desai and Austin Gillen},
-      year = {2025},
-      note = {R package version 1.2.2},
+      year = {2026},
+      note = {R package version 2.0.0.9000},
       url = {https://amc-heme.github.io/SCUBA/},
     }

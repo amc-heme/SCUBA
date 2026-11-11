@@ -119,11 +119,6 @@ plot_dot(
      group_by = "condensed_cell_type", 
      features = c("X_UNG", "X_GAPDH", "X_CCR5")
    )
-#> Warning: `FetchData.AnnDataR6()` was deprecated in SCUBA 1.1.2.
-#> ℹ Please use fetch_data() instead. The FetchData method for anndata objects
-#>   will be removed in 1.3.0.
-#> ℹ The deprecated feature was likely used in the SCUBA package.
-#>   Please report the issue to the authors.
 #> Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
 #> ℹ Please use tidy evaluation idioms with `aes()`.
 #> ℹ See also `vignette("ggplot2-in-packages")` for more information.

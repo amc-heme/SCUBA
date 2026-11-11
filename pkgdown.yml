@@ -1,9 +1,9 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   user_guide: user_guide.html
-last_built: 2025-12-08T17:03Z
+last_built: 2026-11-11T02:57Z
 urls:
   reference: https://amc-heme.github.io/SCUBA/reference
   article: https://amc-heme.github.io/SCUBA/articles

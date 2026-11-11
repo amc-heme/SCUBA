@@ -11,10 +11,11 @@ function uses optimized direct matrix access for improved performance.
 For all other cases, it delegates to
 [`fetch_data()`](https://amc-heme.github.io/SCUBA/reference/fetch_data.md).
 
-Unlike
+This function is designed for feature retrieval. Names that are metadata
+columns or reduction coordinates (for example `"PC_1"`) are resolved
+through
 [`fetch_data()`](https://amc-heme.github.io/SCUBA/reference/fetch_data.md),
-this function is specifically designed for feature retrieval and does
-not support fetching metadata or reduction coordinates.
+on both engines.
 
 See our GitHub.io website for additional information and examples.
 
