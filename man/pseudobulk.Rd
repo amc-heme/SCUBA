@@ -113,7 +113,9 @@ main modality \code{"X"} for AnnData and \code{.h5ad} objects).}
 
 \item{layer}{Layer to aggregate. Defaults to \code{"counts"}, \emph{not} to \code{\link[=default_layer]{default_layer()}}: the
 default layer holds normalised values, which must not be summed. AnnData objects whose raw
-counts live in \code{X} need \code{layer = "X"} (or \code{"raw"} for \code{adata.raw}).}
+counts live in \code{X} need \code{layer = "X"} (or \code{"raw"} for \code{adata.raw}). An AnnData \code{obsm}
+modality (for example a protein panel) is a single matrix with no layers: pass
+\code{layer = "X"}; any other layer is an error rather than a silent substitution.}
 
 \item{cells}{A character vector of cell names to include, as they are named
 in the object (i.e. according to \code{colnames(object)}). If \code{NULL}, data will

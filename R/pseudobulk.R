@@ -49,7 +49,9 @@
 #'   main modality `"X"` for AnnData and `.h5ad` objects).
 #' @param layer Layer to aggregate. Defaults to `"counts"`, *not* to [default_layer()]: the
 #'   default layer holds normalised values, which must not be summed. AnnData objects whose raw
-#'   counts live in `X` need `layer = "X"` (or `"raw"` for `adata.raw`).
+#'   counts live in `X` need `layer = "X"` (or `"raw"` for `adata.raw`). An AnnData `obsm`
+#'   modality (for example a protein panel) is a single matrix with no layers: pass
+#'   `layer = "X"`; any other layer is an error rather than a silent substitution.
 #' @param features Features to include (default: every feature of the assay).
 #' @param fun `"sum"` (default) or `"mean"`; the mean divides each profile's sum by the number of
 #'   cells that contributed to it.
@@ -133,22 +135,15 @@ pseudobulk.Seurat <-
     total <- matrix(0, length(features), n_profiles)
     n <- integer(n_profiles)
     engine <- "r"
-    use_julia <- .scuba_julia_object(object)
+    # Split layers (counts.1, counts.2, ...) are aggregated on the R path: SCUBA.jl resolves cell
+    # positions against the whole object, not the smaller layer, so it cannot read them yet.
+    use_julia <- .scuba_julia_object(object) && length(layers) == 1L
     for (one_layer in layers) {
       if (use_julia) {
-        # Split layers (counts.1, counts.2, ...) hold disjoint cells: aggregate each over the
-        # cells it holds and add the accumulators. A single layer is sent whole (NULL cells =
-        # object order) unless the caller subset the cells.
-        if (length(layers) == 1) {
-          layer_cells <- design$cells
-          jl_cells <- if (is.null(cells)) NULL else design$cells
-        } else {
-          layer_cells <- intersect(design$cells, SeuratObject::Cells(assay_object, layer = one_layer))
-          jl_cells <- layer_cells
-        }
-        if (!length(layer_cells)) next
-        codes <- design$codes[match(layer_cells, design$cells)]
-        res <- .jl_pseudobulk(object, codes, n_profiles, assay = assay, layer = one_layer,
+        # A single layer is sent whole (NULL cells = object order) unless the caller subset
+        # the cells.
+        jl_cells <- if (is.null(cells)) NULL else design$cells
+        res <- .jl_pseudobulk(object, design$codes, n_profiles, assay = assay, layer = one_layer,
                               cells = jl_cells, features = features)
         res$sum <- res$sum[match(features, res$features), , drop = FALSE]
         engine <- "julia"
@@ -583,7 +578,12 @@ as.matrix.scuba_pseudobulk <- function(x, ...) x$counts
   codes <- integer(ncol(m))
   codes[pos] <- design_codes
   fidx <- match(features, rn)
-  if (anyNA(fidx)) stop("Features not found: ", paste(utils::head(features[is.na(fidx)], 10), collapse = ", "), call. = FALSE)
+  # A split layer may hold only some of the assay's features (objects merged from different
+  # panels); those rows sum to zero for its cells. Features absent from every layer were
+  # rejected against the assay's features before this point.
+  if (anyNA(fidx) && !partial) {
+    stop("Features not found: ", paste(utils::head(features[is.na(fidx)], 10), collapse = ", "), call. = FALSE)
+  }
   total <- if (inherits(m, "IterableMatrix")) {
     .r_pseudobulk_bpcells(m, codes, n_profiles)
   } else if (methods::is(m, "DelayedArray") || methods::is(m, "SparseArray")) {
@@ -595,8 +595,11 @@ as.matrix.scuba_pseudobulk <- function(x, ...) x$counts
   } else {
     .r_pseudobulk_blocks(m, codes, n_profiles)
   }
-  total <- as.matrix(total)[fidx, , drop = FALSE]
-  list(sum = total, n = tabulate(codes, n_profiles))
+  total <- as.matrix(total)
+  out <- matrix(0, length(features), n_profiles)
+  present <- !is.na(fidx)
+  out[present, ] <- total[fidx[present], , drop = FALSE]
+  list(sum = out, n = tabulate(codes, n_profiles))
 }
 
 # cells x profiles sparse indicator; `m %*% ind` sums the columns of each profile in one pass.

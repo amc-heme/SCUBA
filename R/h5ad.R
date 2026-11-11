@@ -152,8 +152,17 @@ scuba_source_reductions <- function(object) object$info$reductions
 #' @export
 fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, slot = NULL, ...) {
   .scuba_source_engine()
+  # `slot` is an alias of `layer` (resolved by the generic; repeated for direct method calls)
+  if (!is.null(slot)) {
+    if (!is.null(layer) && !identical(layer, slot)) {
+      stop("Both `layer` and `slot` were given to fetch_data(); `slot` is kept only as an alias of `layer`.",
+           call. = FALSE)
+    }
+    layer <- slot
+  }
   vars <- as.character(vars)
   if (!length(vars)) stop("`vars` must contain at least one variable.", call. = FALSE)
+  .warn_wide_query(vars)
   if (anyDuplicated(vars)) {
     warning("Duplicate entries in `vars` were dropped: ", paste(unique(vars[duplicated(vars)]), collapse = ", "), call. = FALSE)
     vars <- unique(vars)
@@ -161,13 +170,16 @@ fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, sl
   jl_cells <- .src_cells_for_julia(object, cells)
   cells <- .src_cells(object, cells)
   meta_names <- names(object$meta)
-  bare <- sub("^obs_", "", vars)
-  is_meta <- vars %in% meta_names | (startsWith(vars, "obs_") & bare %in% meta_names)
+  # `obs_<name>` is an alias of the metadata column `<name>`, unless a column is literally called
+  # `obs_<name>` (for example one added with update_object_metadata()): the literal name wins
+  literal <- vars %in% meta_names
+  column <- ifelse(literal, vars, sub("^obs_", "", vars))
+  is_meta <- literal | (startsWith(vars, "obs_") & column %in% meta_names)
   out_meta <- NULL
   if (any(is_meta)) {
-    out_meta <- object$meta[cells, bare[is_meta], drop = FALSE]
-    names(out_meta) <- bare[is_meta]
-    shadow <- intersect(bare[is_meta], object$info$features[[1]])
+    out_meta <- object$meta[cells, column[is_meta], drop = FALSE]
+    names(out_meta) <- column[is_meta]
+    shadow <- intersect(column[is_meta], object$info$features[[1]])
     if (length(shadow)) {
       warning("The following variables are both metadata columns and features of the main modality and were ",
               "returned as metadata: ", paste(shadow, collapse = ", "), ". Use the modality key for the feature (e.g. \"",
@@ -176,7 +188,7 @@ fetch_data.scuba_source <- function(object, vars, layer = NULL, cells = NULL, sl
   }
   out_expr <- NULL; inputs <- character()
   if (any(!is_meta)) {
-    res <- .jl_call("fetch_data", object$path, vars[!is_meta], slot %||% layer, jl_cells, .scuba_julia_eltype(), any(is_meta), FALSE)
+    res <- .jl_call("fetch_data", object$path, vars[!is_meta], layer, jl_cells, .scuba_julia_eltype(), any(is_meta), FALSE)
     out_expr <- .jl_table(res, cells)
     inputs <- as.character(res$inputs)
   }

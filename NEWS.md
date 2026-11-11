@@ -1,5 +1,27 @@
 # SCUBA 2.0.0 (development)
 
+## Fixes from the review of the 2.0 branch
+
+* `fetch_matrix()` on the R engine accepts keyed names (`"rna_GAPDH"`, `"AB_CD117-AB"`),
+  which select their assay as on the Julia engine; features from several assays are an error.
+* `fetch_matrix()` on Seurat v5 objects with split layers (`counts.1`, `counts.2`, ... after
+  `split()` or `merge()`) returns every cell, zero-filling features a layer does not hold,
+  instead of the first layer only.
+* `fetch_matrix(sparse = TRUE)` converts other sparse classes, DelayedArray (HDF5-backed) and
+  BPCells matrices to `dgCMatrix` without a dense copy.
+* `pseudobulk()` on split layers always runs on the R path (SCUBA.jl cannot yet index cells
+  within a layer), and aggregates layers holding different feature sets.
+* `pseudobulk()` on an AnnData `obsm` modality requires `layer = "X"` instead of silently
+  aggregating it under the default `layer = "counts"`.
+* `fetch_data()` rejects conflicting `layer` and `slot` values on every engine and class, and
+  keeps the very-wide-query warning on the Julia engine. A metadata column literally named
+  `obs_<name>` on file-backed objects is no longer read as `<name>`.
+* SeuratObject 4 stays supported: `fetch_data()` passes `slot =` to its `FetchData()`, and
+  Seurat objects use the R engine under SeuratObject 4.
+* The Julia engine no longer falls back to an embedded copy of its glue code for old SCUBA.jl
+  versions (it did not match the R side); such versions are rejected, so `"auto"` uses the R
+  engine. Paths and URLs reach Julia as values, so Windows paths in `SCUBA_JL_PATH` work.
+
 ## Julia engine
 
 * SCUBA.jl is installed from its GitHub repository when the registry lookup fails (it is not

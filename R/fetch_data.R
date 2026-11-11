@@ -55,14 +55,48 @@ fetch_data <-
     ...
   ) {
     # `slot` (Seurat v4 vocabulary, see fetch_data.Seurat) is an alias of
-    # `layer` on every engine, so resolve it before routing to Julia.
-    slot <- list(...)$slot
-    if (!is.null(slot) && is.null(layer)) layer <- slot
+    # `layer` on every engine and object class. Resolve it once, here: reject
+    # conflicting values, then re-dispatch with `layer` only (UseMethod() would
+    # pass the original arguments on, not a modified `layer`).
+    dots <- list(...)
+    if (!is.null(dots$slot)) {
+      if (!is.null(layer) && !identical(layer, dots$slot)) {
+        stop(
+          "Both `layer` and `slot` were given to fetch_data(); ",
+          "`slot` is kept only as an alias of `layer`.",
+          call. = FALSE
+        )
+      }
+      layer <- dots$slot
+      dots$slot <- NULL
+      return(do.call(fetch_data, c(list(object, vars, layer = layer, cells = cells), dots)))
+    }
     if (.scuba_route_fetch_data(object, vars)) {
+      # the class methods warn about very wide queries; keep that on the Julia engine
+      .warn_wide_query(vars)
       return(.jl_fetch_data(object, vars, layer = layer, cells = cells, ...))
     }
     UseMethod("fetch_data")
   }
+
+# Warn when a fetch_data() query is very wide: results are dense data frames
+.warn_wide_query <- function(vars) {
+  if (length(vars) >= 1000) {
+    warning(
+      paste0(
+        "A very large number of features was requested (",
+        length(vars),
+        " features). fetch_data is not intended to be used with feature ",
+        "queries of this length. Data is returned in a dense format, so ",
+        "the memory usage of the output may be very large. Also, this ",
+        "query may take a while to complete."
+      ),
+      call. = FALSE,
+      immediate. = TRUE
+    )
+  }
+  invisible(NULL)
+}
 
 #' Function to display an error message when an unsupported object
 #' type is detected
@@ -101,21 +135,7 @@ fetch_data.Seurat <-
     # Check vars input
     # If more than 1000 features are requested, warn the user of potential
     # performance issues
-    if (!is.null(vars)) {
-      if (length(vars) >= 1000) {
-        warning(
-          paste0(
-            "A very large number of features was requested (",
-            length(vars),
-            " features). fetch_data is not intended to be used with feature ",
-            "queries of this length. Data is returned in a dense format, so ",
-            "the memory usage of the output may be very large. Also, this ",
-            "query may take a while to complete."
-          ),
-          immediate. = TRUE
-        )
-      }
-    }
+    .warn_wide_query(vars)
 
     # `slot` is kept for callers written against Seurat v4. SeuratObject 5
     # names its layers after the former slots ("counts", "data",
@@ -131,7 +151,18 @@ fetch_data.Seurat <-
       layer <- slot
     }
 
-    # This is a wrapper for SeuratObject::FetchData
+    # This is a wrapper for SeuratObject::FetchData. SeuratObject 4 names the
+    # argument `slot` (and has no `layer`); SeuratObject 5 takes `layer`.
+    if (!.seuratobject_v5()) {
+      return(
+        SeuratObject::FetchData(
+          object = object,
+          vars = vars,
+          slot = layer %||% "data",
+          cells = cells
+        )
+      )
+    }
     SeuratObject::FetchData(
       object = object,
       vars = vars,
@@ -158,20 +189,7 @@ fetch_data.SingleCellExperiment <-
     # 1.1. Very large queries in vars ####
     # If more than 1000 features are requested, warn the user of potential
     # performance issues
-    if (length(vars) >= 1000) {
-      warning(
-        paste0(
-          "A very large number of features was requested (",
-          length(vars),
-          " features). fetch_data is not intended to be used with feature ",
-          "queries of this length. Data is returned in a dense format, so ",
-          "the memory usage of the output may be very large. Also, this ",
-          "query may take a while to complete."
-        ),
-        call. = FALSE,
-        immediate. = TRUE
-      )
-    }
+    .warn_wide_query(vars)
 
     ## 1.2. Duplicate feature entries ####
     # Remove duplicates and warn the user that duplicates were entered
@@ -717,19 +735,7 @@ fetch_data.AnnDataR6 <-
     # Check vars input
     # If more than 1000 features are requested, warn the user of potential
     # performance issues
-    if (length(vars) >= 1000) {
-      warning(
-        paste0(
-          "A very large number of features was requested (",
-          length(vars),
-          " features). fetch_data is not intended to be used with feature ",
-          "queries of this length. Data is returned in a dense format, so ",
-          "the memory usage of the output may be very large. Also, this ",
-          "query may take a while to complete."
-        ),
-        immediate. = TRUE
-      )
-    }
+    .warn_wide_query(vars)
 
     # Source fetch_anndata python script
     python_path =
