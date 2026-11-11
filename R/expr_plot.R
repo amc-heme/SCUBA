@@ -99,7 +99,7 @@ expr_plot <-
     # 2. Fetch data
     ## 2.1. Fetch feature expression data
     data <-
-      FetchData(
+      fetch_data(
         object = object,
         vars = features,
         layer = slot

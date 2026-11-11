@@ -522,13 +522,13 @@ To pull data from alternate layers, use the `layer` parameter.
     subordinate of the .tabset element -->
 ##### Seurat
 
-Below, feature expression data is pulled from raw counts (the `counts` slot).
+Below, feature expression data is pulled from raw counts (the `counts` layer).
 
 ```{r}
 fetch_data(
   AML_Seurat,
   vars = c("rna_FLT3", "rna_MEIS1"),
-  slot = "counts"
+  layer = "counts"
   ) |>
   head(10)
 ```

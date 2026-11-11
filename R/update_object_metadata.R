@@ -9,7 +9,13 @@
 #' @param table a modified metadata table.
 #'
 #' @return the object passed to \code{object} with the modified metadata table.
-#' @noRd
+#' @export
+#'
+#' @examples
+#' table <- fetch_metadata(AML_Seurat, full_table = TRUE)
+#' table$flag <- table$nCount_RNA > stats::median(table$nCount_RNA)
+#' updated <- update_object_metadata(AML_Seurat, table)
+#' "flag" %in% meta_varnames(updated)
 update_object_metadata <-
   function(
     object,
