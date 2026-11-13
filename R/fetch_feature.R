@@ -73,13 +73,7 @@ fetch_feature.default <- function(
   layer = NULL,
   cells = NULL
 ) {
-  warning(
-    paste0(
-      "fetch_feature does not know how to handle object of class ",
-      paste(class(object), collapse = ", "),
-      ". Currently supported classes: Seurat, SingleCellExperiment, and AnnDataR6."
-    )
-  )
+  .scuba_unsupported_class(object, "fetch_feature")
 }
 
 #' @describeIn fetch_feature Seurat objects. Uses optimized BPCells access

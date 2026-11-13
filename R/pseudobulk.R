@@ -99,13 +99,7 @@ pseudobulk.default <-
     group_by = NULL,
     ...
   ) {
-    stop(
-      "pseudobulk() does not know how to handle an object of class ",
-      paste(class(object), collapse = ", "),
-      ". Supported classes: Seurat, SingleCellExperiment, AnnDataR6 and scuba_source ",
-      "(from open_h5ad() / open_h5mu()).",
-      call. = FALSE
-    )
+    .scuba_unsupported_class(object, "pseudobulk")
   }
 
 #' @rdname pseudobulk

@@ -17,9 +17,8 @@ test_that("layer_names on SingleCellExperiment objects", {
   expect_error(layer_names(sce, assay = "nope"), "Assay 'nope' not found")
 })
 
-test_that("layer_names on unsupported objects warns and returns nothing", {
-  expect_warning(res <- layer_names(1:3), "does not know how to handle")
-  expect_identical(res, character())
+test_that("layer_names on unsupported objects errors", {
+  expect_error(layer_names(1:3), "does not know how to handle")
 })
 
 test_that("layer_names on anndata objects", {

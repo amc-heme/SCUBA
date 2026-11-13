@@ -64,13 +64,7 @@ fetch_metadata.default <-
     full_table = FALSE,
     return_class = "dataframe"
   ) {
-    warning(
-      paste0(
-        "fetch_metadata does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "fetch_metadata")
   }
 
 #' @describeIn fetch_metadata Seurat objects

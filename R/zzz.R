@@ -14,10 +14,12 @@
         # has no wheels for Python 3.14. Freeze that stack for
         # reticulate-managed environments until the anndataR migration
         # (https://github.com/amc-heme/SCUBA/issues/173); environments the
-        # user manages (RETICULATE_PYTHON) are not affected.
+        # user manages (RETICULATE_PYTHON) are not affected. The pins live in
+        # .scuba_python_requirements (R/unsupported_class.R) so error
+        # messages can quote them.
         reticulate::py_require(
-          c("anndata>=0.10.9,<0.11", "pandas>=2.0.0,<3", "numpy", "scipy>=1.14.0,<1.15"),
-          python_version = "<3.14"
+          .scuba_python_requirements$packages,
+          python_version = .scuba_python_requirements$python_version
         )
       },
       error = function(e) {

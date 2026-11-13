@@ -47,13 +47,7 @@ fetch_reduction.default <-
     cells = NULL,
     dims = c(1, 2)
   ) {
-    warning(
-      paste0(
-        "fetch_reduction does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "fetch_reduction")
   }
 
 #' @describeIn fetch_reduction Seurat objects

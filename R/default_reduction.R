@@ -37,13 +37,7 @@ default_reduction.default <-
   function(
     object
   ){
-    warning(
-      paste0(
-        "default_reduction does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: AnnDataR6, Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "default_reduction")
   }
 
 #' @describeIn default_reduction Seurat objects

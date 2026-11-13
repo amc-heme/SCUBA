@@ -66,13 +66,7 @@ reduction_dimnames.default <-
     reduction,
     dims
   ) {
-    warning(
-      paste0(
-        "reduction_dimnames does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "reduction_dimnames")
   }
 
 #' @describeIn reduction_dimnames Seurat objects

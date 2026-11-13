@@ -47,13 +47,7 @@ relabel_axis.default <-
     feature,
     ...
   ){
-    warning(
-      paste0(
-        "relabel_axis does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat, Anndata, and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "relabel_axis")
   }
 
 #' @describeIn relabel_axis Seurat objects

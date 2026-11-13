@@ -34,13 +34,7 @@ update_object_metadata.default <-
     object,
     table
   ){
-    warning(
-      paste0(
-        "update_object_metadata does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat, SingleCellExperiment and AnnData."
-      )
-    )
+    .scuba_unsupported_class(object, "update_object_metadata")
   }
 
 #' @describeIn update_object_metadata Seurat objects

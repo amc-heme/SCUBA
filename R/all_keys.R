@@ -51,13 +51,7 @@ all_keys.default <-
   function(
     object
   ){
-    warning(
-      paste0(
-        "all_keys does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-        )
-      )
+    .scuba_unsupported_class(object, "all_keys")
     }
 
 #' @describeIn all_keys Seurat objects

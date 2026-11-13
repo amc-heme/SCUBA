@@ -17,9 +17,7 @@ layer_names <- function(object, assay = NULL) UseMethod("layer_names")
 
 #' @export
 layer_names.default <- function(object, assay = NULL) {
-  warning("layer_names does not know how to handle object of class ", paste(class(object), collapse = ", "),
-          ". Currently supported classes: Seurat, SingleCellExperiment, AnnDataR6 and scuba_source.", call. = FALSE)
-  character()
+  .scuba_unsupported_class(object, "layer_names")
 }
 
 #' @rdname layer_names

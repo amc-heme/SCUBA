@@ -28,13 +28,7 @@ get_all_cells.default <-
   function(
     object
   ) {
-    warning(
-      paste0(
-        "get_all_cells does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "get_all_cells")
   }
 
 #' @describeIn get_all_cells Seurat objects

@@ -111,13 +111,7 @@ fetch_data.default <-
     cells = NULL,
     ...
   ) {
-    warning(
-      paste0(
-        "fetch_metadata does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "fetch_data")
   }
 
 #' @describeIn fetch_data Seurat objects. This will run FetchData from the
