@@ -34,13 +34,7 @@ meta_varnames.default <-
   function(
     object
   ){
-    warning(
-      paste0(
-        "meta_varnames does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "meta_varnames")
   }
 
 #' @describeIn meta_varnames Seurat objects

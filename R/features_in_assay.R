@@ -38,13 +38,7 @@ features_in_assay.default <-
     object,
     assay
   ){
-    warning(
-      paste0(
-        "features_in_assay does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "features_in_assay")
   }
 
 #' @describeIn features_in_assay Seurat objects

@@ -43,14 +43,7 @@ fetch_matrix.default <-
     features = NULL,
     ...
   ){
-    warning(
-      paste0(
-        "fetch_matrix does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat, SingleCellExperiment, ",
-        "and anndata."
-      )
-    )
+    .scuba_unsupported_class(object, "fetch_matrix")
   }
 
 # # describeIn fetch_matrix Seurat objects

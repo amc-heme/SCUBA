@@ -1,5 +1,17 @@
 # SCUBA 2.0.0 (development)
 
+## Unsupported classes are an error
+
+* Calling a SCUBA generic on an object it has no method for now raises an error instead of
+  warning and returning the message text (so `get_all_cells()` no longer returns that
+  sentence where cell names were expected). The message names the right function
+  (`fetch_data()` used to report itself as `fetch_metadata`), the object's class and every
+  supported class (AnnDataR6, Seurat, SingleCellExperiment, scuba_source), read from the
+  registered methods so it cannot drift. A Python AnnData object that the R anndata package
+  did not wrap as AnnDataR6 (Python anndata >= 0.11 in a user-managed environment) gets a
+  hint naming the Python stack SCUBA supports; other reticulate objects point to
+  `open_h5ad()` / `open_h5mu()`.
+
 ## Fixes from the review of the 2.0 branch
 
 * `fetch_matrix()` on the R engine accepts keyed names (`"rna_GAPDH"`, `"AB_CD117-AB"`),

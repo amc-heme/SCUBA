@@ -36,14 +36,7 @@ fetch_cells.default <-
     meta_var,
     meta_levels
   ){
-    warning(
-      paste0(
-        "fetch_cells does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat, SingleCellExperiment, ",
-        "and Anndata."
-      )
-    )
+    .scuba_unsupported_class(object, "fetch_cells")
   }
 
 #' @describeIn fetch_cells Seurat objects

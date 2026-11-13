@@ -356,14 +356,15 @@ test_that("fetch_feature handles mixed keyed and unkeyed features", {
   )
 })
 
-# Test 10: fetch_feature returns warning for unsupported object types
-test_that("fetch_feature.default returns a warning for unsupported object types", {
+# Test 10: fetch_feature errors for unsupported object types
+test_that("fetch_feature.default errors for unsupported object types", {
   unsupported_object <- list(data = matrix(1:10, nrow = 2))
 
-  expect_warning(
+  expect_error(
     SCUBA::fetch_feature(
       object = unsupported_object,
       features = c("feature1", "feature2")
-    )
+    ),
+    "fetch_feature() does not know how to handle", fixed = TRUE
   )
 })

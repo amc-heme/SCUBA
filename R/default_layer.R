@@ -38,13 +38,7 @@ default_layer.default <-
     object,
     ...
   ){
-    warning(
-      paste0(
-        "default_layer does not know how to handle object of class ",
-        paste(class(object), collapse = ", "),
-        ". Currently supported classes: Seurat and SingleCellExperiment."
-      )
-    )
+    .scuba_unsupported_class(object, "default_layer")
   }
 
 #' @describeIn default_layer Seurat objects
