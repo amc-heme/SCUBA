@@ -59,7 +59,7 @@ AML_h5ad()
 #>     obs: 'nCount_RNA', 'nFeature_RNA', 'nCount_AB', 'nFeature_AB', 'nCount_BOTH', 'nFeature_BOTH', 'BOTH_snn_res.0.9', 'seurat_clusters', 'Prediction_Ind', 'BOTH_snn_res.1', 'ClusterID', 'Batch', 'x', 'y', 'x_mean', 'y_mean', 'cor', 'ct', 'prop', 'meandist', 'cDC', 'B.cells', 'Myelocytes', 'Erythroid', 'Megakaryocte', 'Ident', 'RNA_snn_res.0.4', 'condensed_cell_type'
 #>     var: 'vst.mean', 'vst.variance', 'vst.variance.expected', 'vst.variance.standardized'
 #>     obsm: 'X_pca', 'X_umap', 'protein'
-#>     layers: 'counts'
+#>     layers: 'counts', None (.X)
 
 # Summary of metadata variables in object
 meta_varnames(AML_h5ad())

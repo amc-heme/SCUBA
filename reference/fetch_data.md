@@ -92,7 +92,7 @@ See our GitHub.io website for additional information and examples.
 ``` r
 # Feature expression data
 fetch_data(AML_Seurat, vars = "rna_FLT3") |> str()
-#> SCUBA: Julia engine unavailable (LD_LIBRARY_PATH contains the system library directory /usr/lib ahead of Julia's libraries, which makes Julia embedded in R load system copies of its bundled libraries and crash. Start R with R_LD_LIBRARY_PATH=/opt/R/4.6.2/lib/R/lib (set it in the environment that launches R, e.g. the shiny-server service), or prepend <julia>/lib/julia:<julia>/lib to LD_LIBRARY_PATH. Set options(SCUBA.ignore_ld_library_path = TRUE) to try anyway.); using the R engine.
+#> SCUBA: Julia engine unavailable (LD_LIBRARY_PATH contains the system library directory /usr/local/lib ahead of Julia's libraries, which makes Julia embedded in R load system copies of its bundled libraries and crash. Start R with R_LD_LIBRARY_PATH=/opt/R/4.6.2/lib/R/lib (set it in the environment that launches R, e.g. the shiny-server service), or prepend <julia>/lib/julia:<julia>/lib to LD_LIBRARY_PATH. Set options(SCUBA.ignore_ld_library_path = TRUE) to try anyway.); using the R engine.
 #> 'data.frame':    250 obs. of  1 variable:
 #>  $ rna_FLT3: num  0 0 0 0 0 ...
 
