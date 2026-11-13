@@ -44,6 +44,11 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="scuba-200-development">SCUBA 2.0.0 (development)<a class="anchor" aria-label="anchor" href="#scuba-200-development"></a></h2>
 <div class="section level3">
+<h3 id="split-seurat-v5-layers-on-the-julia-engine-2-0-0">Split Seurat v5 layers on the Julia engine<a class="anchor" aria-label="anchor" href="#split-seurat-v5-layers-on-the-julia-engine-2-0-0"></a></h3>
+<ul><li>With a SCUBA.jl that reads split layers (<code>counts.&lt;group&gt;</code> after <code><a href="https://rdrr.io/r/base/split.html" class="external-link">split()</a></code>, <code>counts.1</code> / <code>counts.2</code> after <code><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge()</a></code>), every accessor on such objects runs on the Julia engine: the logical layer names (<code>counts</code>, <code>data</code>) join the pieces, <code><a href="../reference/pseudobulk.html">pseudobulk()</a></code> aggregates them in one pass, and BPCells-backed pieces are read natively. An explicit piece (<code>layer = "counts.1"</code>) returns every requested cell, <code>NaN</code> outside the piece, where the R engine drops those cells.</li>
+<li>With an older SCUBA.jl (no split-layer support), Seurat objects with split layers use the R engine for every accessor. Previously every Julia-engine accessor failed on them, including <code><a href="../reference/fetch_data.html">fetch_data()</a></code> with the default layer.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="fixes-from-the-review-of-the-branch-2-0-0">Fixes from the review of the 2.0 branch<a class="anchor" aria-label="anchor" href="#fixes-from-the-review-of-the-branch-2-0-0"></a></h3>
 <ul><li>
 <code><a href="../reference/fetch_matrix.html">fetch_matrix()</a></code> on the R engine accepts keyed names (<code>"rna_GAPDH"</code>, <code>"AB_CD117-AB"</code>), which select their assay as on the Julia engine; features from several assays are an error.</li>

@@ -2,6 +2,24 @@
 
 ## SCUBA 2.0.0 (development)
 
+### Split Seurat v5 layers on the Julia engine
+
+- With a SCUBA.jl that reads split layers (`counts.<group>` after
+  [`split()`](https://rdrr.io/r/base/split.html), `counts.1` /
+  `counts.2` after [`merge()`](https://rdrr.io/r/base/merge.html)),
+  every accessor on such objects runs on the Julia engine: the logical
+  layer names (`counts`, `data`) join the pieces,
+  [`pseudobulk()`](https://amc-heme.github.io/SCUBA/reference/pseudobulk.md)
+  aggregates them in one pass, and BPCells-backed pieces are read
+  natively. An explicit piece (`layer = "counts.1"`) returns every
+  requested cell, `NaN` outside the piece, where the R engine drops
+  those cells.
+- With an older SCUBA.jl (no split-layer support), Seurat objects with
+  split layers use the R engine for every accessor. Previously every
+  Julia-engine accessor failed on them, including
+  [`fetch_data()`](https://amc-heme.github.io/SCUBA/reference/fetch_data.md)
+  with the default layer.
+
 ### Fixes from the review of the 2.0 branch
 
 - [`fetch_matrix()`](https://amc-heme.github.io/SCUBA/reference/fetch_matrix.md)
