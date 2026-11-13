@@ -41,7 +41,7 @@ def _matrix(obj, modality, layer):
         if obj.raw is None:
             raise ValueError("The object has no raw matrix (adata.raw is None)")
         return obj.raw.X, obj.raw.var_names
-    if modality in obj.obsm_keys() and isinstance(obj.obsm[modality], pd.DataFrame):
+    if modality in list(obj.obsm.keys()) and isinstance(obj.obsm[modality], pd.DataFrame):
         # An obsm data frame is a single matrix with no layers (layer_names() reports only "X"):
         # aggregating it under any other layer name would silently mislabel its values
         if not (layer is None or layer == "X"):
@@ -51,7 +51,7 @@ def _matrix(obj, modality, layer):
             )
         df = obj.obsm[modality]
         return df, df.columns
-    raise ValueError("Modality '%s' not found; modalities: %s" % (modality, ", ".join(["X"] + list(obj.obsm_keys()))))
+    raise ValueError("Modality '%s' not found; modalities: %s" % (modality, ", ".join(["X"] + list(obj.obsm.keys()))))
 
 
 def _dense_rows(block):

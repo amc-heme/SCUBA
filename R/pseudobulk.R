@@ -273,9 +273,10 @@ pseudobulk.AnnDataR6 <-
   }
 
 # Python AnnData objects that reticulate did not wrap as AnnDataR6 (created with
-# `convert = FALSE`, or any object under Python anndata >= 0.11, where the class is exposed as
-# `anndata.AnnData` rather than `anndata._core.anndata.AnnData`); the same implementation serves
-# every form.
+# `convert = FALSE`, or read while no converter is registered for the class name: Python
+# anndata >= 0.13 reports `anndata.AnnData` rather than `anndata._core.anndata.AnnData`, and
+# SCUBA registers one in R/anndata_shim.R unless another package already has). The same
+# implementation serves every form. Delete with the shim under the anndataR migration (#173).
 #' @rdname pseudobulk
 #' @exportS3Method pseudobulk anndata.AnnData
 pseudobulk.anndata.AnnData <- pseudobulk.AnnDataR6
@@ -306,6 +307,14 @@ pseudobulk.anndata._core.anndata.AnnData <- pseudobulk.AnnDataR6
   keys <- if (is.null(keys)) builtins$list(mapping) else builtins$list(keys)
   keys <- .py_chr(keys)
   keys[!is.na(keys) & nzchar(keys)]
+}
+# obsm keys and obs column names without AnnData's obsm_keys() / obs_keys(),
+# which Python anndata deprecates from 0.12. Read from the Python object, so the
+# whole obs table is never converted to an R data frame just for its names.
+.anndata_obsm_keys <- function(object) .anndata_keys(object$obsm)
+.anndata_obs_columns <- function(object) {
+  python_object <- if (inherits(object, "AnnDataR6")) reticulate::r_to_py(object) else object
+  .py_chr(python_object$obs$columns$to_list())
 }
 # One obs column as a cell-named R vector (a factor with the pandas categories when the column
 # is categorical), for the requested cells.

@@ -97,9 +97,8 @@ default_reduction.AnnDataR6 <-
   function(
     object
   ){
-    # All reductions should be stored in obsm. Obsm matrix names are fetched
-    # using obsm_keys().
-    reductions <- object$obsm_keys()
+    # All reductions should be stored in obsm.
+    reductions <- .anndata_obsm_keys(object)
 
     # AnnData objects
     # Conditional structure reflects priorities of reductions

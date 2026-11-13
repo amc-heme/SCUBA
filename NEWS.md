@@ -1,5 +1,30 @@
 # SCUBA 2.0.0 (development)
 
+## Python anndata 0.13 and pandas 3
+
+* AnnData objects read with Python anndata >= 0.13 or pandas >= 3 are wrapped as `AnnDataR6`
+  again. Those releases renamed `anndata._core.anndata.AnnData` to `anndata.AnnData` and
+  `pandas.core.indexes.base.Index` to `pandas.Index`, the class names the superseded anndata R
+  package registers its reticulate converters under, so `anndata::read_h5ad()` returned an
+  unwrapped Python object. SCUBA now registers converters for the new names when it loads, but
+  only where no other package (a fixed anndata, or anndataR) already has one. The
+  `pandas.Index` converter applies to every reticulate user in the session, as the anndata R
+  package's own converter for the old name already does. This is a stopgap until the anndataR
+  migration (#173).
+* The Python stack SCUBA declares through `reticulate::py_require()` is now
+  `anndata>=0.11.2,<0.14`, `pandas>=2.1.0,<4`, `scipy>=1.14.0` and Python >= 3.10 (previously
+  frozen at anndata 0.10, pandas 2, scipy 1.14 and Python < 3.14). anndata 0.10.x to 0.11.1
+  fail on backed sparse reads with scipy >= 1.15. pandas 3 needs reticulate >= 1.45.0 (now the
+  minimum in Suggests); with an older reticulate SCUBA keeps the managed environment on
+  pandas 2.
+* `fetch_data()` reads dense `X` and dense layers of AnnData objects, in memory and backed.
+  Dense in-memory `X` previously reported its genes as not found, and dense backed `X` raised
+  `NotImplementedError`.
+* SCUBA no longer calls AnnData's deprecated `obsm_keys()` / `obs_keys()` or pandas'
+  `rename(inplace = TRUE)`, so it raises no deprecation warnings on the new stack.
+* The anndata R package's `AnnData()` constructor still fails with Python anndata >= 0.11
+  (#172); this affects building AnnData objects in R, not reading them.
+
 ## Split Seurat v5 layers on the Julia engine
 
 * With a SCUBA.jl that reads split layers (`counts.<group>` after `split()`, `counts.1` /

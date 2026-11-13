@@ -61,5 +61,5 @@ meta_varnames.AnnDataR6 <-
   function(
     object
   ){
-    object$obs_keys()
+    .anndata_obs_columns(object)
   }
