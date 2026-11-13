@@ -103,11 +103,10 @@ fetch_matrix.Seurat <-
     sparse = TRUE
   ){
     layer <- layer %||% default_layer(object)
-    # Split layers (counts.1, counts.2, ... after split() or merge()) hold disjoint cells and
-    # possibly different features: they are assembled on the R path on either engine (SCUBA.jl
-    # indexes cells against the whole object, not the layer). Other requests on the Julia engine
-    # go to SCUBA.jl, which resolves keys and modality names itself.
-    if (.scuba_julia_object(object) && !.seurat_split_request(object, features, assay, layer)) {
+    # On the Julia engine SCUBA.jl resolves keys, modality names and split layers itself (a
+    # SCUBA.jl without split-layer support keeps split objects off the Julia engine, see
+    # .scuba_julia_object()); the R path assembles split layers below.
+    if (.scuba_julia_object(object)) {
       return(.jl_fetch_matrix(object, features, assay = assay, layer = layer, cells = cells, sparse = sparse))
     }
     request <- .r_matrix_request(object, features, assay)
@@ -173,23 +172,6 @@ fetch_matrix.scuba_source <-
   split <- layers[startsWith(layers, paste0(layer, "."))]
   if (length(split)) return(split)
   stop("Layer '", layer, "' not found in the assay; available: ", paste(layers, collapse = ", "), call. = FALSE)
-}
-
-# Whether a Seurat fetch_matrix() request reads a split layer. Lenient on purpose: an assay name
-# R does not recognise is left to SCUBA.jl (which also accepts modality keys) and reported there.
-.seurat_split_request <- function(object, features, assay, layer) {
-  assays <- SeuratObject::Assays(object)
-  target <- if (!is.null(assay)) {
-    if (!assay %in% assays) return(FALSE)
-    assay
-  } else {
-    keys <- vapply(assays, function(a) SeuratObject::Key(object[[a]]), character(1))
-    keyed <- assays[vapply(keys, function(k) any(startsWith(as.character(features), k)), logical(1))]
-    if (length(keyed)) keyed[1] else SeuratObject::DefaultAssay(object)
-  }
-  assay_object <- object[[target]]
-  methods::is(assay_object, "Assay5") && !layer %in% SeuratObject::Layers(assay_object) &&
-    any(startsWith(SeuratObject::Layers(assay_object), paste0(layer, ".")))
 }
 
 # Which assay (Seurat) or experiment (SingleCellExperiment) a fetch_matrix() request reads, and

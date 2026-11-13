@@ -1,5 +1,17 @@
 # SCUBA 2.0.0 (development)
 
+## Split Seurat v5 layers on the Julia engine
+
+* With a SCUBA.jl that reads split layers (`counts.<group>` after `split()`, `counts.1` /
+  `counts.2` after `merge()`), every accessor on such objects runs on the Julia engine:
+  the logical layer names (`counts`, `data`) join the pieces, `pseudobulk()` aggregates them
+  in one pass, and BPCells-backed pieces are read natively. An explicit piece
+  (`layer = "counts.1"`) returns every requested cell, `NaN` outside the piece, where the R
+  engine drops those cells.
+* With an older SCUBA.jl (no split-layer support), Seurat objects with split layers use the R
+  engine for every accessor. Previously every Julia-engine accessor failed on them, including
+  `fetch_data()` with the default layer.
+
 ## Unsupported classes are an error
 
 * Calling a SCUBA generic on an object it has no method for now raises an error instead of

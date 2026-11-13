@@ -278,9 +278,9 @@ test_that("split v5 layers aggregate on the R path on both engines (review #5)",
   r_engine <- with_engine("r", pseudobulk(object, "Batch", "condensed_cell_type"))
   expect_pb_equal(r_engine)
   skip_if_not(scuba_julia_available(quiet = TRUE), "Julia engine not available")
-  # SCUBA.jl resolves cells against the whole object, so split layers stay in R
+  # split layers run on Julia when SCUBA.jl reads them (ScubaR.SPLIT_LAYERS), on R otherwise
   julia_engine <- with_engine("julia", pseudobulk(object, "Batch", "condensed_cell_type"))
-  expect_identical(julia_engine$engine, "r")
+  expect_identical(julia_engine$engine, if (SCUBA:::.scuba_jl_split_layers()) "julia" else "r")
   expect_pb_equal(julia_engine)
 })
 
