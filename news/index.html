@@ -49,6 +49,10 @@
 <li>With an older SCUBA.jl (no split-layer support), Seurat objects with split layers use the R engine for every accessor. Previously every Julia-engine accessor failed on them, including <code><a href="../reference/fetch_data.html">fetch_data()</a></code> with the default layer.</li>
 </ul></div>
 <div class="section level3">
+<h3 id="unsupported-classes-are-an-error-2-0-0">Unsupported classes are an error<a class="anchor" aria-label="anchor" href="#unsupported-classes-are-an-error-2-0-0"></a></h3>
+<ul><li>Calling a SCUBA generic on an object it has no method for now raises an error instead of warning and returning the message text (so <code><a href="../reference/get_all_cells.html">get_all_cells()</a></code> no longer returns that sentence where cell names were expected). The message names the right function (<code><a href="../reference/fetch_data.html">fetch_data()</a></code> used to report itself as <code>fetch_metadata</code>), the object’s class and every supported class (AnnDataR6, Seurat, SingleCellExperiment, scuba_source), read from the registered methods so it cannot drift. A Python AnnData object that the R anndata package did not wrap as AnnDataR6 (Python anndata &gt;= 0.11 in a user-managed environment) gets a hint naming the Python stack SCUBA supports; other reticulate objects point to <code><a href="../reference/open_h5ad.html">open_h5ad()</a></code> / <code><a href="../reference/open_h5ad.html">open_h5mu()</a></code>.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="fixes-from-the-review-of-the-branch-2-0-0">Fixes from the review of the 2.0 branch<a class="anchor" aria-label="anchor" href="#fixes-from-the-review-of-the-branch-2-0-0"></a></h3>
 <ul><li>
 <code><a href="../reference/fetch_matrix.html">fetch_matrix()</a></code> on the R engine accepts keyed names (<code>"rna_GAPDH"</code>, <code>"AB_CD117-AB"</code>), which select their assay as on the Julia engine; features from several assays are an error.</li>

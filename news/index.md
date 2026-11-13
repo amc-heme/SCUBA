@@ -20,6 +20,25 @@
   [`fetch_data()`](https://amc-heme.github.io/SCUBA/reference/fetch_data.md)
   with the default layer.
 
+### Unsupported classes are an error
+
+- Calling a SCUBA generic on an object it has no method for now raises
+  an error instead of warning and returning the message text (so
+  [`get_all_cells()`](https://amc-heme.github.io/SCUBA/reference/get_all_cells.md)
+  no longer returns that sentence where cell names were expected). The
+  message names the right function
+  ([`fetch_data()`](https://amc-heme.github.io/SCUBA/reference/fetch_data.md)
+  used to report itself as `fetch_metadata`), the object’s class and
+  every supported class (AnnDataR6, Seurat, SingleCellExperiment,
+  scuba_source), read from the registered methods so it cannot drift. A
+  Python AnnData object that the R anndata package did not wrap as
+  AnnDataR6 (Python anndata \>= 0.11 in a user-managed environment) gets
+  a hint naming the Python stack SCUBA supports; other reticulate
+  objects point to
+  [`open_h5ad()`](https://amc-heme.github.io/SCUBA/reference/open_h5ad.md)
+  /
+  [`open_h5mu()`](https://amc-heme.github.io/SCUBA/reference/open_h5ad.md).
+
 ### Fixes from the review of the 2.0 branch
 
 - [`fetch_matrix()`](https://amc-heme.github.io/SCUBA/reference/fetch_matrix.md)
