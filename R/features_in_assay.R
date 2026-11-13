@@ -86,7 +86,7 @@ features_in_assay.AnnDataR6 <-
     assay
   ){
     # Check that assay is valid (either X, or a feature from obsm)
-    if (!assay %in% c("X", object$obsm_keys())){
+    if (!assay %in% c("X", .anndata_obsm_keys(object))){
       stop("Assay ", assay, " not found in the obsm slot of the current object.")
     }
     

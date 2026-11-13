@@ -98,7 +98,7 @@ all_keys.AnnDataR6 <-
     # Anndata objects: return names of experiments and reductions
     keys <-
       c("X",
-        object$obsm_keys()
+        .anndata_obsm_keys(object)
         )
 
     # Add names to vector returned for consistency with

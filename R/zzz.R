@@ -6,19 +6,21 @@
   if (requireNamespace("reticulate", quietly = TRUE)) {
     tryCatch(
       {
-        # The anndata R package (superseded) wraps Python AnnData objects as
-        # AnnDataR6 only for Python anndata < 0.11; from 0.11 the class is
-        # exposed as `anndata.AnnData` and SCUBA's AnnData methods are not
-        # dispatched. That series needs pandas < 3 and scipy < 1.15 (backed
-        # matrices call scipy's removed `_validate_indices`), and scipy 1.14
-        # has no wheels for Python 3.14. Freeze that stack for
-        # reticulate-managed environments until the anndataR migration
-        # (https://github.com/amc-heme/SCUBA/issues/173); environments the
-        # user manages (RETICULATE_PYTHON) are not affected. The pins live in
-        # .scuba_python_requirements (R/unsupported_class.R) so error
-        # messages can quote them.
+        # Python stack for reticulate-managed environments. The bounds and
+        # the reason for each live in .scuba_python_requirements
+        # (R/unsupported_class.R), so error messages can quote them.
+        # Environments the user manages (RETICULATE_PYTHON, use_python(),
+        # use_condaenv()) ignore py_require(); the converters registered
+        # below cover those too.
+        packages <- .scuba_python_requirements$packages
+        # reticulate converts pandas 3 data frames only from 1.45.0; keep
+        # an older reticulate on pandas 2 rather than hand it objects it
+        # cannot convert.
+        if (utils::packageVersion("reticulate") < "1.45.0") {
+          packages <- c(packages, "pandas<3")
+        }
         reticulate::py_require(
-          .scuba_python_requirements$packages,
+          packages,
           python_version = .scuba_python_requirements$python_version
         )
       },
@@ -34,5 +36,25 @@
         )
       }
     )
+    # Converters for the class names Python anndata >= 0.13 and pandas >= 3
+    # use (R/anndata_shim.R). Only when the anndata R package is installed:
+    # the converters wrap objects in its AnnDataR6 class. system.file() checks
+    # for it without loading it.
+    if (nzchar(system.file(package = "anndata"))) {
+      tryCatch(
+        .scuba_register_py_converters(),
+        error = function(e) {
+          warning(
+            paste(
+              "SCUBA could not register its reticulate converters for",
+              "Python anndata >= 0.13 / pandas >= 3; AnnData objects read",
+              "with those versions may not be wrapped as AnnDataR6.",
+              conditionMessage(e)
+            ),
+            call. = FALSE
+          )
+        }
+      )
+    }
   }
 }

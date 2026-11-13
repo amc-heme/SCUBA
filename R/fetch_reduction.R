@@ -159,10 +159,11 @@ fetch_reduction.AnnDataR6 <-
     }
 
     # Throw an error if the reduction entered does not exist
-    if (!reduction %in% object$obsm_keys()) {
+    obsm_keys <- .anndata_obsm_keys(object)
+    if (!reduction %in% obsm_keys) {
       # Collapse available reductions into a single-length character
       # vector for display
-      reductions_str <- paste(object$obsm_keys(), collapse = ", ")
+      reductions_str <- paste(obsm_keys, collapse = ", ")
 
       stop(
         paste0(

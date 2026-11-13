@@ -16,6 +16,9 @@ except ImportError:
     except ImportError:
         from anndata._core.sparse_dataset import CSRDataset, CSCDataset
 
+# h5py: dense backed matrices are h5py Datasets
+import h5py
+
 # Base Python
 from collections import Counter
 import re
@@ -75,7 +78,7 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
     
     # Get a list of all "keys" in the object 
     # Currently supported locations: X, obs, and matrices within obsm
-    key_names = ["X", "obs"] + list(obj.obsm_keys())
+    key_names = ["X", "obs"] + list(obj.obsm.keys())
     
     # Construct a list of keys with the indices of vars that match each key
     keyed_var_locations = []
@@ -162,7 +165,7 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
                 
                 # Subset for vars in matrix
                 
-            elif key in obj.obsm_keys():
+            elif key in list(obj.obsm.keys()):
                 # For a key in the list of obsm keys, pull matrix for that entry
                 matrix = obj.obsm[key]
                 
@@ -191,7 +194,20 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
             # data types possible for the matrix
             # This is not considered "pythonic" and may need to be re-thought 
             # https://stackoverflow.com/questions/2225038/determine-the-type-of-an-object
-            if (isinstance(matrix, csr_matrix) | isinstance(matrix, csc_matrix)):
+            if key == "X" and isinstance(matrix, (np.ndarray, h5py.Dataset)):
+                # Dense X or layer, in memory (numpy) or backed (h5py).
+                # Columns are features, so select them by position in
+                # var_names (the numpy branch further down is for obsm
+                # matrices, whose columns have no names).
+                data = dense_feature_block(
+                    matrix,
+                    cells_idx = obj.obs_names.get_indexer(cells),
+                    vars_idx = obj.var_names.get_indexer(keyless_vars),
+                    cells = cells,
+                    keyless_vars = keyless_vars
+                    )
+
+            elif (isinstance(matrix, csr_matrix) | isinstance(matrix, csc_matrix)):
                 # Sparse matrix format (X and layers) 
                 # subset *object for genes, then construct a pandas dataframe 
                 # (sparse matrices don't subset easily in python)
@@ -325,6 +341,43 @@ def fetch_keyed_vars(obj, target_vars, cells, layer):
     # When finished with iteration, return the dataframe
     return data_return
 
+def dense_feature_block(matrix, cells_idx, vars_idx, cells, keyless_vars):
+    """
+    Reads a cells x features block from a dense X matrix or layer.
+
+    Arguments
+    ----------
+    matrix: a numpy array (in-memory object) or an h5py Dataset (backed
+    object), with cells as rows and features as columns.
+
+    cells_idx, vars_idx: integer positions of the requested cells and
+    features, in the order requested.
+
+    cells, keyless_vars: the requested cell and feature names, used as the
+    index and columns of the result.
+
+    Returns
+    ----------
+    A pandas dataframe with one column per feature.
+    """
+    if isinstance(matrix, h5py.Dataset):
+        # h5py reads only strictly increasing positions along one axis, so
+        # read the needed feature columns in sorted order once, then put
+        # cells and features back in the requested order in memory. Only
+        # n_cells x n_features values are read, never the whole matrix.
+        unique_vars, vars_order = np.unique(vars_idx, return_inverse=True)
+        block = matrix[:, unique_vars] if len(unique_vars) > 0 else \
+            np.empty((matrix.shape[0], 0), dtype=matrix.dtype)
+        block = block[cells_idx, :][:, vars_order]
+    else:
+        block = matrix[np.ix_(cells_idx, vars_idx)]
+
+    return pd.DataFrame(
+        np.asarray(block),
+        index = cells,
+        columns = keyless_vars
+        )
+
 def remove_key(data, key, vars_modify=None):
     """
     Removes the key prefix from all var entries with the defined
@@ -365,9 +418,8 @@ def remove_key(data, key, vars_modify=None):
                 if key_regex.search(var)
                 }
     
-    data.rename(remove_key, axis=1, inplace=True)
-    
-    return data
+    # Return a renamed copy: pandas deprecates inplace=True on rename()
+    return data.rename(columns=remove_key)
 
 def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     """
@@ -492,7 +544,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
     metadata_vars = [
         remaining_var
         for remaining_var in remaining_vars 
-        if remaining_var in obj.obs_keys()
+        if remaining_var in list(obj.obs.columns)
         ]
     
     for remaining_var in remaining_vars:
@@ -509,7 +561,7 @@ def fetch_anndata(obj, fetch_vars, cells=None, layer=None):
             remaining_locations[remaining_var].append("obs")
         
         # Look in obsm locations
-        for obsm_key in obj.obsm_keys():
+        for obsm_key in list(obj.obsm.keys()):
             # Must test pandas DataFrames separately to avoid 
             # errors with .columns 
             if isinstance(obj.obsm[obsm_key], pd.DataFrame):

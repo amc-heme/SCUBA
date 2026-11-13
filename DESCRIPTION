@@ -68,7 +68,7 @@ LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
     JuliaCall (>= 0.17),
-    reticulate (>= 1.41.0),
+    reticulate (>= 1.45.0),
     anndata,
     knitr,
     BPCells,
