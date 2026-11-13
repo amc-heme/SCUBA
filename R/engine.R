@@ -300,7 +300,32 @@ scuba_julia_warmup <- function(objects = list()) {
   # so Seurat objects stay on the R engine under SeuratObject 4
   (is_seurat || inherits(object, "SingleCellExperiment")) &&
     identical(scuba_engine(), "julia") &&
-    (!is_seurat || .seuratobject_v5())
+    (!is_seurat || .seuratobject_v5()) &&
+    # split v5 layers need a SCUBA.jl that reads them (ScubaR.SPLIT_LAYERS); older ones index each
+    # piece with whole-object positions, so those objects stay on the R engine
+    (!is_seurat || .scuba_jl_split_layers() || !.seurat_has_split_layers(object))
+}
+
+# Whether the running SCUBA.jl reads split Seurat v5 layers (cached for the session).
+.scuba_jl_split_layers <- function() {
+  if (is.null(.scuba_env$jl_split_layers)) {
+    .scuba_env$jl_split_layers <- isTRUE(JuliaCall::julia_eval("isdefined(ScubaR, :SPLIT_LAYERS)"))
+  }
+  .scuba_env$jl_split_layers
+}
+
+# Whether any assay of a Seurat object holds split layers: a Seurat layer name (counts, data,
+# scale.data) that is not itself a layer but has `<layer>.<group>` pieces (after split() or
+# merge()). A plain `scale.data` layer is not a split.
+.seurat_has_split_layers <- function(object) {
+  any(vapply(SeuratObject::Assays(object), function(a) {
+    assay <- object[[a]]
+    if (!methods::is(assay, "Assay5")) return(FALSE)
+    layers <- SeuratObject::Layers(assay)
+    any(vapply(c("counts", "data", "scale.data"), function(base) {
+      !base %in% layers && any(startsWith(layers, paste0(base, ".")))
+    }, logical(1)))
+  }, logical(1)))
 }
 
 # SeuratObject 5 or later (its accessors take `layer =`; SeuratObject 4's take `slot =`). A

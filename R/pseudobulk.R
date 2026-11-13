@@ -135,24 +135,24 @@ pseudobulk.Seurat <-
     total <- matrix(0, length(features), n_profiles)
     n <- integer(n_profiles)
     engine <- "r"
-    # Split layers (counts.1, counts.2, ...) are aggregated on the R path: SCUBA.jl resolves cell
-    # positions against the whole object, not the smaller layer, so it cannot read them yet.
-    use_julia <- .scuba_julia_object(object) && length(layers) == 1L
-    for (one_layer in layers) {
-      if (use_julia) {
-        # A single layer is sent whole (NULL cells = object order) unless the caller subset
-        # the cells.
-        jl_cells <- if (is.null(cells)) NULL else design$cells
-        res <- .jl_pseudobulk(object, design$codes, n_profiles, assay = assay, layer = one_layer,
-                              cells = jl_cells, features = features)
-        res$sum <- res$sum[match(features, res$features), , drop = FALSE]
-        engine <- "julia"
-      } else {
+    if (.scuba_julia_object(object)) {
+      # One call: SCUBA.jl joins split layers (counts.1, counts.2, ...) under their logical name,
+      # zero-filling features a piece lacks. The layer is sent whole (NULL cells = object order)
+      # unless the caller subset the cells.
+      jl_cells <- if (is.null(cells)) NULL else design$cells
+      res <- .jl_pseudobulk(object, design$codes, n_profiles, assay = assay,
+                            layer = if (length(layers) == 1L) layers else layer,
+                            cells = jl_cells, features = features)
+      total <- res$sum[match(features, res$features), , drop = FALSE]
+      n <- res$n
+      engine <- "julia"
+    } else {
+      for (one_layer in layers) {
         res <- .r_pseudobulk_matrix(SeuratObject::LayerData(assay_object, layer = one_layer), design, features,
                                     partial = length(layers) > 1)
+        total <- total + res$sum
+        n <- n + res$n
       }
-      total <- total + res$sum
-      n <- n + res$n
     }
     .pseudobulk_result(total, n, design, features, assay, layer, fun, sample_by, group_by, engine)
   }
